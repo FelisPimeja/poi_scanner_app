@@ -1,0 +1,63 @@
+# ===========================
+# Test Fixtures — реальные фото POI (большой объём, не для репозитория)
+# ===========================
+POI Scanner/tests/Fixtures/Photos/
+
+# Черновые JSON (генерируются автоматически, редактируются вручную)
+# Готовые эталоны кладём в Fixtures/Expected/ — они версионируются
+POI ScannerTests/Fixtures/Drafts/
+
+# ===========================
+# Xcode
+# ===========================
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ===========================
+# Swift Package Manager
+# ===========================
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# ===========================
+# CocoaPods (на всякий случай)
+# ===========================
+Pods/
+*.xcworkspace
+!*.xcodeproj/*.xcworkspace
+!*.xcodeproj/project.xcworkspace
+
+# ===========================
+# macOS
+# ===========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ===========================
+# Секреты и ключи
+# ===========================
+*.env
+Secrets.swift
+APIKeys.swift
+Config.xcconfig

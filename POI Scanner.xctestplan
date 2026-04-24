@@ -1,0 +1,36 @@
+{
+  "configurations" : [
+    {
+      "id" : "AFD6F8FC-A1D4-4827-8E92-B98C057D73EB",
+      "name" : "Test Scheme Action",
+      "environmentVariableEntries" : [
+        {
+          "key" : "POI_FIXTURES_PATH",
+          "value" : "/Users/felispimeja/github/POI Scanner/POI ScannerTests/Fixtures"
+        }
+      ],
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:POI Scanner.xcodeproj",
+      "identifier" : "D571A70A2F93DA04005C05B3",
+      "name" : "POI Scanner"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:POI Scanner.xcodeproj",
+        "identifier" : "D571ADE32F93EFF4005C05B3",
+        "name" : "POI ScannerTests"
+      }
+    }
+  ],
+  "version" : 1
+}

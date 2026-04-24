@@ -1,0 +1,52 @@
+[
+  {
+    "id": "indoor-polygon",
+    "type": "fill",
+    "source-layer": "area",
+    "minzoom": 17,
+    "paint": {
+      "fill-color": "#fdfcfa"
+    }
+  },
+  {
+    "id": "indoor-area",
+    "type": "line",
+    "source-layer": "area",
+    "minzoom": 17,
+    "paint": {
+      "line-color": "#bfbfbf",
+      "line-width": 1
+    }
+  },
+  {
+    "id": "indoor-column",
+    "type": "fill",
+    "source-layer": "area",
+    "minzoom": 17,
+    "paint": {
+      "fill-color": "#bfbfbf"
+    }
+  },
+  {
+    "id": "indoor-lines",
+    "type": "line",
+    "source-layer": "area",
+    "minzoom": 17,
+    "paint": {
+      "line-color": "#808080",
+      "line-width": 2
+    }
+  },
+  {
+    "id": "indoor-transportation",
+    "type": "line",
+    "source-layer": "transportation",
+    "minzoom": 17,
+    "paint": {
+      "line-color": "#808080",
+      "line-dasharray": [0.4, 0.75],
+      "line-width": ["interpolate", ["exponential", 1.4], ["zoom"], 17, 2, 20, 10]
+    }
+  }
+]
+

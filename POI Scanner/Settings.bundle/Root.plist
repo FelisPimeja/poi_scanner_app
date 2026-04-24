@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>StringsTable</key>
+    <string>Root</string>
+    <key>PreferenceSpecifiers</key>
+    <array>
+        <dict>
+            <key>Type</key>
+            <string>PSMultiValueSpecifier</string>
+            <key>Title</key>
+            <string>Language / Язык</string>
+            <key>Key</key>
+            <string>appLanguage</string>
+            <key>DefaultValue</key>
+            <string>en</string>
+            <key>Titles</key>
+            <array>
+                <string>English</string>
+                <string>Русский</string>
+            </array>
+            <key>Values</key>
+            <array>
+                <string>en</string>
+                <string>ru</string>
+            </array>
+        </dict>
+        <dict>
+            <key>Type</key>
+            <string>PSGroupSpecifier</string>
+            <key>Title</key>
+            <string>Floor numbering / Нумерация этажей</string>
+            <key>FooterText</key>
+            <string>English: G (ground), +1, +2 … | Русский: 1, 2, 3 … (уровень 0 = 1-й этаж)</string>
+        </dict>
+    </array>
+</dict>
+</plist>
