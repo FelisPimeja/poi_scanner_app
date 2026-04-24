@@ -48,12 +48,11 @@ final class MapViewModel: ObservableObject {
     // MARK: - Init
 
     init() {
-        // Восстанавливаем кэш Overpass при старте.
-        // Если центр карты (из MapPreferences) находится внутри сохранённого bbox — используем кэш.
-        if let cached = POICache.load(for: MapPreferences.center) {
-            osmNodes = cached.nodes
-            lastLoadedBounds = cached.bounds
-        }
+        // 🧪 TEMP: загрузка кэша отключена для диагностики фризов
+        // if let cached = POICache.load(for: MapPreferences.center) {
+        //     osmNodes = cached.nodes
+        //     lastLoadedBounds = cached.bounds
+        // }
     }
 
     // MARK: - Public API
@@ -105,12 +104,16 @@ final class MapViewModel: ObservableObject {
 
     /// Загрузить OSM ноды для видимой области (вызывается при первой загрузке стиля)
     func loadNodes(for bounds: MLNCoordinateBounds) async {
+        // 🧪 TEMP: отключено для диагностики фризов
+        return
         guard shouldLoad(bounds: bounds) else { return }
         await fetchNodes(for: expandedBounds(bounds))
     }
 
     /// Загрузить ноды с дебаунсом 1.5с и отменой предыдущего запроса
     func loadNodesIfNeeded(for bounds: MLNCoordinateBounds) {
+        // 🧪 TEMP: отключено для диагностики фризов
+        return
         guard shouldLoad(bounds: bounds), escapedCachedArea(bounds) else { return }
 
         debounceTask?.cancel()
@@ -162,6 +165,9 @@ final class MapViewModel: ObservableObject {
     }
 
     private func fetchNodes(for bounds: MLNCoordinateBounds) async {
+        // 🧪 TEMP: Overpass отключён для диагностики фризов
+        return
+
         isLoading = true
         errorMessage = nil
 
