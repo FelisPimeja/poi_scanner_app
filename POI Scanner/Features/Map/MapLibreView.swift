@@ -269,17 +269,24 @@ extension MapLibreView {
             let cls    = attrs["class"]    as? String ?? ""
             let sub    = attrs["subclass"] as? String ?? ""
 
-            // OSM id — MapTiler Planet кодирует id как (osmID * 10 + typeCode):
-            //   typeCode 0 = node, 2 = way, 4 = relation
-            // Декодируем: osmID = encodedID / 10, type = encodedID % 10
+            // Логируем ВСЕ атрибуты и identifier для диагностики схемы id в v4
+            print("[MapTiler] feature.identifier = \(feature.identifier ?? "nil") (type: \(type(of: feature.identifier)))")
+            print("[MapTiler] feature.attributes:")
+            for (k, v) in attrs.sorted(by: { $0.key < $1.key }) {
+                print("  \(k) = \(v)")
+            }
+
+            // OSM id — MapTiler Planet v4 кодирует id как (osmID * 32 + typeCode):
+            //   typeCode 1 = node, 2 = way, 3 = relation
+            // Декодируем: osmID = encodedID / 32, type = encodedID % 32
             let osmID: Int64
             let osmType: OSMElementType
             if let num = feature.identifier as? NSNumber {
                 let encoded = num.int64Value
-                osmID = encoded / 10
-                switch encoded % 10 {
-                case 1:  osmType = .way
-                case 4:  osmType = .relation
+                osmID = encoded / 32
+                switch encoded % 32 {
+                case 2:  osmType = .way
+                case 3:  osmType = .relation
                 default: osmType = .node
                 }
             } else {
@@ -615,7 +622,11 @@ extension MapLibreView {
             let floor = "\(viewModel.selectedFloor)"
 
             func insert(_ layer: MLNStyleLayer) {
-                if let anchor = style.layer(withIdentifier: "com.mapbox.annotations.points") {
+                // POI-слои MapTiler должны рисоваться ПОВЕРХ indoor → вставляем под нижний из них.
+                // Fallback: под annotation-слой, затем в конец стека.
+                if let firstPOILayer = style.layers.first(where: { mapTilerPOILayerIDs.contains($0.identifier) }) {
+                    style.insertLayer(layer, below: firstPOILayer)
+                } else if let anchor = style.layer(withIdentifier: "com.mapbox.annotations.points") {
                     style.insertLayer(layer, below: anchor)
                 } else {
                     style.addLayer(layer)
@@ -690,6 +701,9 @@ extension MapLibreView {
             ])
             entranceLayer.iconImageName = NSExpression(forConstantValue: "indoorequal-entrance")
             entranceLayer.iconScale = NSExpression(forConstantValue: NSNumber(value: 1.0))
+            // Разрешаем перекрытие — indoor-символы не должны вытеснять MapTiler POI иконки
+            entranceLayer.iconAllowsOverlap = NSExpression(forConstantValue: true)
+            entranceLayer.textAllowsOverlap = NSExpression(forConstantValue: true)
             entranceLayer.minimumZoomLevel = 17
             insert(entranceLayer)
 
@@ -718,6 +732,9 @@ extension MapLibreView {
                 l.textHaloColor = NSExpression(forConstantValue: UIColor.white)
                 l.textHaloWidth = NSExpression(forConstantValue: NSNumber(value: 1.0))
                 l.textHaloBlur = NSExpression(forConstantValue: NSNumber(value: 0.5))
+                // Разрешаем перекрытие — indoor-символы не должны вытеснять MapTiler POI иконки
+                l.iconAllowsOverlap = NSExpression(forConstantValue: true)
+                l.textAllowsOverlap = NSExpression(forConstantValue: true)
                 l.minimumZoomLevel = (id == Self.indoorPoiRank2LayerID) ? 19 : 17
                 return l
             }
@@ -760,6 +777,7 @@ extension MapLibreView {
             ] as NSArray)
             transPoiLayer.symbolPlacement = NSExpression(forConstantValue: "line-center")
             transPoiLayer.iconRotationAlignment = NSExpression(forConstantValue: "viewport")
+            transPoiLayer.iconAllowsOverlap = NSExpression(forConstantValue: true)
             transPoiLayer.minimumZoomLevel = 17
             insert(transPoiLayer)
 
@@ -772,6 +790,7 @@ extension MapLibreView {
             nameLayer.textHaloColor = NSExpression(forConstantValue: UIColor.white)
             nameLayer.textHaloWidth = NSExpression(forConstantValue: NSNumber(value: 1.0))
             nameLayer.maximumTextWidth = NSExpression(forConstantValue: NSNumber(value: 5))
+            nameLayer.textAllowsOverlap = NSExpression(forConstantValue: true)
             nameLayer.minimumZoomLevel = 17
             insert(nameLayer)
         }
@@ -1365,7 +1384,7 @@ extension MapLibreView.Coordinator: UIGestureRecognizerDelegate {
 
 enum MapStyle {
     /// MapTiler Streets — требует API ключ (хранится в Secrets.swift, не в git)
-    static let mapTiler = URL(string: "https://api.maptiler.com/maps/streets/style.json?key=\(Secrets.mapTilerKey)")!
+    static let mapTiler = URL(string: "https://api.maptiler.com/maps/streets-v4/style.json?key=\(Secrets.mapTilerKey)")!
 
     /// OpenFreeMap — резерв без ключа (для CI / если нет Secrets.swift)
     static let openFreeMap = URL(string: "https://tiles.openfreemap.org/styles/liberty")!

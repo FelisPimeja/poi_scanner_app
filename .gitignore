@@ -1,10 +1,11 @@
 # ===========================
 # Test Fixtures — реальные фото POI (большой объём, не для репозитория)
 # ===========================
-POI Scanner/tests/Fixtures/Photos/
+POI ScannerTests/Fixtures/Photos/
+POI ScannerTests/Fixtures/Expected/
+POI ScannerTests/Fixtures/ocr_cache.json
 
 # Черновые JSON (генерируются автоматически, редактируются вручную)
-# Готовые эталоны кладём в Fixtures/Expected/ — они версионируются
 POI ScannerTests/Fixtures/Drafts/
 
 # ===========================
