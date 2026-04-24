@@ -31,13 +31,19 @@ final class OSMAPIService {
             Task { try? await closeChangeset(changesetID, token: token) }
         }
 
-        // 2. Создаём или обновляем ноду
+        // 2. Создаём или обновляем объект
         var updated = poi
-        if let nodeID = poi.osmNodeId {
-            // modify
-            try await modifyNode(poi: poi, nodeID: nodeID, changesetID: changesetID, token: token)
+        if let osmID = poi.osmNodeId {
+            switch poi.osmType {
+            case .way:
+                let nodeRefs = try await fetchWayNodeRefs(wayID: osmID, token: token)
+                try await modifyWay(poi: poi, wayID: osmID, nodeRefs: nodeRefs, changesetID: changesetID, token: token)
+            case .relation:
+                throw OSMAPIError.unsupportedType("Редактирование relation пока не поддерживается")
+            default:
+                try await modifyNode(poi: poi, nodeID: osmID, changesetID: changesetID, token: token)
+            }
         } else {
-            // create
             let newID = try await createNode(poi: poi, changesetID: changesetID, token: token)
             updated.osmNodeId = newID
         }
@@ -108,7 +114,59 @@ final class OSMAPIService {
     private func modifyNode(poi: POI, nodeID: Int64, changesetID: Int, token: String) async throws {
         let version = poi.osmVersion ?? 1
         let xml = nodeXML(poi: poi, changesetID: changesetID, nodeID: "\(nodeID)", version: version)
+        print("[OSMUpload] 📤 PUT node/\(nodeID) version=\(version) osmVersion_in_poi=\(String(describing: poi.osmVersion)) tags=\(poi.tags)")
+        print("[OSMUpload] 📄 XML:\n\(xml)")
         let url = URL(string: "\(baseURL)/node/\(nodeID)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.httpBody = xml.data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+    }
+
+    // MARK: - Way modify
+
+    /// Загружает актуальный список node refs для way из OSM API (нужен для modify).
+    private func fetchWayNodeRefs(wayID: Int64, token: String) async throws -> [Int64] {
+        let url = URL(string: "\(baseURL)/way/\(wayID)")!
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+
+        // Парсим XML: <nd ref="..."/>
+        let xml = String(data: data, encoding: .utf8) ?? ""
+        let refs = xml.components(separatedBy: "<nd ref=\"").dropFirst().compactMap { chunk -> Int64? in
+            guard let end = chunk.firstIndex(of: "\"") else { return nil }
+            return Int64(chunk[chunk.startIndex..<end])
+        }
+        guard !refs.isEmpty else {
+            throw OSMAPIError.unexpectedResponse("Way \(wayID) содержит нулевое количество nd ref")
+        }
+        return refs
+    }
+
+    private func modifyWay(poi: POI, wayID: Int64, nodeRefs: [Int64], changesetID: Int, token: String) async throws {
+        guard let version = poi.osmVersion else {
+            throw OSMAPIError.unexpectedResponse("Версия way \(wayID) неизвестна — обновите объект")
+        }
+        let tagsXML = poi.tags.map { k, v in
+            "    <tag k=\"\(xmlEscape(k))\" v=\"\(xmlEscape(v))\"/>"
+        }.joined(separator: "\n")
+        let refsXML = nodeRefs.map { "    <nd ref=\"\($0)\"/>" }.joined(separator: "\n")
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <osm>
+          <way id="\(wayID)" version="\(version)" changeset="\(changesetID)">
+        \(refsXML)
+        \(tagsXML)
+          </way>
+        </osm>
+        """
+        let url = URL(string: "\(baseURL)/way/\(wayID)")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -168,6 +226,7 @@ enum OSMAPIError: LocalizedError {
     case notAuthenticated
     case httpError(Int, String)
     case unexpectedResponse(String)
+    case unsupportedType(String)
 
     var errorDescription: String? {
         switch self {
@@ -177,6 +236,8 @@ enum OSMAPIError: LocalizedError {
             return "HTTP \(code): \(body)"
         case .unexpectedResponse(let msg):
             return "Неожиданный ответ сервера: \(msg)"
+        case .unsupportedType(let msg):
+            return msg
         }
     }
 }

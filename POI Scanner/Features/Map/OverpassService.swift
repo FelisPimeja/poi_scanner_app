@@ -35,19 +35,19 @@ final class OverpassService {
             query = """
             [out:json][timeout:10];
             node(\(id));
-            out body;
+            out body meta;
             """
         case .way:
             query = """
             [out:json][timeout:10];
             way(\(id));
-            out ids center tags;
+            out body center meta;
             """
         case .relation:
             query = """
             [out:json][timeout:10];
             relation(\(id));
-            out ids center tags;
+            out body center meta;
             """
         }
         let data = try await fetch(query: query)

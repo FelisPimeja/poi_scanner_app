@@ -16,6 +16,14 @@ struct MapLibreView: UIViewRepresentable {
         mapView.delegate = context.coordinator
         mapView.automaticallyAdjustsContentInset = true
 
+        // Тап по MapTiler vector POI (symbol-слои из Streets стиля)
+        let poiTap = UITapGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handlePOITap(_:))
+        )
+        poiTap.delegate = context.coordinator
+        mapView.addGestureRecognizer(poiTap)
+
         // Начальная позиция — восстанавливаем из UserDefaults (или Москва по умолчанию)
         mapView.setCenter(
             MapPreferences.center,
@@ -152,6 +160,10 @@ extension MapLibreView {
         /// Последний этаж, применённый к фильтру слоёв (позволяет избежать лишних вызовов).
         var lastRenderedFloor: Int = 0
 
+        /// Идентификаторы style-слоёв MapTiler Streets, которые рисуют POI символы.
+        /// Заполняется в didFinishLoading style путём инспекции style.layers.
+        var mapTilerPOILayerIDs: Set<String> = []
+
         init(viewModel: MapViewModel) {
             self.viewModel = viewModel
         }
@@ -229,12 +241,126 @@ extension MapLibreView {
             }
         }
 
+        // MARK: - MapTiler POI tap
+
+        /// Обрабатывает тап по MapTiler vector-tile POI символам.
+        /// Находит ближайший POI в радиусе 22pt, строит синтетический OSMNode
+        /// и открывает detail sheet. Если у фичи есть OSM id — Overpass
+        /// догружает полные теги автоматически через selectNode.
+        @objc func handlePOITap(_ sender: UITapGestureRecognizer) {
+            guard sender.state == .ended,
+                  let mapView = sender.view as? MLNMapView,
+                  !mapTilerPOILayerIDs.isEmpty else { return }
+
+            let pt = sender.location(in: mapView)
+            // Небольшой hit area 44×44pt вокруг тапа
+            let hitRect = CGRect(x: pt.x - 22, y: pt.y - 22, width: 44, height: 44)
+            let features = mapView.visibleFeatures(in: hitRect,
+                                                   styleLayerIdentifiers: mapTilerPOILayerIDs)
+            guard let feature = features.first else { return }
+
+            // Координата
+            guard let shape = feature as? MLNShape else { return }
+            let coord = shape.coordinate
+
+            // Атрибуты фичи
+            let attrs = feature.attributes
+            let name   = attrs["name"]     as? String
+            let cls    = attrs["class"]    as? String ?? ""
+            let sub    = attrs["subclass"] as? String ?? ""
+
+            // OSM id — MapTiler Planet кодирует id как (osmID * 10 + typeCode):
+            //   typeCode 0 = node, 2 = way, 4 = relation
+            // Декодируем: osmID = encodedID / 10, type = encodedID % 10
+            let osmID: Int64
+            let osmType: OSMElementType
+            if let num = feature.identifier as? NSNumber {
+                let encoded = num.int64Value
+                osmID = encoded / 10
+                switch encoded % 10 {
+                case 1:  osmType = .way
+                case 4:  osmType = .relation
+                default: osmType = .node
+                }
+            } else {
+                osmID = 0
+                osmType = .node
+            }
+            print("[MapTiler] тап: encodedID=\(feature.identifier ?? "nil") → osmID=\(osmID) type=\(osmType.rawValue)")
+
+            // Собираем минимальные теги для отображения заголовка и категории в sheet
+            var tags: [String: String] = [:]
+            if let name { tags["name"] = name }
+            tags.merge(mapTilerAttrsToOSMTags(cls: cls, sub: sub)) { _, new in new }
+
+            let node = OSMNode(
+                id: osmID,
+                type: osmType,
+                latitude: coord.latitude,
+                longitude: coord.longitude,
+                tags: tags,
+                version: 1
+            )
+
+            // selectNode открывает sheet и асинхронно тянет полные теги из Overpass по id
+            Task { @MainActor [weak self] in
+                self?.viewModel.selectNode(node)
+            }
+        }
+
+        /// Конвертирует MapTiler Planet class/subclass в ближайшие OSM теги.
+        /// Точность достаточна для первоначального отображения — полные теги придут из Overpass.
+        private func mapTilerAttrsToOSMTags(cls: String, sub: String) -> [String: String] {
+            let v = sub.isEmpty ? cls : sub
+            guard !v.isEmpty else { return [:] }
+
+            let shopValues: Set<String> = [
+                "supermarket", "convenience", "bakery", "butcher", "clothes", "shoes",
+                "electronics", "hardware", "pharmacy", "beauty", "hairdresser", "florist",
+                "pet", "books", "toys", "sports", "jewelry", "stationery", "optician",
+                "mobile_phone", "department_store", "mall", "wholesale", "greengrocer",
+                "newsagent", "confectionery", "alcohol", "bicycle", "car",
+            ]
+            let tourismValues: Set<String> = [
+                "hotel", "hostel", "motel", "guest_house", "apartment", "camp_site",
+                "museum", "gallery", "attraction", "viewpoint", "zoo", "castle",
+                "theme_park", "aquarium",
+            ]
+            let leisureValues: Set<String> = [
+                "sports_centre", "stadium", "swimming_pool", "fitness_centre", "golf_course",
+                "playground", "park", "pitch", "track", "ice_rink", "marina",
+                "water_park", "miniature_golf",
+            ]
+
+            if shopValues.contains(v) || shopValues.contains(cls) {
+                return ["shop": v]
+            } else if tourismValues.contains(v) || tourismValues.contains(cls) {
+                return ["tourism": v]
+            } else if leisureValues.contains(v) || leisureValues.contains(cls) {
+                return ["leisure": v]
+            } else {
+                return ["amenity": v]
+            }
+        }
+
         // MARK: - MLNMapViewDelegate
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
             // Стиль загружен — можно запросить ноды для текущего bbox
             let bounds = mapView.visibleCoordinateBounds
             Task { await viewModel.loadNodes(for: bounds) }
+
+            // Собираем идентификаторы style-слоёв, которые рендерят MapTiler POI из source-layers poi_*
+            // (используются в handlePOITap для запроса visibleFeatures)
+            mapTilerPOILayerIDs = Set(
+                style.layers.compactMap { layer -> String? in
+                    guard let vl = layer as? MLNVectorStyleLayer,
+                          let sl = vl.sourceLayerIdentifier,
+                          sl.hasPrefix("poi") || sl == "street_furniture" else { return nil }
+                    return layer.identifier
+                }
+            )
+            print("[MapTiler] POI style layers: \(mapTilerPOILayerIDs.count) шт.")
 
             // Подключаем indoor-слои поверх базового стиля
             setupIndoorLayers(style: style, mapView: mapView)
@@ -352,7 +478,7 @@ extension MapLibreView {
             else { return nil }
 
             let paint  = (def["paint"]  as? NSDictionary) ?? NSDictionary()
-            let layout = (def["layout"] as? NSDictionary) ?? NSDictionary()
+            _ = (def["layout"] as? NSDictionary) ?? NSDictionary()
 
             // Round-trip через JSONSerialization гарантирует, что объект попадает
             // в NSExpression(mglJSONObject:) как чистый NSArray/NSNumber/NSString,
@@ -1219,6 +1345,19 @@ private extension UIColor {
             blue:  CGFloat( rgb        & 0xFF) / 255,
             alpha: 1
         )
+    }
+}
+
+// MARK: - Coordinator + UIGestureRecognizerDelegate
+
+extension MapLibreView.Coordinator: UIGestureRecognizerDelegate {
+    /// Разрешаем одновременную работу нашего POI-тапа со встроенными жестами MapLibre
+    /// (выбор аннотации, двойной тап для зума и т.п.)
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        return true
     }
 }
 

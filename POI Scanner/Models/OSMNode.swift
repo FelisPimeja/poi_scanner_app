@@ -16,6 +16,7 @@ struct OSMNode: Identifiable, Codable {
         var poi = POI(coordinate: .init(latitude: latitude, longitude: longitude))
         poi.osmNodeId = id
         poi.osmVersion = version
+        poi.osmType = type
         poi.tags = tags
         poi.status = .draft
         return poi

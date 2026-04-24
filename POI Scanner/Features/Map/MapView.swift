@@ -74,8 +74,8 @@ struct MapView: View {
         // Sheet: информация о существующей ноде
         .sheet(item: $viewModel.selectedNode) { node in
             OSMNodeSheet(
-                node: viewModel.selectedNodeDetails ?? node,
-                isLoadingDetails: viewModel.isLoadingDetails,
+                initialNode: node,
+                viewModel: viewModel,
                 onSave: { updatedPOI in
                     viewModel.saveDraftPOI(updatedPOI)
                     viewModel.selectedNode = nil
@@ -239,10 +239,18 @@ private struct LocationButton: View {
 // MARK: - OSMNodeSheet
 
 private struct OSMNodeSheet: View {
-    let node: OSMNode
-    let isLoadingDetails: Bool
+    /// Нода, с которой открылся шит (может быть без деталей — version: 1).
+    /// Используется как fallback пока грузится selectedNodeDetails.
+    let initialNode: OSMNode
+    @ObservedObject var viewModel: MapViewModel
     var onSave: ((POI) -> Void)? = nil
     let onClose: () -> Void
+
+    /// Актуальная нода: selectedNodeDetails если уже загружен, иначе initialNode.
+    /// Т.к. viewModel — @ObservedObject, при обновлении selectedNodeDetails
+    /// SwiftUI перестраивает шит и передаёт свежую версию с правильным version.
+    private var node: OSMNode { viewModel.selectedNodeDetails ?? initialNode }
+    private var isLoadingDetails: Bool { viewModel.isLoadingDetails }
 
     // Режим отображения
     @State private var isEditing = false
@@ -307,12 +315,18 @@ private struct OSMNodeSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .alert("Ошибка загрузки", isPresented: $showUploadError) {
+                Button("Скопировать") {
+                    UIPasteboard.general.string = uploadError
+                }
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(uploadError ?? "Неизвестная ошибка")
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.medium, .large], selection: Binding(
+            get: { isEditing ? .large : .medium },
+            set: { _ in }  // пользователь может тянуть вручную, но не переключаем обратно
+        ))
     }
 
     // MARK: - Секции
@@ -536,7 +550,21 @@ private struct OSMNodeSheet: View {
     @MainActor
     private func upload() async {
         if editMode == .tags { syncTagsFromPairs() }
-        guard let p = poi else { return }
+        guard var p = poi else { return }
+
+        // Последняя защита от version mismatch: если selectedNodeDetails загружен
+        // и содержит более актуальную версию — берём её. Это страховка на случай
+        // если poi был создан до окончания загрузки деталей (гонка).
+        if let details = viewModel.selectedNodeDetails,
+           details.id == p.osmNodeId,
+           let serverVersion = p.osmVersion, details.version > serverVersion {
+            p.osmVersion = details.version
+            p.osmType = details.type
+        }
+
+        print("[Upload] 🚀 poi.osmNodeId=\(String(describing: p.osmNodeId)) osmVersion=\(String(describing: p.osmVersion)) osmType=\(String(describing: p.osmType?.rawValue))")
+        print("[Upload] 📋 selectedNodeDetails: id=\(String(describing: viewModel.selectedNodeDetails?.id)) version=\(String(describing: viewModel.selectedNodeDetails?.version))")
+        print("[Upload] 🏷 tags=\(p.tags)")
 
         if !authService.isAuthenticated {
             guard let anchor = presentationAnchor() else { return }

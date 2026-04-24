@@ -8,6 +8,7 @@ struct POI: Identifiable, Codable {
     var coordinate: Coordinate
     var osmNodeId: Int64?                           // nil = новый объект
     var osmVersion: Int?                            // версия ноды для modify
+    var osmType: OSMElementType?                    // тип OSM объекта (node/way/relation)
     var tags: [String: String] = [:]                // финальные OSM теги
     var fieldStatus: [String: FieldStatus] = [:]    // статус каждого поля
     var extractionConfidence: [String: Double] = [:]

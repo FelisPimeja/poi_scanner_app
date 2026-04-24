@@ -114,6 +114,9 @@ struct ValidationView: View {
                 }
             }
             .alert("Ошибка загрузки", isPresented: $showUploadError) {
+                Button("Скопировать") {
+                    UIPasteboard.general.string = uploadError
+                }
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(uploadError ?? "Неизвестная ошибка")
@@ -212,12 +215,18 @@ struct AddTagRow: View {
                 .focused($focusedField, equals: .key)
                 .font(.body.monospaced())
                 .frame(maxWidth: 120)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.asciiCapable)
+                .autocorrectionDisabled()
 
             Text("=")
                 .foregroundStyle(.secondary)
 
             TextField("значение", text: $value)
                 .focused($focusedField, equals: .value)
+                .textInputAutocapitalization(.never)
+                .keyboardType(.asciiCapable)
+                .autocorrectionDisabled()
 
             Button {
                 guard !key.isEmpty, !value.isEmpty else { return }

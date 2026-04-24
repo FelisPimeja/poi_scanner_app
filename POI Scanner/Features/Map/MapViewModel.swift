@@ -83,20 +83,23 @@ final class MapViewModel: ObservableObject {
     func selectNode(_ node: OSMNode) {
         selectedNode = node
         selectedNodeDetails = nil
+        isLoadingDetails = true   // сразу — защищает от тапа на Edit до загрузки версии
         Task { await fetchDetails(for: node) }
     }
 
     private func fetchDetails(for node: OSMNode) async {
-        isLoadingDetails = true
+        // isLoadingDetails уже true (выставлен в selectNode)
         do {
             let detailed = try await overpassService.fetchNodeDetails(id: node.id, type: node.type)
+            print("[Overpass] ✅ fetchDetails id=\(detailed.id) type=\(detailed.type.rawValue) version=\(detailed.version) tags=\(detailed.tags)")
             selectedNodeDetails = detailed
             // Обновляем и в общем списке
             if let idx = osmNodes.firstIndex(where: { $0.id == node.id && $0.type == node.type }) {
                 osmNodes[idx] = detailed
             }
         } catch {
-            print("[Overpass] детали \(node.type.rawValue) \(node.id): \(error.localizedDescription)")
+            print("[Overpass] ❌ fetchDetails \(node.type.rawValue) \(node.id): \(error.localizedDescription)")
+            print("[Overpass] ⚠️ fallback на исходную ноду: id=\(node.id) version=\(node.version)")
             selectedNodeDetails = node // fallback на то что есть
         }
         isLoadingDetails = false
@@ -165,9 +168,8 @@ final class MapViewModel: ObservableObject {
     }
 
     private func fetchNodes(for bounds: MLNCoordinateBounds) async {
-        // 🧪 TEMP: Overpass отключён для диагностики фризов
-        return
-
+        // 🧪 TEMP: Overpass отключён для диагностики фризов — тело закомментировано
+        /*
         isLoading = true
         errorMessage = nil
 
@@ -187,5 +189,6 @@ final class MapViewModel: ObservableObject {
         }
 
         isLoading = false
+        */
     }
 }

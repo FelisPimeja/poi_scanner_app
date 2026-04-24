@@ -802,7 +802,7 @@ struct TextParser {
         func maskMatches(of pattern: String, in str: inout String, options: NSRegularExpression.Options = [.caseInsensitive]) {
             guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return }
             // Заменяем совпадения на пробелы той же длины, чтобы не сдвигать позиции других токенов
-            let nsStr = str as NSString
+            let _ = str as NSString
             let matches = regex.matches(in: str, range: NSRange(str.startIndex..., in: str))
             var result = str
             for match in matches.reversed() {
