@@ -136,7 +136,7 @@ struct OSMTagRow: View {
                 case .multiselect(let options):
                     MultiSelectTagField(key: tagKey, options: options, value: binding)
                 case .openingHours:
-                    OpeningHoursEditorView(value: binding)
+                    OpeningHoursNavigatorRow(value: binding)
                 default:
                     if tagKey == "check_date" {
                         HStack(spacing: 6) {
@@ -580,6 +580,32 @@ private struct MultiSelectSheet: View {
                     .map { $0.trimmingCharacters(in: .whitespaces) }
                     .filter { !$0.isEmpty }
             )
+        }
+    }
+}
+
+// MARK: - OpeningHoursNavigatorRow
+
+/// Строка-навигатор для opening_hours в edit-режиме.
+/// Показывает текущее значение + шеврон; тап открывает полноэкранный редактор.
+private struct OpeningHoursNavigatorRow: View {
+    @Binding var value: String
+    @State private var isEditorPresented = false
+
+    var body: some View {
+        HStack {
+            Text(value.isEmpty ? "Не задано" : value)
+                .font(.body)
+                .foregroundStyle(value.isEmpty ? .secondary : .primary)
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { isEditorPresented = true }
+        .sheet(isPresented: $isEditorPresented) {
+            OpeningHoursEditorScreen(value: $value)
         }
     }
 }
