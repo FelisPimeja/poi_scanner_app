@@ -1,6 +1,5 @@
 import SwiftUI
 import MapLibre
-import MapKit
 import CoreLocation
 
 // MARK: - MapView
@@ -579,28 +578,21 @@ private struct OSMNodeSheet: View {
         let canEdit = node.type == .node
 
         Section {
-            // Mini-map (read-only, полная ширина)
-            Map(position: .constant(.region(MKCoordinateRegion(
-                center: coord,
-                span: MKCoordinateSpan(latitudeDelta: 0.001, longitudeDelta: 0.001)
-            )))) {
-                Marker("", coordinate: coord)
-                    .tint(.accentColor)
-            }
-            .frame(height: 148)
-            .disabled(true)
-            .listRowInsets(EdgeInsets())
-            .clipShape(Rectangle())
+            // Mini-map (read-only, полная ширина) — MapLibre с тем же стилем
+            LocationPreviewMapView(coordinate: coord)
+                .frame(height: 148)
+                .listRowInsets(EdgeInsets())
+                .clipShape(Rectangle())
 
             // Строка координат
             HStack(spacing: 10) {
                 Image(systemName: "scope")
                     .font(.body)
-                    .foregroundStyle(canEdit ? Color.accentColor : .secondary)
+                    .foregroundStyle(canEdit ? Color.accentColor : Color.secondary)
                     .frame(width: 24, alignment: .center)
                 Text(dmsString(lat: lat, lon: lon))
                     .font(.body)
-                    .foregroundStyle(canEdit ? Color.accentColor : .primary)
+                    .foregroundStyle(canEdit ? Color.accentColor : Color.primary)
                 Spacer()
                 if canEdit {
                     Image(systemName: "chevron.right")
@@ -1333,6 +1325,97 @@ private struct TechInfoSection: View {
                 OSMTagRow(tagKey: "lat", readOnlyValue: String(format: "%.6f", node.latitude))
                 OSMTagRow(tagKey: "lon", readOnlyValue: String(format: "%.6f", node.longitude))
             }
+        }
+    }
+}
+
+// MARK: - LocationPreviewMapView
+
+/// Лёгкая read-only карта MapLibre для превью местоположения POI.
+/// Использует тот же MapTiler стиль что и основная карта.
+/// Жесты отключены — карта нетапабельна.
+private struct LocationPreviewMapView: UIViewRepresentable {
+    let coordinate: CLLocationCoordinate2D
+
+    func makeUIView(context: Context) -> MLNMapView {
+        let mapView = MLNMapView()
+        mapView.styleURL = MapStyle.mapTiler
+        mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        mapView.showsUserLocation = false
+        mapView.isScrollEnabled = false
+        mapView.isZoomEnabled = false
+        mapView.isRotateEnabled = false
+        mapView.isPitchEnabled = false
+        mapView.allowsTilting = false
+        mapView.attributionButton.isHidden = true
+        mapView.logoView.isHidden = true
+        mapView.compassView.isHidden = true
+
+        mapView.setCenter(coordinate, zoomLevel: 17, animated: false)
+
+        // Маркер
+        let annotation = MLNPointAnnotation()
+        annotation.coordinate = coordinate
+        mapView.addAnnotation(annotation)
+        mapView.delegate = context.coordinator
+
+        return mapView
+    }
+
+    func updateUIView(_ mapView: MLNMapView, context: Context) {
+        // Обновляем центр и маркер при изменении координаты
+        mapView.setCenter(coordinate, zoomLevel: 17, animated: false)
+        if let existing = mapView.annotations {
+            mapView.removeAnnotations(existing)
+        }
+        let annotation = MLNPointAnnotation()
+        annotation.coordinate = coordinate
+        mapView.addAnnotation(annotation)
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    final class Coordinator: NSObject, MLNMapViewDelegate {
+        func mapView(_ mapView: MLNMapView, imageFor annotation: MLNAnnotation) -> MLNAnnotationImage? {
+            let reuseId = "preview_pin"
+            if let existing = mapView.dequeueReusableAnnotationImage(withIdentifier: reuseId) {
+                return existing
+            }
+            // Рисуем простой цветной пин через SF Symbol
+            let size = CGSize(width: 28, height: 30)
+            let image = UIGraphicsImageRenderer(size: size).image { _ in
+                let ctx = UIGraphicsGetCurrentContext()!
+                let s: CGFloat = size.width / 24.0
+                ctx.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 3,
+                              color: UIColor.black.withAlphaComponent(0.3).cgColor)
+                // Форма пина
+                let path = UIBezierPath()
+                path.move(to:     CGPoint(x: 12*s, y:  1*s))
+                path.addCurve(to: CGPoint(x:  3*s, y: 10*s),
+                              controlPoint1: CGPoint(x:  7.03*s, y:  1*s),
+                              controlPoint2: CGPoint(x:  3*s,    y:  5.03*s))
+                path.addCurve(to: CGPoint(x: 12*s, y: 23*s),
+                              controlPoint1: CGPoint(x:  3*s,    y: 16.75*s),
+                              controlPoint2: CGPoint(x: 12*s,    y: 23*s))
+                path.addCurve(to: CGPoint(x: 21*s, y: 10*s),
+                              controlPoint1: CGPoint(x: 12*s,    y: 23*s),
+                              controlPoint2: CGPoint(x: 21*s,    y: 16.75*s))
+                path.addCurve(to: CGPoint(x: 12*s, y:  1*s),
+                              controlPoint1: CGPoint(x: 21*s,    y:  5.03*s),
+                              controlPoint2: CGPoint(x: 16.97*s, y:  1*s))
+                path.close()
+                UIColor.systemBlue.setFill()
+                path.fill()
+                ctx.setShadow(offset: .zero, blur: 0, color: nil)
+                UIColor.white.withAlphaComponent(0.5).setStroke()
+                path.lineWidth = 0.75
+                path.stroke()
+                // Белая точка в центре
+                let cx = 12 * s, cy = 10 * s, r = 3.5 * s
+                UIColor.white.setFill()
+                UIBezierPath(ovalIn: CGRect(x: cx-r, y: cy-r, width: r*2, height: r*2)).fill()
+            }
+            return MLNAnnotationImage(image: image, reuseIdentifier: reuseId)
         }
     }
 }
