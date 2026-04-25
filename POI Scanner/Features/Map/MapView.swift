@@ -955,20 +955,45 @@ private struct AddressTagSection: View {
         ("addr2:housenumber", "д.\u{00A0}"),
     ]
 
-    private var formattedAddress: String {
+    /// Строит массив отформатированных адресов.
+    /// Если какое-либо поле содержит несколько значений через «;»,
+    /// формируется отдельная строка для каждого слота (по аналогии
+    /// с остальными тегами в OSMTagRow).
+    private var formattedAddresses: [String] {
         let dict = Dictionary(uniqueKeysWithValues: entries.map { ($0.key, $0.value) })
-        var parts: [String] = []
         let handledKeys = Set(Self.addressOrder.map { $0.key })
+
+        // Для каждого ключа разбиваем значение по «;» → получаем слоты.
+        // slotCount — максимальное число слотов среди всех присутствующих ключей.
+        var slottedValues: [(prefix: String, slots: [String])] = []
         for (key, prefix) in Self.addressOrder {
-            if let val = dict[key], !val.isEmpty {
-                parts.append(prefix + val)
-            }
+            guard let raw = dict[key], !raw.isEmpty else { continue }
+            let slots = raw.split(separator: ";", omittingEmptySubsequences: true)
+                          .map { $0.trimmingCharacters(in: .whitespaces) }
+            slottedValues.append((prefix, slots))
         }
-        // Нераспознанные addr:* ключи — в конец
+        // Нераспознанные addr:* ключи — в конец (без префикса)
         for entry in entries where !handledKeys.contains(entry.key) && !entry.value.isEmpty {
-            parts.append(entry.value)
+            let slots = entry.value.split(separator: ";", omittingEmptySubsequences: true)
+                                   .map { $0.trimmingCharacters(in: .whitespaces) }
+            slottedValues.append(("", slots))
         }
-        return parts.joined(separator: ", ")
+
+        guard !slottedValues.isEmpty else { return [] }
+
+        let slotCount = slottedValues.map { $0.slots.count }.max() ?? 1
+        var result: [String] = []
+        for i in 0..<slotCount {
+            var parts: [String] = []
+            for (prefix, slots) in slottedValues {
+                // Если у данного поля меньше слотов — берём последний
+                let val = i < slots.count ? slots[i] : slots.last ?? ""
+                if !val.isEmpty { parts.append(prefix + val) }
+            }
+            let line = parts.joined(separator: ", ")
+            if !line.isEmpty { result.append(line) }
+        }
+        return result
     }
 
     var body: some View {
@@ -978,9 +1003,13 @@ private struct AddressTagSection: View {
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .frame(width: 24, alignment: .center)
-                Text(formattedAddress)
-                    .font(.body)
-                    .textSelection(.enabled)
+                VStack(alignment: .leading, spacing: 1) {
+                    ForEach(formattedAddresses.isEmpty ? [""] : formattedAddresses, id: \.self) { line in
+                        Text(line)
+                            .font(.body)
+                            .textSelection(.enabled)
+                    }
+                }
             }
             .padding(.vertical, 2)
         }

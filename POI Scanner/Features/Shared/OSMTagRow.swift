@@ -397,7 +397,7 @@ struct OSMTagRow: View {
     /// Локализует аббревиатуры дней недели в строке opening_hours для русской локали.
     /// Mo→Пн, Tu→Вт, We→Ср, Th→Чт, Fr→Пт, Sa→Сб, Su→Вс.
     /// Для нерусских локалей возвращает оригинал.
-    private static func localizedOpeningHours(_ value: String) -> String {
+    static func localizedOpeningHours(_ value: String) -> String {
         guard AppSettings.shared.language == .ru else { return value }
         // Заменяем двухбуквенные аббревиатуры OSM, не затрагивая числа и время
         let map: [(String, String)] = [
@@ -593,14 +593,27 @@ private struct OpeningHoursNavigatorRow: View {
     @State private var isEditorPresented = false
 
     var body: some View {
-        HStack {
-            Text(value.isEmpty ? "Не задано" : value)
-                .font(.body)
-                .foregroundStyle(value.isEmpty ? .secondary : .primary)
+        HStack(alignment: .top) {
+            if value.isEmpty {
+                Text("Не задано")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            } else {
+                let parts = OSMTagRow.localizedOpeningHours(value)
+                    .split(separator: ";", omittingEmptySubsequences: true)
+                    .map { $0.trimmingCharacters(in: .whitespaces) }
+                VStack(alignment: .leading, spacing: 1) {
+                    ForEach(parts, id: \.self) { part in
+                        Text(part)
+                            .font(.body)
+                    }
+                }
+            }
             Spacer(minLength: 8)
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
+                .padding(.top, 3)
         }
         .contentShape(Rectangle())
         .onTapGesture { isEditorPresented = true }
