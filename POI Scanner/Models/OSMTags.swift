@@ -106,6 +106,15 @@ enum OSMTags {
         // ── Часы работы ──────────────────────────────────────────────────────
         .init(key: "opening_hours", label: "Часы работы", hint: "Формат OSM: Mo-Fr 09:00-18:00", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:opening_hours", group: .hours, inputType: .openingHours, icon: "clock"),
 
+    // Дополнительные ключи/переводы, запрошенные пользователем
+    .init(key: "start_date",    label: "Дата открытия/основания", hint: "ГГГГ[-MM[-DD]]", wikiURL: nil, group: .other, inputType: .text, icon: "calendar"),
+    .init(key: "check_date",    label: "Дата проверки",           hint: "Дата последней проверки", wikiURL: nil, group: .other, inputType: .text, icon: "checkmark.seal"),
+    .init(key: "note",          label: "Заметки для картографов", hint: "Внутренние заметки для редакторов", wikiURL: nil, group: .other, inputType: .text, icon: "note.text"),
+    .init(key: "drive_through", label: "Не выходя из автомобиля", hint: "yes / no", wikiURL: nil, group: .other, inputType: .boolean, icon: "car.fill"),
+    .init(key: "fee",           label: "Взимается плата",         hint: "yes / no / тип оплаты", wikiURL: nil, group: .other, inputType: .boolean, icon: "rublesign"),
+    .init(key: "internet_access", label: "Доступ в Интернет",     hint: "Тип/наличие доступа: wlan/yes/no", wikiURL: nil, group: .other, inputType: .text, icon: "wifi"),
+    .init(key: "takeaway",      label: "На вынос",               hint: "yes / no", wikiURL: nil, group: .other, inputType: .boolean, icon: "bag"),
+
         // ── Контакты ─────────────────────────────────────────────────────────
         .init(key: "phone",           label: "Телефон",  hint: "Формат: +7 XXX XXX-XX-XX",     wikiURL: "https://wiki.openstreetmap.org/wiki/Key:phone",   group: .contact, inputType: .phone, icon: "phone"),
         .init(key: "contact:phone",   label: "Телефон",  hint: "Формат: +7 XXX XXX-XX-XX",     wikiURL: nil,                                               group: .contact, inputType: .phone, icon: "phone"),
