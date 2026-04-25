@@ -143,7 +143,8 @@ enum OSMTags {
         .init(key: "payment:sbp",           label: "СБП",           hint: "yes / no", wikiURL: nil, group: .payment, inputType: .boolean, icon: "rublesign.arrow.trianglehead.counterclockwise.rotate.90"),
 
         // ── Прочее ───────────────────────────────────────────────────────────
-        .init(key: "wheelchair", label: "Доступность для инвалидов", hint: "yes / limited / no", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:wheelchair", group: .other, inputType: .select(["yes", "limited", "no"]), icon: "figure.roll"),
+        .init(key: "description", label: "Описание",                  hint: "Краткое описание объекта",  wikiURL: "https://wiki.openstreetmap.org/wiki/Key:description", group: .other, inputType: .text, icon: "text.alignleft"),
+        .init(key: "wheelchair",  label: "Доступность для инвалидов", hint: "yes / limited / no",        wikiURL: "https://wiki.openstreetmap.org/wiki/Key:wheelchair",  group: .other, inputType: .select(["yes", "limited", "no"]), icon: "figure.roll"),
         .init(key: "level",  label: "Уровень", hint: "Этаж: 0 = первый, -1 = подвал", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:level",  group: .other, inputType: .level,                              icon: "square.stack.3d.up"),
         .init(key: "indoor", label: "Indoor",  hint: "Тип indoor объекта",            wikiURL: "https://wiki.openstreetmap.org/wiki/Key:indoor", group: .other, inputType: .select(["yes", "room", "corridor", "area"]), icon: "building"),
 

@@ -280,6 +280,17 @@ private struct OSMNodeSheet: View {
         "opening_hours"
     ]
 
+    /// Ключи, которые всегда показываются как плейсхолдеры в edit-режиме,
+    /// даже если тег отсутствует у POI.
+    private let essentialPlaceholders: [OSMTagDefinition.TagGroup: [String]] = [
+        .hours:   ["opening_hours"],
+        .address: ["addr:street", "addr:housenumber", "addr:city", "addr:postcode"],
+        .contact: ["phone", "website", "email"],
+        .payment: ["payment:cash", "payment:visa", "payment:mastercard",
+                   "payment:mir", "payment:apple_pay", "payment:sbp"],
+        .other:   ["wheelchair", "description"],
+    ]
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -355,15 +366,21 @@ private struct OSMNodeSheet: View {
                         .padding(.leading, 8)
                 }
             }
-        } else if tags.isEmpty {
+        } else if !isEditable && tags.isEmpty {
             Section { Text("Нет тегов").foregroundStyle(.secondary) }
         } else {
             // Распределяем теги по группам
             let grouped = groupedEntries(from: tags)
 
             ForEach(OSMTagDefinition.TagGroup.allCases, id: \.self) { group in
-                if let entries = grouped[group], !entries.isEmpty {
-                    if group == .name {
+                let entries = grouped[group] ?? []
+                // Ключи из essentialPlaceholders, которых нет у POI (только edit-режим)
+                let absentKeys: [String] = isEditable
+                    ? (essentialPlaceholders[group] ?? []).filter { poi?.tags[$0] == nil }
+                    : []
+
+                if !entries.isEmpty || !absentKeys.isEmpty {
+                    if group == .name && !entries.isEmpty {
                         CollapsibleNameSection(
                             entries: entries,
                             isEditable: isEditable,
@@ -379,7 +396,7 @@ private struct OSMNodeSheet: View {
                                     }
                             }
                         )
-                    } else if group == .brand {
+                    } else if group == .brand && !entries.isEmpty {
                         CollapsibleBrandSection(
                             entries: entries,
                             isEditable: isEditable,
@@ -395,7 +412,7 @@ private struct OSMNodeSheet: View {
                                     }
                             }
                         )
-                    } else if group == .legal {
+                    } else if group == .legal && !entries.isEmpty {
                         CollapsibleLegalSection(
                             entries: entries,
                             isEditable: isEditable,
@@ -420,14 +437,20 @@ private struct OSMNodeSheet: View {
                         Section(header: Text("Адрес")) {
                             ForEach(Array(entries.enumerated()), id: \.element.key) { index, item in
                                 tagRow(for: item.key, value: item.value, isEditable: true,
-                                       forceIcon: index == 0 ? "house" : nil,
-                                       hideIcon: index > 0)
+                                       forceIcon: index == 0 && absentKeys.isEmpty ? "house" : nil,
+                                       hideIcon: index > 0 || !absentKeys.isEmpty)
                                     .swipeActions(edge: .trailing) {
                                         Button(role: .destructive) {
                                             poi?.tags.removeValue(forKey: item.key)
                                             poi?.fieldStatus.removeValue(forKey: item.key)
                                         } label: { Label("Удалить", systemImage: "trash") }
                                     }
+                            }
+                            // Плейсхолдеры для отсутствующих ключей адреса
+                            ForEach(Array(absentKeys.enumerated()), id: \.element) { index, key in
+                                tagRow(for: key, value: "", isEditable: true,
+                                       forceIcon: index == 0 && entries.isEmpty ? "house" : nil,
+                                       hideIcon: !(index == 0 && entries.isEmpty))
                             }
                         }
                     } else if group == .hours && !isEditable {
@@ -448,6 +471,12 @@ private struct OSMNodeSheet: View {
                                             } label: { Label("Удалить", systemImage: "trash") }
                                         }
                                     }
+                            }
+                            // Плейсхолдеры для отсутствующих ключей группы
+                            if isEditable {
+                                ForEach(absentKeys, id: \.self) { key in
+                                    tagRow(for: key, value: "", isEditable: true)
+                                }
                             }
                         }
                     }
