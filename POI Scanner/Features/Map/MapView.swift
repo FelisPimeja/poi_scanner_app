@@ -1,5 +1,6 @@
 import SwiftUI
 import MapLibre
+import MapKit
 import CoreLocation
 
 // MARK: - MapView
@@ -163,7 +164,7 @@ struct MapView: View {
 /// Вертикальный переключатель этажей (стиль indoor map).
 /// Этажи отображаются снизу вверх: самый нижний уровень — внизу,
 /// самый верхний — наверху, как в реальном здании.
-private struct FloorPickerView: View {
+struct FloorPickerView: View {
     let floors: [IndoorFloor]
     @Binding var selectedFloor: Int
     @EnvironmentObject private var settings: AppSettings
@@ -268,6 +269,9 @@ private struct OSMNodeSheet: View {
     @State private var undoStack: [[String: String]] = []
     @State private var redoStack: [[String: String]] = []
     @State private var snapshotTask: Task<Void, Never>? = nil
+
+    // Редактор координат
+    @State private var showCoordinatePicker = false
 
     private var canUndo: Bool { undoStack.count >= 2 }
     private var canRedo: Bool { !redoStack.isEmpty }
@@ -404,6 +408,22 @@ private struct OSMNodeSheet: View {
             } message: {
                 Text(uploadError ?? "Неизвестная ошибка")
             }
+            .sheet(isPresented: $showCoordinatePicker) {
+                let coord = CLLocationCoordinate2D(
+                    latitude: poi?.coordinate.latitude ?? node.latitude,
+                    longitude: poi?.coordinate.longitude ?? node.longitude
+                )
+                let floor = poi?.tags["level"].flatMap(Int.init) ?? 0
+                CoordinatePickerView(
+                    initialCoordinate: coord,
+                    initialFloor: floor,
+                    onConfirm: { newCoord in
+                        poi?.coordinate = POI.Coordinate(newCoord)
+                        showCoordinatePicker = false
+                    },
+                    onCancel: { showCoordinatePicker = false }
+                )
+            }
         }
         .presentationDetents([.medium, .large], selection: Binding(
             get: { isEditing ? .large : .medium },
@@ -438,6 +458,11 @@ private struct OSMNodeSheet: View {
         } else {
             // Распределяем теги по группам
             let grouped = groupedEntries(from: tags)
+
+            // Карта + координаты — только в Simplified edit-режиме
+            if isEditable {
+                locationPreviewSection
+            }
 
             ForEach(OSMTagDefinition.TagGroup.allCases, id: \.self) { group in
                 let entries = grouped[group] ?? []
@@ -542,10 +567,74 @@ private struct OSMNodeSheet: View {
         }
     }
 
+    // MARK: - Мини-карта с координатами (только Simplified edit)
+
+    /// Секция с превью карты и строкой координат в формате DMS.
+    /// Карта — только отображение, строка координат — навигация в CoordinatePickerView.
+    @ViewBuilder
+    private var locationPreviewSection: some View {
+        let lat = poi?.coordinate.latitude  ?? node.latitude
+        let lon = poi?.coordinate.longitude ?? node.longitude
+        let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        let canEdit = node.type == .node
+
+        Section {
+            // Mini-map (read-only, полная ширина)
+            Map(position: .constant(.region(MKCoordinateRegion(
+                center: coord,
+                span: MKCoordinateSpan(latitudeDelta: 0.001, longitudeDelta: 0.001)
+            )))) {
+                Marker("", coordinate: coord)
+                    .tint(.accentColor)
+            }
+            .frame(height: 148)
+            .disabled(true)
+            .listRowInsets(EdgeInsets())
+            .clipShape(Rectangle())
+
+            // Строка координат
+            HStack(spacing: 10) {
+                Image(systemName: "scope")
+                    .font(.body)
+                    .foregroundStyle(canEdit ? Color.accentColor : .secondary)
+                    .frame(width: 24, alignment: .center)
+                Text(dmsString(lat: lat, lon: lon))
+                    .font(.body)
+                    .foregroundStyle(canEdit ? Color.accentColor : .primary)
+                Spacer()
+                if canEdit {
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if canEdit { showCoordinatePicker = true }
+            }
+        }
+    }
+
+    /// Конвертирует десятичные градусы в строку формата «55°49′27.84″N  37°37′23.51″E».
+    private func dmsString(lat: Double, lon: Double) -> String {
+        func parts(_ deg: Double) -> (d: Int, m: Int, s: Double) {
+            let a = abs(deg)
+            let d = Int(a)
+            let m = Int((a - Double(d)) * 60)
+            let s = ((a - Double(d)) * 60 - Double(m)) * 60
+            return (d, m, s)
+        }
+        let (ld, lm, ls) = parts(lat)
+        let (nd, nm, ns) = parts(lon)
+        let latDir = lat >= 0 ? "N" : "S"
+        let lonDir = lon >= 0 ? "E" : "W"
+        return String(format: "%d°%d′%.2f″%@  %d°%d′%.2f″%@",
+                      ld, lm, ls, latDir, nd, nm, ns, lonDir)
+    }
+
     /// Строит одну строку тега — read-only или editable в зависимости от флага.
     @ViewBuilder
-    private func tagRow(for key: String, value: String, isEditable: Bool,
-                        forceIcon: String? = nil, hideIcon: Bool = false,
+    private func tagRow(for key: String, value: String, isEditable: Bool,                        forceIcon: String? = nil, hideIcon: Bool = false,
                         isPrimary: Bool = false) -> some View {
         if isEditable {
             OSMTagRow(
