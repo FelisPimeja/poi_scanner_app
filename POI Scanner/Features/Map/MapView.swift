@@ -820,14 +820,25 @@ private struct CollapsibleLegalSection<Row: View>: View {
                     tagRow(primary.key, primary.value)
                 }
             } else {
-                DisclosureGroup(isExpanded: $isExpanded) {
+                if let primary = primaryEntry {
+                    Button {
+                        withAnimation { isExpanded.toggle() }
+                    } label: {
+                        HStack(spacing: 0) {
+                            tagRow(primary.key, primary.value)
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                                .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+                if isExpanded {
                     ForEach(secondaryEntries, id: \.key) { item in
                         tagRow(item.key, item.value)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                    }
-                } label: {
-                    if let primary = primaryEntry {
-                        tagRow(primary.key, primary.value)
                     }
                 }
             }
@@ -866,13 +877,25 @@ private struct CollapsibleBrandSection<Row: View>: View {
                     tagRow(primary.key, primary.value)
                 }
             } else {
-                DisclosureGroup(isExpanded: $isExpanded) {
+                if let primary = primaryEntry {
+                    Button {
+                        withAnimation { isExpanded.toggle() }
+                    } label: {
+                        HStack(spacing: 0) {
+                            tagRow(primary.key, primary.value)
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                                .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+                if isExpanded {
                     ForEach(secondaryEntries, id: \.key) { item in
                         tagRow(item.key, item.value)
-                    }
-                } label: {
-                    if let primary = primaryEntry {
-                        tagRow(primary.key, primary.value)
                     }
                 }
             }
@@ -968,7 +991,7 @@ private struct AddressTagSection: View {
     }
 
     var body: some View {
-        Section(header: Text("")) {
+        Section(header: Text("Адрес")) {
             HStack(spacing: 10) {
                 Image(systemName: "house")
                     .font(.body)
@@ -985,9 +1008,9 @@ private struct AddressTagSection: View {
 
 // MARK: - CollapsibleNameSection
 
-/// Секция «Название» с DisclosureGroup:
-/// • По умолчанию свёрнута — показывает только главный name-тег.
-/// • Разворачивается → все name-теги.
+/// Секция «Название»:
+/// • По умолчанию свёрнута — показывает только главный name-тег + шеврон.
+/// • Разворачивается → все name-теги без дополнительного отступа.
 /// • Главный тег: первый из OSMTags.nameKeys, присутствующий в entries.
 private struct CollapsibleNameSection<Row: View>: View {
     let entries: [(key: String, value: String)]
@@ -1018,14 +1041,26 @@ private struct CollapsibleNameSection<Row: View>: View {
                     tagRow(primary.key, primary.value, true)
                 }
             } else {
-                DisclosureGroup(isExpanded: $isExpanded) {
+                // Строка-заголовок с шевроном — без DisclosureGroup, чтобы не добавлять отступ
+                if let primary = primaryEntry {
+                    Button {
+                        withAnimation { isExpanded.toggle() }
+                    } label: {
+                        HStack(spacing: 0) {
+                            tagRow(primary.key, primary.value, true)
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                                .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+                if isExpanded {
                     ForEach(secondaryEntries, id: \.key) { item in
                         tagRow(item.key, item.value, false)
-                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                    }
-                } label: {
-                    if let primary = primaryEntry {
-                        tagRow(primary.key, primary.value, true)
                     }
                 }
             }
