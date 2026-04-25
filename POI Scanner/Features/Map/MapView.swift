@@ -388,7 +388,7 @@ private struct OSMNodeSheet: View {
                     if newTab == .simplified { syncTagsFromPairs() }
                 }
             }
-            .navigationTitle(node.tags["name"] ?? "OSM нода #\(node.id)")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .onChange(of: poi?.tags) { _, _ in
