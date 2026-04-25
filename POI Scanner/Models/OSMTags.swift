@@ -108,16 +108,17 @@ enum OSMTags {
         .init(key: "opening_hours", label: "Часы работы", hint: "Формат OSM: Mo-Fr 09:00-18:00", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:opening_hours", group: .hours, inputType: .openingHours, icon: "clock"),
 
         // ── Здание ───────────────────────────────────────────────────────────
-        .init(key: "building",          label: "Тип здания",       hint: "Тип/наличие здания",          wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building",          group: .building, inputType: .select(OSMTags.buildingValues),         icon: "building.2"),
-        .init(key: "building:levels",   label: "Этажей",           hint: "Количество надземных этажей", wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building:levels",   group: .building, inputType: .text,                                   icon: "square.stack.3d.up"),
-        .init(key: "building:material", label: "Материал фасада",  hint: "Наружный материал стен",      wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building:material", group: .building, inputType: .select(OSMTags.buildingMaterialValues), icon: "square.3.layers.3d"),
-        .init(key: "building:colour",   label: "Цвет фасада",      hint: "#RRGGBB или имя цвета",       wikiURL: nil,                                                            group: .building, inputType: .text,                                   icon: "paintpalette"),
-        .init(key: "building:part",     label: "Часть здания",     hint: "Часть здания с иными параметрами", wikiURL: nil,                                                      group: .building, inputType: .select(OSMTags.buildingValues),         icon: "building.2"),
-        .init(key: "height",            label: "Высота (м)",       hint: "Полная высота здания, м",     wikiURL: nil,                                                            group: .building, inputType: .text,                                   icon: "arrow.up.and.line.horizontal.and.arrow.down"),
-        .init(key: "roof:shape",        label: "Форма крыши",      hint: "Тип формы крыши",             wikiURL: "https://wiki.openstreetmap.org/wiki/Key:roof:shape",           group: .building, inputType: .select(OSMTags.roofShapeValues),        icon: "house.lodge"),
-        .init(key: "roof:levels",       label: "Этажей в крыше",   hint: "Этажей внутри чердака/крыши", wikiURL: nil,                                                           group: .building, inputType: .text,                                   icon: "chevron.up"),
-        .init(key: "roof:material",     label: "Материал кровли",  hint: "Наружный кровельный материал", wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:roof:material",  group: .building, inputType: .select(OSMTags.roofMaterialValues),     icon: "house.fill"),
-        .init(key: "roof:colour",       label: "Цвет крыши",       hint: "#RRGGBB или имя цвета",       wikiURL: nil,                                                            group: .building, inputType: .text,                                   icon: "paintpalette"),
+        .init(key: "building",          label: "Тип здания",          hint: "Тип/наличие здания",           wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building",              group: .building, inputType: .select(OSMTags.buildingValues),              icon: "building.2"),
+        .init(key: "building:levels",   label: "Этажей",               hint: "Количество надземных этажей",  wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building:levels",        group: .building, inputType: .text,                                          icon: "square.stack.3d.up"),
+        .init(key: "building:material", label: "Материал фасада",      hint: "Наружный материал стен",       wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building:material",      group: .building, inputType: .select(OSMTags.buildingMaterialValues),      icon: "square.3.layers.3d"),
+        .init(key: "building:colour",   label: "Цвет фасада",          hint: "#RRGGBB или имя цвета",        wikiURL: nil,                                                                group: .building, inputType: .text,                                          icon: "paintpalette"),
+        .init(key: "building:architecture", label: "Архитектурный стиль", hint: "Стиль здания",             wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building:architecture", group: .building, inputType: .select(OSMTags.buildingArchitectureValues),  icon: "building.columns"),
+        .init(key: "building:part",     label: "Часть здания",         hint: "Часть здания с иными параметрами", wikiURL: nil,                                                           group: .building, inputType: .select(OSMTags.buildingValues),              icon: "building.2"),
+        .init(key: "height",            label: "Высота (м)",           hint: "Полная высота здания, м",      wikiURL: nil,                                                                group: .building, inputType: .text,                                          icon: "arrow.up.and.line.horizontal.and.arrow.down"),
+        .init(key: "roof:shape",        label: "Форма крыши",          hint: "Тип формы крыши",              wikiURL: "https://wiki.openstreetmap.org/wiki/Key:roof:shape",               group: .building, inputType: .select(OSMTags.roofShapeValues),             icon: "house.lodge"),
+        .init(key: "roof:levels",       label: "Этажей в крыше",       hint: "Этажей внутри чердака/крыши",  wikiURL: nil,                                                                group: .building, inputType: .text,                                          icon: "chevron.up"),
+        .init(key: "roof:material",     label: "Материал кровли",      hint: "Наружный кровельный материал",  wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:roof:material",        group: .building, inputType: .select(OSMTags.roofMaterialValues),          icon: "house.fill"),
+        .init(key: "roof:colour",       label: "Цвет крыши",           hint: "#RRGGBB или имя цвета",        wikiURL: nil,                                                                group: .building, inputType: .text,                                          icon: "paintpalette"),
 
     // Дополнительные ключи/переводы, запрошенные пользователем
     .init(key: "start_date",    label: "Дата открытия/основания", hint: "ГГГГ[-MM[-DD]]", wikiURL: nil, group: .other, inputType: .text, icon: "calendar"),
@@ -348,6 +349,29 @@ enum OSMTags {
         "sandstone", "limestone", "marble", "clay", "mud", "adobe", "rammed_earth",
         "plastic", "vinyl", "copper", "mirror", "tiles", "slate", "tin",
         "metal_plates", "bamboo", "solar_panels",
+    ]
+
+    static let buildingArchitectureValues: [String] = [
+        // Средневековые
+        "islamic", "romanesque", "gothic",
+        // XV–XVIII вв.
+        "renaissance", "mannerism", "ottoman", "baroque", "rococo",
+        // XIX в.
+        "neoclassicism", "empire", "eclectic", "historicism",
+        "georgian", "victorian",
+        "pseudo-russian", "moorish_revival",
+        "neo-romanesque", "neo-gothic", "pseudo-gothic", "russian_gothic",
+        "neo-byzantine", "neo-renaissance", "neo-baroque",
+        // 1900–1950
+        "art_nouveau", "nothern_modern",
+        "functionalism", "constructivism", "postconstructivism",
+        "cubism", "new_objectivity", "art_deco",
+        "international_style", "amsterdam_school",
+        "stalinist_neoclassicism",
+        // 1950–н.в.
+        "modern", "brutalist", "postmodern", "contemporary",
+        // Народная
+        "vernacular",
     ]
 
     static let roofShapeValues: [String] = [

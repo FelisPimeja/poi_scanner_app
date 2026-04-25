@@ -27,10 +27,11 @@ enum OSMValueLocalizations {
         case "office":                      return office
         case "craft":                       return craft
         case "cuisine":                     return cuisine
-        case "building", "building:part":   return building
-        case "building:material":           return buildingMaterial
-        case "roof:shape":                  return roofShape
-        case "roof:material":               return roofMaterial
+        case "building", "building:part":      return building
+        case "building:material":              return buildingMaterial
+        case "building:architecture":          return buildingArchitecture
+        case "roof:shape":                     return roofShape
+        case "roof:material":                  return roofMaterial
         default:                            return [:]
         }
     }
@@ -609,8 +610,7 @@ enum OSMValueLocalizations {
 
     // MARK: - building:material
 
-    static let buildingMaterial: [String: String] = [
-        "brick":            "Кирпич",
+    static let buildingMaterial: [String: String] = [        "brick":            "Кирпич",
         "plaster":          "Штукатурка",
         "concrete":         "Бетон",
         "wood":             "Дерево",
@@ -638,6 +638,56 @@ enum OSMValueLocalizations {
         "metal_plates":     "Металлические пластины",
         "bamboo":           "Бамбук",
         "solar_panels":     "Солнечные панели",
+    ]
+
+    // MARK: - building:architecture
+
+    static let buildingArchitecture: [String: String] = [
+        // Средневековые
+        "islamic":               "Исламская архитектура",
+        "romanesque":            "Романская архитектура",
+        "gothic":                "Готическая архитектура",
+        // XV–XVIII вв.
+        "renaissance":           "Архитектура Возрождения",
+        "mannerism":             "Маньеризм",
+        "ottoman":               "Османская архитектура",
+        "baroque":               "Барокко",
+        "rococo":                "Рококо",
+        // XIX в.
+        "neoclassicism":         "Классицизм",
+        "empire":                "Ампир",
+        "eclectic":              "Эклектика",
+        "historicism":           "Историзм",
+        "georgian":              "Георгианская архитектура",
+        "victorian":             "Викторианская архитектура",
+        "pseudo-russian":        "Псевдорусский стиль",
+        "moorish_revival":       "Неомавританский стиль",
+        "neo-romanesque":        "Неороманский стиль",
+        "neo-gothic":            "Неоготика",
+        "pseudo-gothic":         "Псевдоготика",
+        "russian_gothic":        "Русская псевдоготика",
+        "neo-byzantine":         "Неовизантийский стиль",
+        "neo-renaissance":       "Неоренессанс",
+        "neo-baroque":           "Необарокко",
+        // 1900–1950
+        "art_nouveau":           "Модерн (ар-нуво)",
+        "nothern_modern":        "Северный модерн",
+        "functionalism":         "Функционализм",
+        "constructivism":        "Конструктивизм",
+        "postconstructivism":    "Постконструктивизм",
+        "cubism":                "Кубизм",
+        "new_objectivity":       "Новая вещественность",
+        "art_deco":              "Ар-деко",
+        "international_style":   "Интернациональный стиль",
+        "amsterdam_school":      "Амстердамская школа",
+        "stalinist_neoclassicism": "Сталинский ампир",
+        // 1950–н.в.
+        "modern":                "Архитектурный модернизм",
+        "brutalist":             "Брутализм",
+        "postmodern":            "Постмодернизм",
+        "contemporary":          "Современная архитектура",
+        // Народная
+        "vernacular":            "Народная архитектура",
     ]
 
     // MARK: - roof:shape
