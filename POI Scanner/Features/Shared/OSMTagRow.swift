@@ -137,6 +137,8 @@ struct OSMTagRow: View {
                     MultiSelectTagField(key: tagKey, options: options, value: binding)
                 case .openingHours:
                     OpeningHoursNavigatorRow(value: binding)
+                case .boolean:
+                    BooleanTagToggle(value: binding)
                 default:
                     if tagKey == "check_date" {
                         HStack(spacing: 6) {
@@ -160,6 +162,21 @@ struct OSMTagRow: View {
                     }
                 }
             } else {
+                // Read-only boolean: показываем Да / Нет / — без списка частей
+                if case .boolean? = definition?.inputType {
+                    let localizedBool: String = {
+                        switch readOnlyValue {
+                        case "yes": return AppSettings.shared.language == .ru ? "Да"  : "Yes"
+                        case "no":  return AppSettings.shared.language == .ru ? "Нет" : "No"
+                        default:    return readOnlyValue ?? "—"
+                        }
+                    }()
+                    Text(localizedBool)
+                        .font(.body)
+                        .foregroundStyle(readOnlyValue == "yes" ? .green
+                                       : readOnlyValue == "no"  ? .red
+                                       : .secondary)
+                } else {
                 // Значение может содержать несколько элементов через ";".
                 // Отображаем каждый с новой строки.
                 let parts = (readOnlyValue ?? "")
@@ -182,6 +199,7 @@ struct OSMTagRow: View {
                         }
                     }
                 }
+                } // end else boolean
             }
         }
         } // end else
@@ -421,6 +439,40 @@ struct OSMTagRow: View {
         return s
     }
 
+}
+
+// MARK: - BooleanTagToggle
+/// Трёхпозиционный контрол для boolean-тегов (yes / no / не задано).
+/// Использует Toggle: включён = "yes", выключен = "no".
+/// Долгий тап на переключатель → сброс в пустое значение (тег удалится).
+private struct BooleanTagToggle: View {
+    @Binding var value: String
+
+    private var isOn: Bool { value == "yes" }
+
+    var body: some View {
+        Toggle(isOn: Binding(
+            get: { value == "yes" },
+            set: { value = $0 ? "yes" : "no" }
+        )) {
+            if value.isEmpty {
+                Text("Не задано")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text(value == "yes"
+                     ? (AppSettings.shared.language == .ru ? "Да"  : "Yes")
+                     : (AppSettings.shared.language == .ru ? "Нет" : "No"))
+                    .font(.body)
+                    .foregroundStyle(value == "yes" ? .green : .red)
+            }
+        }
+        .onTapGesture { } // нужен чтобы жест не перехватывал List row tap
+        .contextMenu {
+            Button(AppSettings.shared.language == .ru ? "Сбросить значение" : "Clear value",
+                   role: .destructive) { value = "" }
+        }
+    }
 }
 
 // MARK: - SelectTagField
