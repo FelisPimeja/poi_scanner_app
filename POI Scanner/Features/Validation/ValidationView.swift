@@ -1,4 +1,6 @@
 import SwiftUI
+import MapLibre
+import CoreLocation
 
 // MARK: - ValidationView
 // Редактор тегов POI с цветовой индикацией источника данных
@@ -11,6 +13,7 @@ struct ValidationView: View {
     @Environment(\.dismiss) private var dismiss
     private let authService = OSMAuthService.shared
     @State private var showImagePreview = false
+    @State private var showCoordinatePicker = false
     @State private var isSaving = false
     @State private var isUploading = false
     @State private var uploadError: String? = nil
@@ -51,6 +54,9 @@ struct ValidationView: View {
                             .onTapGesture { showImagePreview = true }
                     }
                 }
+
+                // Карта + координаты
+                locationSection
 
                 // Теги
                 Section {
@@ -126,7 +132,71 @@ struct ValidationView: View {
                     ImagePreviewView(image: image)
                 }
             }
+            .sheet(isPresented: $showCoordinatePicker) {
+                let coord = CLLocationCoordinate2D(
+                    latitude: poi.coordinate.latitude,
+                    longitude: poi.coordinate.longitude
+                )
+                let floor = poi.tags["level"].flatMap(Int.init) ?? 0
+                CoordinatePickerView(
+                    initialCoordinate: coord,
+                    initialFloor: floor,
+                    onConfirm: { newCoord in
+                        poi.coordinate = POI.Coordinate(newCoord)
+                        showCoordinatePicker = false
+                    },
+                    onCancel: { showCoordinatePicker = false }
+                )
+            }
         }
+    }
+
+    // MARK: - Location section
+
+    @ViewBuilder
+    private var locationSection: some View {
+        let lat = poi.coordinate.latitude
+        let lon = poi.coordinate.longitude
+        let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+
+        Section {
+            LocationPreviewMapView(coordinate: coord)
+                .frame(height: 148)
+                .listRowInsets(EdgeInsets())
+                .clipShape(Rectangle())
+
+            HStack(spacing: 10) {
+                Image(systemName: "scope")
+                    .font(.body)
+                    .foregroundStyle(Color.accentColor)
+                    .frame(width: 24, alignment: .center)
+                Text(dmsString(lat: lat, lon: lon))
+                    .font(.body)
+                    .foregroundStyle(Color.accentColor)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { showCoordinatePicker = true }
+        }
+    }
+
+    private func dmsString(lat: Double, lon: Double) -> String {
+        func parts(_ deg: Double) -> (d: Int, m: Int, s: Double) {
+            let a = abs(deg)
+            let d = Int(a)
+            let m = Int((a - Double(d)) * 60)
+            let s = ((a - Double(d)) * 60 - Double(m)) * 60
+            return (d, m, s)
+        }
+        let (ld, lm, ls) = parts(lat)
+        let (nd, nm, ns) = parts(lon)
+        let latDir = lat >= 0 ? "N" : "S"
+        let lonDir = lon >= 0 ? "E" : "W"
+        return String(format: "%d°%d′%.2f″%@  %d°%d′%.2f″%@",
+                      ld, lm, ls, latDir, nd, nm, ns, lonDir)
     }
 
     private var legendHeader: some View {

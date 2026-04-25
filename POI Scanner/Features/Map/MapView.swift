@@ -1334,7 +1334,7 @@ private struct TechInfoSection: View {
 /// Лёгкая read-only карта MapLibre для превью местоположения POI.
 /// Использует тот же MapTiler стиль что и основная карта.
 /// Жесты отключены — карта нетапабельна.
-private struct LocationPreviewMapView: UIViewRepresentable {
+struct LocationPreviewMapView: UIViewRepresentable {
     let coordinate: CLLocationCoordinate2D
 
     func makeUIView(context: Context) -> MLNMapView {
