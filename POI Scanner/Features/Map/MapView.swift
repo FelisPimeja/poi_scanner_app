@@ -648,7 +648,7 @@ private struct OSMNodeSheet: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             if isEditing {
-                HStack(spacing: 4) {
+                HStack(spacing: 16) {
                     Button {
                         poi = nil
                         undoStack = []
