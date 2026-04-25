@@ -291,6 +291,34 @@ private struct OSMNodeSheet: View {
         .other:   ["wheelchair", "description"],
     ]
 
+    /// True если ключ входит в essentialPlaceholders (для любой группы).
+    private func isEssentialKey(_ key: String) -> Bool {
+        essentialPlaceholders.values.contains { $0.contains(key) }
+    }
+
+    /// Свайп-действие для строки тега:
+    /// - essential-ключи → «Очистить» (удаляет значение, плейсхолдер остаётся)
+    /// - прочие          → «Удалить»  (полностью убирает строку)
+    @ViewBuilder
+    private func swipeDeleteAction(forKey key: String) -> some View {
+        if isEssentialKey(key) {
+            Button {
+                poi?.tags.removeValue(forKey: key)
+                poi?.fieldStatus.removeValue(forKey: key)
+            } label: {
+                Label("Очистить", systemImage: "xmark.circle")
+            }
+            .tint(.orange)
+        } else {
+            Button(role: .destructive) {
+                poi?.tags.removeValue(forKey: key)
+                poi?.fieldStatus.removeValue(forKey: key)
+            } label: {
+                Label("Удалить", systemImage: "trash")
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
@@ -387,12 +415,7 @@ private struct OSMNodeSheet: View {
                             tagRow: { key, value, isPrimary in
                                 tagRow(for: key, value: value, isEditable: isEditable, isPrimary: isPrimary)
                                     .swipeActions(edge: .trailing) {
-                                        if isEditable {
-                                            Button(role: .destructive) {
-                                                poi?.tags.removeValue(forKey: key)
-                                                poi?.fieldStatus.removeValue(forKey: key)
-                                            } label: { Label("Удалить", systemImage: "trash") }
-                                        }
+                                        if isEditable { swipeDeleteAction(forKey: key) }
                                     }
                             }
                         )
@@ -403,12 +426,7 @@ private struct OSMNodeSheet: View {
                             tagRow: { key, value in
                                 tagRow(for: key, value: value, isEditable: isEditable)
                                     .swipeActions(edge: .trailing) {
-                                        if isEditable {
-                                            Button(role: .destructive) {
-                                                poi?.tags.removeValue(forKey: key)
-                                                poi?.fieldStatus.removeValue(forKey: key)
-                                            } label: { Label("Удалить", systemImage: "trash") }
-                                        }
+                                        if isEditable { swipeDeleteAction(forKey: key) }
                                     }
                             }
                         )
@@ -419,12 +437,7 @@ private struct OSMNodeSheet: View {
                             tagRow: { key, value in
                                 tagRow(for: key, value: value, isEditable: isEditable)
                                     .swipeActions(edge: .trailing) {
-                                        if isEditable {
-                                            Button(role: .destructive) {
-                                                poi?.tags.removeValue(forKey: key)
-                                                poi?.fieldStatus.removeValue(forKey: key)
-                                            } label: { Label("Удалить", systemImage: "trash") }
-                                        }
+                                        if isEditable { swipeDeleteAction(forKey: key) }
                                     }
                             }
                         )
@@ -440,10 +453,7 @@ private struct OSMNodeSheet: View {
                                        forceIcon: index == 0 && absentKeys.isEmpty ? "house" : nil,
                                        hideIcon: index > 0 || !absentKeys.isEmpty)
                                     .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) {
-                                            poi?.tags.removeValue(forKey: item.key)
-                                            poi?.fieldStatus.removeValue(forKey: item.key)
-                                        } label: { Label("Удалить", systemImage: "trash") }
+                                        swipeDeleteAction(forKey: item.key)
                                     }
                             }
                             // Плейсхолдеры для отсутствующих ключей адреса
@@ -464,12 +474,7 @@ private struct OSMNodeSheet: View {
                             ForEach(entries, id: \.key) { item in
                                 tagRow(for: item.key, value: item.value, isEditable: isEditable)
                                     .swipeActions(edge: .trailing) {
-                                        if isEditable {
-                                            Button(role: .destructive) {
-                                                poi?.tags.removeValue(forKey: item.key)
-                                                poi?.fieldStatus.removeValue(forKey: item.key)
-                                            } label: { Label("Удалить", systemImage: "trash") }
-                                        }
+                                        if isEditable { swipeDeleteAction(forKey: item.key) }
                                     }
                             }
                             // Плейсхолдеры для отсутствующих ключей группы
