@@ -646,17 +646,27 @@ private struct OSMNodeSheet: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
+        ToolbarItem(placement: .topBarLeading) {
             if isEditing {
-                Button {
-                    poi = nil
-                    undoStack = []
-                    redoStack = []
-                    snapshotTask?.cancel()
-                    isEditing = false
-                } label: {
-                    Image(systemName: "xmark")
-                        .fontWeight(.semibold)
+                HStack(spacing: 4) {
+                    Button {
+                        poi = nil
+                        undoStack = []
+                        redoStack = []
+                        snapshotTask?.cancel()
+                        isEditing = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .fontWeight(.semibold)
+                    }
+                    Button { undo() } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                    }
+                    .disabled(!canUndo || isUploading)
+                    Button { redo() } label: {
+                        Image(systemName: "arrow.uturn.forward")
+                    }
+                    .disabled(!canRedo || isUploading)
                 }
             } else {
                 Button {
@@ -705,18 +715,6 @@ private struct OSMNodeSheet: View {
                     Image(systemName: "square.and.arrow.down")
                 }
                 .disabled(isUploading)
-            }
-            ToolbarItem(placement: .topBarLeading) {
-                Button { undo() } label: {
-                    Image(systemName: "arrow.uturn.backward")
-                }
-                .disabled(!canUndo || isUploading)
-            }
-            ToolbarItem(placement: .topBarLeading) {
-                Button { redo() } label: {
-                    Image(systemName: "arrow.uturn.forward")
-                }
-                .disabled(!canRedo || isUploading)
             }
         }
     }
