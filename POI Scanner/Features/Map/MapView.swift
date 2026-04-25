@@ -264,6 +264,40 @@ private struct OSMNodeSheet: View {
     @State private var showUploadError = false
     private let authService = OSMAuthService.shared
 
+    // Undo / Redo
+    @State private var undoStack: [[String: String]] = []
+    @State private var redoStack: [[String: String]] = []
+    @State private var snapshotTask: Task<Void, Never>? = nil
+
+    private var canUndo: Bool { undoStack.count >= 2 }
+    private var canRedo: Bool { !redoStack.isEmpty }
+
+    /// Планирует снимок текущих тегов через 0.6 с (дебаунс).
+    /// Вызывается при каждом изменении `poi.tags`.
+    private func scheduleSnapshot() {
+        snapshotTask?.cancel()
+        snapshotTask = Task {
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            guard !Task.isCancelled else { return }
+            guard let tags = poi?.tags, tags != undoStack.last else { return }
+            undoStack.append(tags)
+            redoStack.removeAll()
+        }
+    }
+
+    private func undo() {
+        guard undoStack.count >= 2 else { return }
+        let current = undoStack.removeLast()
+        redoStack.append(current)
+        poi?.tags = undoStack.last ?? [:]
+    }
+
+    private func redo() {
+        guard let next = redoStack.popLast() else { return }
+        undoStack.append(next)
+        poi?.tags = next
+    }
+
     enum EditTab: String, CaseIterable {
         case simplified = "Форма"
         case tags       = "Теги"
@@ -357,6 +391,10 @@ private struct OSMNodeSheet: View {
             .navigationTitle(node.tags["name"] ?? "OSM нода #\(node.id)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
+            .onChange(of: poi?.tags) { _, _ in
+                // Дебаунс-снимок после каждого изменения тегов
+                scheduleSnapshot()
+            }
             .alert("Ошибка загрузки", isPresented: $showUploadError) {
                 Button("Скопировать") {
                     UIPasteboard.general.string = uploadError
@@ -612,6 +650,9 @@ private struct OSMNodeSheet: View {
             if isEditing {
                 Button {
                     poi = nil
+                    undoStack = []
+                    redoStack = []
+                    snapshotTask?.cancel()
                     isEditing = false
                 } label: {
                     Image(systemName: "xmark")
@@ -646,6 +687,8 @@ private struct OSMNodeSheet: View {
                     let p = node.toPOI()
                     poi = p
                     tagPairs = p.tags.keys.sorted().map { TagPair(key: $0, value: p.tags[$0] ?? "") }
+                    undoStack = [p.tags]
+                    redoStack = []
                     isEditing = true
                 } label: {
                     Image(systemName: "pencil")
@@ -662,6 +705,18 @@ private struct OSMNodeSheet: View {
                     Image(systemName: "square.and.arrow.down")
                 }
                 .disabled(isUploading)
+            }
+            ToolbarItem(placement: .topBarLeading) {
+                Button { undo() } label: {
+                    Image(systemName: "arrow.uturn.backward")
+                }
+                .disabled(!canUndo || isUploading)
+            }
+            ToolbarItem(placement: .topBarLeading) {
+                Button { redo() } label: {
+                    Image(systemName: "arrow.uturn.forward")
+                }
+                .disabled(!canRedo || isUploading)
             }
         }
     }
