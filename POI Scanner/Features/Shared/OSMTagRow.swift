@@ -135,6 +135,8 @@ struct OSMTagRow: View {
                     SelectTagField(key: tagKey, options: options, value: binding)
                 case .multiselect(let options):
                     MultiSelectTagField(key: tagKey, options: options, value: binding)
+                case .openingHours:
+                    OpeningHoursEditorView(value: binding)
                 default:
                     if tagKey == "check_date" {
                         HStack(spacing: 6) {
