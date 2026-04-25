@@ -367,8 +367,8 @@ private struct OSMNodeSheet: View {
                         CollapsibleNameSection(
                             entries: entries,
                             isEditable: isEditable,
-                            tagRow: { key, value in
-                                tagRow(for: key, value: value, isEditable: isEditable)
+                            tagRow: { key, value, isPrimary in
+                                tagRow(for: key, value: value, isEditable: isEditable, isPrimary: isPrimary)
                                     .swipeActions(edge: .trailing) {
                                         if isEditable {
                                             Button(role: .destructive) {
@@ -485,7 +485,8 @@ private struct OSMNodeSheet: View {
     /// Строит одну строку тега — read-only или editable в зависимости от флага.
     @ViewBuilder
     private func tagRow(for key: String, value: String, isEditable: Bool,
-                        forceIcon: String? = nil, hideIcon: Bool = false) -> some View {
+                        forceIcon: String? = nil, hideIcon: Bool = false,
+                        isPrimary: Bool = false) -> some View {
         if isEditable {
             OSMTagRow(
                 tagKey: key,
@@ -498,10 +499,11 @@ private struct OSMNodeSheet: View {
                 ),
                 status: poi?.fieldStatus[key] ?? .manual,
                 forceIcon: forceIcon,
-                hideIcon: hideIcon
+                hideIcon: hideIcon,
+                isPrimary: isPrimary
             )
         } else {
-            OSMTagRow(tagKey: key, readOnlyValue: value, forceIcon: forceIcon, hideIcon: hideIcon)
+            OSMTagRow(tagKey: key, readOnlyValue: value, forceIcon: forceIcon, hideIcon: hideIcon, isPrimary: isPrimary)
         }
     }
 
@@ -990,7 +992,8 @@ private struct AddressTagSection: View {
 private struct CollapsibleNameSection<Row: View>: View {
     let entries: [(key: String, value: String)]
     let isEditable: Bool
-    let tagRow: (String, String) -> Row
+    /// (key, value, isPrimary) → Row
+    let tagRow: (String, String, Bool) -> Row
 
     @State private var isExpanded = false
 
@@ -1011,18 +1014,18 @@ private struct CollapsibleNameSection<Row: View>: View {
     var body: some View {
         Section {
             if secondaryEntries.isEmpty {
-                // Только один name-тег — показываем без DisclosureGroup
                 if let primary = primaryEntry {
-                    tagRow(primary.key, primary.value)
+                    tagRow(primary.key, primary.value, true)
                 }
             } else {
                 DisclosureGroup(isExpanded: $isExpanded) {
                     ForEach(secondaryEntries, id: \.key) { item in
-                        tagRow(item.key, item.value)
+                        tagRow(item.key, item.value, false)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                 } label: {
                     if let primary = primaryEntry {
-                        tagRow(primary.key, primary.value)
+                        tagRow(primary.key, primary.value, true)
                     }
                 }
             }
@@ -1031,3 +1034,4 @@ private struct CollapsibleNameSection<Row: View>: View {
         }
     }
 }
+

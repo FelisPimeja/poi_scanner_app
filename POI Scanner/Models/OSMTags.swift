@@ -167,15 +167,15 @@ enum OSMTags {
         "name", "name:ru", "name:en", "name:de", "name:fr", "name:es",
         "name:zh", "name:ar", "name:ja", "name:ko",
         "int_name", "official_name", "official_name:ru", "official_name:en",
-        "full_name", "alt_name", "old_name",
+        "full_name", "alt_name", "old_name", "old_name:ru", "old_name:en",
         "short_name", "loc_name", "reg_name", "nat_name",
         "name:left", "name:right",
     ]
 
     /// Возвращает true, если ключ относится к «имени» объекта —
-    /// либо входит в nameKeys, либо начинается с "name:" или "official_name:".
+    /// либо входит в nameKeys, либо начинается с "name:" / "official_name:" / "old_name:".
     static func isNameKey(_ key: String) -> Bool {
-        key.hasPrefix("name:") || key.hasPrefix("official_name:") || nameKeys.contains(key)
+        key.hasPrefix("name:") || key.hasPrefix("official_name:") || key.hasPrefix("old_name:") || nameKeys.contains(key)
     }
 
     /// Ключи, попадающие в группу «Бренд».

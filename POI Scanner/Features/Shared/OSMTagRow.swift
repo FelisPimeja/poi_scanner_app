@@ -20,6 +20,8 @@ struct OSMTagRow: View {
     var forceIcon: String? = nil
     /// Скрыть иконку и показать прозрачный спейсер (адрес: строки 2…N)
     var hideIcon: Bool = false
+    /// Применить жирное начертание к значению (первичное название в группе Название)
+    var isPrimary: Bool = false
 
     private var definition: OSMTagDefinition? { OSMTags.definition(for: tagKey) }
 
@@ -70,7 +72,7 @@ struct OSMTagRow: View {
 
     /// True если ключ — главное название (name или name:ru) в режиме просмотра.
     private var isMainNameKey: Bool {
-        editableValue == nil && (tagKey == "name" || tagKey == "name:ru")
+        editableValue == nil && isPrimary
     }
 
     /// True если ключ входит в группу «Тип» и для него есть локализованный перевод.
@@ -238,6 +240,15 @@ struct OSMTagRow: View {
     /// - opening_hours        → локализованные аббревиатуры дней (ru: Mo→Пн и т.д.)
     static func displayValue(forKey key: String, value: String) -> String {
         let k = key.lowercased()
+
+        // Wikipedia: убираем языковой префикс "ru:Название" → "Название"
+        if k == "wikipedia" || k.hasSuffix(":wikipedia") {
+            if let colonIdx = value.firstIndex(of: ":"),
+               value.distance(from: value.startIndex, to: colonIdx) <= 5 {
+                return String(value[value.index(after: colonIdx)...])
+            }
+            return value
+        }
 
         // Тип объекта: amenity, shop, tourism, leisure, office, craft, cuisine
         let typeKeys: Set<String> = ["amenity", "shop", "tourism", "leisure", "office", "craft", "cuisine"]
