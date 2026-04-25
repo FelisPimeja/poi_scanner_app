@@ -1081,6 +1081,17 @@ private struct TechInfoSection: View {
     /// Первичное значение: «n123456789»
     private var osmRef: String { "\(typePrefix)\(node.id)" }
 
+    /// Ссылка на страницу объекта на openstreetmap.org
+    private var osmURL: URL? {
+        let typeName: String
+        switch node.type {
+        case .node:     typeName = "node"
+        case .way:      typeName = "way"
+        case .relation: typeName = "relation"
+        }
+        return URL(string: "https://www.openstreetmap.org/\(typeName)/\(node.id)")
+    }
+
     var body: some View {
         Section(header: Text("Техническая информация")) {
             Button {
@@ -1096,8 +1107,16 @@ private struct TechInfoSection: View {
                             Text("OSM ID")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                            Text(osmRef)
-                                .font(.body)
+                            if let url = osmURL {
+                                Link(destination: url) {
+                                    Text(osmRef)
+                                        .font(.body)
+                                        .foregroundStyle(.blue)
+                                }
+                            } else {
+                                Text(osmRef)
+                                    .font(.body)
+                            }
                         }
                     }
                     Spacer(minLength: 8)
