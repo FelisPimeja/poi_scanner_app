@@ -834,6 +834,7 @@ private struct CollapsibleLegalSection<Row: View>: View {
                                 .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         }
                     }
+                    .contentShape(Rectangle())
                     .buttonStyle(.plain)
                 }
                 if isExpanded {
@@ -891,6 +892,7 @@ private struct CollapsibleBrandSection<Row: View>: View {
                                 .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         }
                     }
+                    .contentShape(Rectangle())
                     .buttonStyle(.plain)
                 }
                 if isExpanded {
@@ -1056,6 +1058,7 @@ private struct CollapsibleNameSection<Row: View>: View {
                                 .animation(.easeInOut(duration: 0.2), value: isExpanded)
                         }
                     }
+                    .contentShape(Rectangle())
                     .buttonStyle(.plain)
                 }
                 if isExpanded {
