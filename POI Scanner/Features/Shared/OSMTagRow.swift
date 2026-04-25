@@ -25,8 +25,38 @@ struct OSMTagRow: View {
 
     private var definition: OSMTagDefinition? { OSMTags.definition(for: tagKey) }
 
-    /// Человекочитаемая метка (из каталога или сам ключ)
-    private var label: String { definition?.label ?? tagKey }
+    /// Человекочитаемая метка (из каталога, либо авто-генерация для name:XX / old_name:XX и т.д.)
+    private var label: String {
+        if let def = definition { return def.label }
+        return Self.localizedNameLabel(for: tagKey)
+    }
+
+    /// Генерирует метку для ключей вида "name:XX", "old_name:XX", "alt_name:XX" и т.п.
+    /// Использует Locale для получения названия языка по ISO 639-1 коду.
+    static func localizedNameLabel(for key: String) -> String {
+        let nameBasePrefixes: [(prefix: String, base: String)] = [
+            ("official_name:", "Официальное название"),
+            ("old_name:",      "Старое название"),
+            ("alt_name:",      "Альтернативное название"),
+            ("full_name:",     "Полное название"),
+            ("short_name:",    "Краткое название"),
+            ("int_name:",      "Международное название"),
+            ("name:",          "Название"),
+        ]
+        let isRu = AppSettings.shared.language == .ru
+        let localeId = isRu ? "ru_RU" : "en_US"
+        let locale = Locale(identifier: localeId)
+        for (prefix, baseLabel) in nameBasePrefixes {
+            if key.hasPrefix(prefix) {
+                let langCode = String(key.dropFirst(prefix.count))
+                // Используем Locale для получения названия языка
+                let langName = locale.localizedString(forLanguageCode: langCode)
+                              ?? langCode.uppercased()
+                return "\(baseLabel) (\(langName))"
+            }
+        }
+        return key
+    }
 
     /// SF Symbol для этого ключа (из каталога)
     private var icon: String? { definition?.icon }

@@ -70,8 +70,15 @@ enum OSMTags {
         .init(key: "cuisine",  label: "Кухня",          hint: "Тип кухни: italian; sushi", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:cuisine", group: .type, inputType: .multiselect(OSMTags.cuisineValues), icon: "fork.knife"),
 
         // ── Название ─────────────────────────────────────────────────────────
-        .init(key: "name",      label: "Название",        hint: "Официальное название объекта", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:name",     group: .name, inputType: .text),
-        .init(key: "name:ru",   label: "Название (рус)",  hint: "Название на русском языке",    wikiURL: nil,                                                group: .name, inputType: .text),
+        .init(key: "name",          label: "Название",               hint: "Официальное название объекта", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:name",          group: .name, inputType: .text),
+        .init(key: "name:ru",       label: "Название (рус)",         hint: "Название на русском языке",    wikiURL: nil,                                                     group: .name, inputType: .text),
+        .init(key: "alt_name",      label: "Альтернативное название", hint: "Неофициальное / народное",    wikiURL: "https://wiki.openstreetmap.org/wiki/Key:alt_name",      group: .name, inputType: .text),
+        .init(key: "old_name",      label: "Старое название",        hint: "Историческое название",        wikiURL: "https://wiki.openstreetmap.org/wiki/Key:old_name",      group: .name, inputType: .text),
+        .init(key: "full_name",     label: "Полное название",        hint: "Полное официальное название",  wikiURL: "https://wiki.openstreetmap.org/wiki/Key:full_name",     group: .name, inputType: .text),
+        .init(key: "official_name", label: "Официальное название",   hint: "Официальное юридическое имя", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:official_name", group: .name, inputType: .text),
+        .init(key: "short_name",    label: "Краткое название",       hint: "Сокращённое название",        wikiURL: "https://wiki.openstreetmap.org/wiki/Key:short_name",    group: .name, inputType: .text),
+        .init(key: "int_name",      label: "Международное название", hint: "Транслитерированное имя",     wikiURL: "https://wiki.openstreetmap.org/wiki/Key:int_name",      group: .name, inputType: .text),
+        .init(key: "loc_name",      label: "Местное название",       hint: "Местное / диалектное",        wikiURL: nil,                                                     group: .name, inputType: .text),
         .init(key: "brand",           label: "Бренд",            hint: "Название сети или бренда",      wikiURL: "https://wiki.openstreetmap.org/wiki/Key:brand",           group: .brand, inputType: .text),
         .init(key: "brand:en",        label: "Бренд (англ)",     hint: "Название бренда на английском", wikiURL: nil,                                                       group: .brand, inputType: .text),
         .init(key: "network",         label: "Сеть",             hint: "Название сети объектов",        wikiURL: "https://wiki.openstreetmap.org/wiki/Key:network",          group: .brand, inputType: .text),
@@ -136,6 +143,7 @@ enum OSMTags {
         .init(key: "payment:sbp",           label: "СБП",           hint: "yes / no", wikiURL: nil, group: .payment, inputType: .boolean, icon: "rublesign.arrow.trianglehead.counterclockwise.rotate.90"),
 
         // ── Прочее ───────────────────────────────────────────────────────────
+        .init(key: "wheelchair", label: "Доступность для инвалидов", hint: "yes / limited / no", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:wheelchair", group: .other, inputType: .select(["yes", "limited", "no"]), icon: "figure.roll"),
         .init(key: "level",  label: "Уровень", hint: "Этаж: 0 = первый, -1 = подвал", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:level",  group: .other, inputType: .level,                              icon: "square.stack.3d.up"),
         .init(key: "indoor", label: "Indoor",  hint: "Тип indoor объекта",            wikiURL: "https://wiki.openstreetmap.org/wiki/Key:indoor", group: .other, inputType: .select(["yes", "room", "corridor", "area"]), icon: "building"),
 

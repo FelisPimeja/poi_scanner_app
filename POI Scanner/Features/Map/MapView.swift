@@ -455,21 +455,8 @@ private struct OSMNodeSheet: View {
             }
         }
 
-        // Координаты и тип геометрии — всегда отдельной секцией, только для чтения
-        Section {
-            let typeLabel: String = {
-                switch node.type {
-                case .node:     return AppSettings.shared.language == .ru ? "Точка (node)" : "Node"
-                case .way:      return AppSettings.shared.language == .ru ? "Линия/полигон (way)" : "Way"
-                case .relation: return AppSettings.shared.language == .ru ? "Отношение (relation)" : "Relation"
-                }
-            }()
-            OSMTagRow(tagKey: "type", readOnlyValue: typeLabel)
-            OSMTagRow(tagKey: "id",      readOnlyValue: String(node.id))
-            OSMTagRow(tagKey: "version", readOnlyValue: String(node.version))
-            OSMTagRow(tagKey: "lat", readOnlyValue: String(format: "%.6f", node.latitude))
-            OSMTagRow(tagKey: "lon", readOnlyValue: String(format: "%.6f", node.longitude))
-        }
+        // Техническая информация — всегда read-only, сворачиваемая секция
+        TechInfoSection(node: node)
 
         // Строка добавления нового тега — только в режиме редактирования
         if isEditable {
@@ -1073,3 +1060,62 @@ private struct CollapsibleNameSection<Row: View>: View {
     }
 }
 
+// MARK: - TechInfoSection
+
+/// Секция «Техническая информация» — сворачиваемая, всегда read-only.
+/// Первичная строка: иконка info.circle + тип+id в формате «n123456789».
+/// Вторичные строки: версия, широта, долгота.
+private struct TechInfoSection: View {
+    let node: OSMNode
+    @State private var isExpanded = false
+
+    /// Буква-префикс типа: node→n, way→w, relation→r
+    private var typePrefix: String {
+        switch node.type {
+        case .node:     return "n"
+        case .way:      return "w"
+        case .relation: return "r"
+        }
+    }
+
+    /// Первичное значение: «n123456789»
+    private var osmRef: String { "\(typePrefix)\(node.id)" }
+
+    var body: some View {
+        Section(header: Text("Техническая информация")) {
+            Button {
+                withAnimation { isExpanded.toggle() }
+            } label: {
+                HStack(spacing: 0) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "info.circle")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24, alignment: .center)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("OSM ID")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(osmRef)
+                                .font(.body)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
+                }
+            }
+            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                OSMTagRow(tagKey: "version", readOnlyValue: String(node.version))
+                OSMTagRow(tagKey: "lat", readOnlyValue: String(format: "%.6f", node.latitude))
+                OSMTagRow(tagKey: "lon", readOnlyValue: String(format: "%.6f", node.longitude))
+            }
+        }
+    }
+}
