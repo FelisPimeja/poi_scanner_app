@@ -412,6 +412,8 @@ private struct OSMNodeSheet: View {
                 }
             }()
             OSMTagRow(tagKey: "type", readOnlyValue: typeLabel)
+            OSMTagRow(tagKey: "id",      readOnlyValue: String(node.id))
+            OSMTagRow(tagKey: "version", readOnlyValue: String(node.version))
             OSMTagRow(tagKey: "lat", readOnlyValue: String(format: "%.6f", node.latitude))
             OSMTagRow(tagKey: "lon", readOnlyValue: String(format: "%.6f", node.longitude))
         }
@@ -455,6 +457,8 @@ private struct OSMNodeSheet: View {
         var result: [OSMTagDefinition.TagGroup: [(key: String, value: String)]] = [:]
         for key in tags.keys.sorted(by: groupSortKey) {
             guard let value = tags[key] else { continue }
+            // Фильтруем служебный type=multipolygon — тип геометрии уже отображается отдельно
+            if key == "type" && value == "multipolygon" { continue }
             let group: OSMTagDefinition.TagGroup
             if OSMTags.isNameKey(key) {
                 group = .name
@@ -466,6 +470,8 @@ private struct OSMNodeSheet: View {
                 group = .payment
             } else if OSMTags.isContactKey(key) {
                 group = .contact
+            } else if OSMTags.isAddressKey(key) {
+                group = .address
             } else {
                 group = OSMTags.definition(for: key)?.group ?? .other
             }
@@ -495,6 +501,7 @@ private struct OSMNodeSheet: View {
         if OSMTags.isLegalKey(key)   { return .legal }
         if OSMTags.isPaymentKey(key) { return .payment }
         if OSMTags.isContactKey(key) { return .contact }
+        if OSMTags.isAddressKey(key) { return .address }
         return OSMTags.definition(for: key)?.group ?? .other
     }
 

@@ -62,6 +62,11 @@ struct OSMTagRow: View {
 
     // MARK: Tag content
 
+    /// True если ключ — главное название (name или name:ru) в режиме просмотра.
+    private var isMainNameKey: Bool {
+        editableValue == nil && (tagKey == "name" || tagKey == "name:ru")
+    }
+
     /// True если ключ входит в группу «Тип» и для него есть локализованный перевод.
     /// В таком случае в read-only показываем одну строку — только переведённое значение.
     /// cuisine исключён: у него несколько значений через ";", caption «Кухня» оставляем.
@@ -109,12 +114,12 @@ struct OSMTagRow: View {
                                   ?? Self.contactURL(forKey: tagKey, value: part) {
                             Link(destination: url) {
                                 Text(display)
-                                    .font(.body)
+                                    .font(isMainNameKey ? .body.weight(.semibold) : .body)
                                     .foregroundStyle(.blue)
                             }
                         } else {
                             Text(display)
-                                .font(.body)
+                                .font(isMainNameKey ? .body.weight(.semibold) : .body)
                                 .textSelection(.enabled)
                         }
                     }
@@ -302,7 +307,16 @@ struct OSMTagRow: View {
     /// Форматирует российский номер: 79261234567 / 89261234567 → +7 (926) 123-45-67.
     /// Нераспознанные форматы возвращает без изменений.
     private static func formattedPhone(_ raw: String) -> String {
-        let digits = raw.filter(\.isNumber)
+        // Обработка добавочного номера: "ext. 1234" или "ext 1234" → " доб. (1234)"
+        var main = raw
+        var ext = ""
+        let extPattern = /\s*ext\.?\s*(\d+)/
+        if let match = raw.firstMatch(of: extPattern) {
+            main = String(raw[raw.startIndex..<match.range.lowerBound])
+            ext = " доб. (\(match.1))"
+        }
+
+        let digits = main.filter(\.isNumber)
         guard digits.count == 11,
               digits.hasPrefix("7") || digits.hasPrefix("8") else { return raw }
         let d = Array("7" + digits.dropFirst())  // 11 цифр, первая всегда '7'
@@ -310,7 +324,7 @@ struct OSMTagRow: View {
         let part1 = String(d[4...6])
         let part2 = String(d[7...8])
         let part3 = String(d[9...10])
-        return "+7 (\(area)) \(part1)-\(part2)-\(part3)"
+        return "+7 (\(area)) \(part1)-\(part2)-\(part3)\(ext)"
     }
 
     /// Локализует аббревиатуры дней недели в строке opening_hours для русской локали.

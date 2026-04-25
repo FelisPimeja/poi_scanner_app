@@ -85,11 +85,16 @@ enum OSMTags {
         .init(key: "ref:okved",        label: "ОКВЭД",           hint: "Код вида экономической деятельности",            wikiURL: nil, group: .legal, inputType: .text),
 
         // ── Адрес ─────────────────────────────────────────────────────────────
+        .init(key: "addr:country",     label: "Страна",     hint: "Код страны (RU, US…)", wikiURL: nil, group: .address, inputType: .text, icon: "globe"),
         .init(key: "addr:city",        label: "Город",      hint: "Населённый пункт",    wikiURL: nil, group: .address, inputType: .text, icon: "building.columns"),
+        .init(key: "addr:suburb",      label: "Район",      hint: "Район города",         wikiURL: nil, group: .address, inputType: .text, icon: "map"),
         .init(key: "addr:street",      label: "Улица",      hint: "Название улицы",      wikiURL: nil, group: .address, inputType: .text, icon: "road.lanes"),
         .init(key: "addr:housenumber", label: "Номер дома", hint: "Номер дома/строения", wikiURL: nil, group: .address, inputType: .text, icon: "house"),
+        .init(key: "addr:unit",        label: "Квартира/Офис", hint: "Номер помещения",  wikiURL: nil, group: .address, inputType: .text, icon: "door.right.hand.closed"),
         .init(key: "addr:floor",       label: "Этаж",       hint: "Этаж внутри здания",  wikiURL: nil, group: .address, inputType: .text, icon: "square.stack.3d.up"),
         .init(key: "addr:postcode",    label: "Индекс",     hint: "Почтовый индекс",     wikiURL: nil, group: .address, inputType: .text, icon: "envelope"),
+        .init(key: "addr2:street",     label: "Улица (2)",  hint: "Второй адрес — улица", wikiURL: nil, group: .address, inputType: .text, icon: "road.lanes"),
+        .init(key: "addr2:housenumber",label: "Дом (2)",    hint: "Второй адрес — дом",  wikiURL: nil, group: .address, inputType: .text, icon: "house"),
 
         // ── Часы работы ──────────────────────────────────────────────────────
         .init(key: "opening_hours", label: "Часы работы", hint: "Формат OSM: Mo-Fr 09:00-18:00", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:opening_hours", group: .hours, inputType: .openingHours, icon: "clock"),
@@ -135,9 +140,11 @@ enum OSMTags {
         .init(key: "indoor", label: "Indoor",  hint: "Тип indoor объекта",            wikiURL: "https://wiki.openstreetmap.org/wiki/Key:indoor", group: .other, inputType: .select(["yes", "room", "corridor", "area"]), icon: "building"),
 
         // ── Служебные (только отображение, не редактируются) ─────────────────
-        .init(key: "type", label: "Тип геометрии", hint: "", group: .other, inputType: .text, icon: "cube"),
-        .init(key: "lat",  label: "Широта",        hint: "", group: .other, inputType: .text, icon: "location"),
-        .init(key: "lon",  label: "Долгота",       hint: "", group: .other, inputType: .text, icon: "location"),
+        .init(key: "type",    label: "Тип геометрии", hint: "", group: .other, inputType: .text, icon: "cube"),
+        .init(key: "id",      label: "OSM ID",        hint: "", group: .other, inputType: .text, icon: "number"),
+        .init(key: "version", label: "Версия",        hint: "", group: .other, inputType: .text, icon: "clock.arrow.2.circlepath"),
+        .init(key: "lat",     label: "Широта",        hint: "", group: .other, inputType: .text, icon: "location"),
+        .init(key: "lon",     label: "Долгота",       hint: "", group: .other, inputType: .text, icon: "location"),
     ]
 
     // MARK: Быстрый доступ по ключу
@@ -159,15 +166,16 @@ enum OSMTags {
     static let nameKeys: [String] = [
         "name", "name:ru", "name:en", "name:de", "name:fr", "name:es",
         "name:zh", "name:ar", "name:ja", "name:ko",
-        "int_name", "official_name", "full_name", "alt_name", "old_name",
+        "int_name", "official_name", "official_name:ru", "official_name:en",
+        "full_name", "alt_name", "old_name",
         "short_name", "loc_name", "reg_name", "nat_name",
         "name:left", "name:right",
     ]
 
     /// Возвращает true, если ключ относится к «имени» объекта —
-    /// либо входит в nameKeys, либо начинается с "name:".
+    /// либо входит в nameKeys, либо начинается с "name:" или "official_name:".
     static func isNameKey(_ key: String) -> Bool {
-        key.hasPrefix("name:") || nameKeys.contains(key)
+        key.hasPrefix("name:") || key.hasPrefix("official_name:") || nameKeys.contains(key)
     }
 
     /// Ключи, попадающие в группу «Бренд».
@@ -175,7 +183,7 @@ enum OSMTags {
     static let brandPrimaryKeys: [String] = ["brand", "operator", "network"]
 
     static func isBrandKey(_ key: String) -> Bool {
-        key == "brand" || key.hasPrefix("brand:") || key == "network"
+        key == "brand" || key.hasPrefix("brand:") || key == "network" || key == "branch"
     }
 
     /// Ключи группы «Юридические данные».
@@ -195,6 +203,12 @@ enum OSMTags {
     /// Охватывает все contact:* ключи, а также phone, website, email.
     static func isContactKey(_ key: String) -> Bool {
         key.hasPrefix("contact:") || key == "phone" || key == "website" || key == "email"
+    }
+
+    /// Возвращает true, если ключ относится к адресу объекта.
+    /// Охватывает addr:* и addr2:* (второй вход/адрес).
+    static func isAddressKey(_ key: String) -> Bool {
+        key.hasPrefix("addr:") || key.hasPrefix("addr2:")
     }
 
     // MARK: Значения для select-полей
