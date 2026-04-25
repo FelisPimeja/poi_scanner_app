@@ -265,8 +265,8 @@ private struct OSMNodeSheet: View {
     private let authService = OSMAuthService.shared
 
     enum EditTab: String, CaseIterable {
-        case simplified = "Simplified"
-        case tags       = "Tags"
+        case simplified = "Форма"
+        case tags       = "Теги"
     }
 
     // Приоритетные ключи для Simplified-режима
