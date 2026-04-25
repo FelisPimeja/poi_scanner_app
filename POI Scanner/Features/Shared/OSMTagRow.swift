@@ -55,6 +55,17 @@ struct OSMTagRow: View {
                 return "\(baseLabel) (\(langName))"
             }
         }
+        // Префиксы здания: building:* и roof:*
+        let buildingPrefixes: [(prefix: String, base: String)] = [
+            ("building:", "Здание"),
+            ("roof:",     "Крыша"),
+        ]
+        for (prefix, base) in buildingPrefixes {
+            if key.hasPrefix(prefix) {
+                let suffix = String(key.dropFirst(prefix.count))
+                return "\(base) (\(suffix))"
+            }
+        }
         return key
     }
 

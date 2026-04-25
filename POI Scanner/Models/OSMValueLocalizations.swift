@@ -20,14 +20,18 @@ enum OSMValueLocalizations {
     /// Возвращает словарь переводов для данного ключа (или пустой если ключ неизвестен).
     static func dictionary(for key: String) -> [String: String] {
         switch key {
-        case "amenity":  return amenity
-        case "shop":     return shop
-        case "tourism":  return tourism
-        case "leisure":  return leisure
-        case "office":   return office
-        case "craft":    return craft
-        case "cuisine":  return cuisine
-        default:         return [:]
+        case "amenity":                     return amenity
+        case "shop":                        return shop
+        case "tourism":                     return tourism
+        case "leisure":                     return leisure
+        case "office":                      return office
+        case "craft":                       return craft
+        case "cuisine":                     return cuisine
+        case "building", "building:part":   return building
+        case "building:material":           return buildingMaterial
+        case "roof:shape":                  return roofShape
+        case "roof:material":               return roofMaterial
+        default:                            return [:]
         }
     }
 
@@ -529,5 +533,157 @@ enum OSMValueLocalizations {
         "kebab":          "Кебаб",
         "shawarma":       "Шаурма",
         "fast_food":      "Фастфуд",
+    ]
+
+    // MARK: - building
+
+    static let building: [String: String] = [
+        "yes":                  "Здание",
+        // Жилые
+        "apartments":           "Многоквартирный дом",
+        "house":                "Жилой дом",
+        "detached":             "Отдельный дом",
+        "semidetached_house":   "Дом на две семьи",
+        "terrace":              "Рядовая застройка",
+        "residential":          "Жилое здание",
+        "dormitory":            "Общежитие",
+        "bungalow":             "Бунгало",
+        "farm":                 "Фермерский дом",
+        "houseboat":            "Плавучий дом",
+        // Коммерческие
+        "commercial":           "Коммерческое здание",
+        "retail":               "Торговое здание",
+        "office":               "Офисное здание",
+        "industrial":           "Промышленное здание",
+        "warehouse":            "Складское здание",
+        "kiosk":                "Киоск",
+        "supermarket":          "Супермаркет",
+        // Религиозные
+        "religious":            "Религиозное сооружение",
+        "cathedral":            "Собор",
+        "chapel":               "Часовня",
+        "church":               "Церковь",
+        "mosque":               "Мечеть",
+        "synagogue":            "Синагога",
+        "temple":               "Храм",
+        "monastery":            "Монастырь",
+        // Общественные
+        "civic":                "Гражданское здание",
+        "public":               "Общественное здание",
+        "school":               "Школа",
+        "college":              "Колледж",
+        "university":           "ВУЗ",
+        "hospital":             "Больница",
+        "kindergarten":         "Детский сад",
+        "government":           "Правительственное здание",
+        "fire_station":         "Пожарная часть",
+        "train_station":        "Вокзал",
+        "museum":               "Музей",
+        "toilets":              "Туалет",
+        "transportation":       "Транспортное здание",
+        // Сельскохозяйственные
+        "farm_auxiliary":       "Нежилая постройка фермы",
+        "barn":                 "Амбар",
+        "greenhouse":           "Теплица",
+        "stable":               "Конюшня",
+        "cowshed":              "Коровник",
+        // Спортивные
+        "sports_hall":          "Спортивный зал",
+        "sports_centre":        "Спортивный центр",
+        "stadium":              "Стадион",
+        "grandstand":           "Трибуна",
+        // Гаражи / хранение
+        "garage":               "Гараж",
+        "garages":              "Гаражи (ГСК)",
+        "parking":              "Парковочное здание",
+        "shed":                 "Сарай",
+        "carport":              "Навес для машины",
+        // Технические
+        "service":              "Служебная постройка",
+        "transformer_tower":    "Трансформаторная башня",
+        "water_tower":          "Водонапорная башня",
+        // Прочие
+        "construction":         "Строящееся здание",
+        "ruins":                "Руины",
+    ]
+
+    // MARK: - building:material
+
+    static let buildingMaterial: [String: String] = [
+        "brick":            "Кирпич",
+        "plaster":          "Штукатурка",
+        "concrete":         "Бетон",
+        "wood":             "Дерево",
+        "metal":            "Металл",
+        "steel":            "Сталь",
+        "glass":            "Стекло",
+        "stone":            "Камень",
+        "cement_block":     "Шлакоблок",
+        "masonry":          "Кладка",
+        "timber_framing":   "Фахверк",
+        "sandstone":        "Песчаник",
+        "limestone":        "Известняк",
+        "marble":           "Мрамор",
+        "clay":             "Глина",
+        "mud":              "Глинобетон",
+        "adobe":            "Саман",
+        "rammed_earth":     "Землебит",
+        "plastic":          "Пластик",
+        "vinyl":            "Сайдинг (винил)",
+        "copper":           "Медь",
+        "mirror":           "Зеркальное стекло",
+        "tiles":            "Плитка",
+        "slate":            "Шифер",
+        "tin":              "Жесть",
+        "metal_plates":     "Металлические пластины",
+        "bamboo":           "Бамбук",
+        "solar_panels":     "Солнечные панели",
+    ]
+
+    // MARK: - roof:shape
+
+    static let roofShape: [String: String] = [
+        "flat":         "Плоская",
+        "gabled":       "Двускатная",
+        "hipped":       "Вальмовая",
+        "pyramidal":    "Пирамидальная",
+        "skillion":     "Односкатная",
+        "half-hipped":  "Полувальмовая",
+        "side_hipped":  "Боковая вальмовая",
+        "mansard":      "Мансардная",
+        "gambrel":      "Ломаная",
+        "cone":         "Коническая",
+        "dome":         "Купол",
+        "onion":        "Луковичная",
+        "round":        "Округлая",
+        "saltbox":      "Несимметричная",
+        "sawtooth":     "Пилообразная",
+        "butterfly":    "«Бабочка»",
+        "crosspitched": "Крестообразная",
+    ]
+
+    // MARK: - roof:material
+
+    static let roofMaterial: [String: String] = [
+        "roof_tiles":       "Черепица",
+        "metal":            "Металл",
+        "metal_sheet":      "Металлический лист",
+        "concrete":         "Бетон",
+        "asphalt":          "Рубероид/асфальт",
+        "asphalt_shingle":  "Битумная черепица",
+        "tar_paper":        "Толь",
+        "eternit":          "Шифер (этернит)",
+        "glass":            "Стекло",
+        "acrylic_glass":    "Оргстекло",
+        "slate":            "Природный шифер",
+        "wood":             "Дерево",
+        "copper":           "Медь",
+        "zinc":             "Цинк",
+        "grass":            "Зелёная кровля",
+        "thatch":           "Солома/камыш",
+        "gravel":           "Гравий",
+        "stone":            "Камень",
+        "plastic":          "Пластик",
+        "solar_panels":     "Солнечные панели",
     ]
 }

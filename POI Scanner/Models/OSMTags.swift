@@ -39,16 +39,17 @@ struct OSMTagDefinition {
 
     /// Порядок совпадает с порядком секций в tagListSection.
     enum TagGroup: String, CaseIterable {
-        case name    = "Название"
-        case type    = "Тип"
-        case brand   = "Бренд"
-        case address = "Адрес"
-        case hours   = "Часы работы"
-        case contact = "Контакты"
-        case payment = "Способы оплаты"
-        case legal   = "Юридические данные"
-        case wiki    = "Wiki"
-        case other   = "Прочее"
+        case name     = "Название"
+        case type     = "Тип"
+        case brand    = "Бренд"
+        case address  = "Адрес"
+        case hours    = "Часы работы"
+        case contact  = "Контакты"
+        case payment  = "Способы оплаты"
+        case building = "Здание"
+        case legal    = "Юридические данные"
+        case wiki     = "Wiki"
+        case other    = "Прочее"
     }
 }
 
@@ -105,6 +106,18 @@ enum OSMTags {
 
         // ── Часы работы ──────────────────────────────────────────────────────
         .init(key: "opening_hours", label: "Часы работы", hint: "Формат OSM: Mo-Fr 09:00-18:00", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:opening_hours", group: .hours, inputType: .openingHours, icon: "clock"),
+
+        // ── Здание ───────────────────────────────────────────────────────────
+        .init(key: "building",          label: "Тип здания",       hint: "Тип/наличие здания",          wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building",          group: .building, inputType: .select(OSMTags.buildingValues),         icon: "building.2"),
+        .init(key: "building:levels",   label: "Этажей",           hint: "Количество надземных этажей", wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building:levels",   group: .building, inputType: .text,                                   icon: "square.stack.3d.up"),
+        .init(key: "building:material", label: "Материал фасада",  hint: "Наружный материал стен",      wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building:material", group: .building, inputType: .select(OSMTags.buildingMaterialValues), icon: "square.3.layers.3d"),
+        .init(key: "building:colour",   label: "Цвет фасада",      hint: "#RRGGBB или имя цвета",       wikiURL: nil,                                                            group: .building, inputType: .text,                                   icon: "paintpalette"),
+        .init(key: "building:part",     label: "Часть здания",     hint: "Часть здания с иными параметрами", wikiURL: nil,                                                      group: .building, inputType: .select(OSMTags.buildingValues),         icon: "building.2"),
+        .init(key: "height",            label: "Высота (м)",       hint: "Полная высота здания, м",     wikiURL: nil,                                                            group: .building, inputType: .text,                                   icon: "arrow.up.and.line.horizontal.and.arrow.down"),
+        .init(key: "roof:shape",        label: "Форма крыши",      hint: "Тип формы крыши",             wikiURL: "https://wiki.openstreetmap.org/wiki/Key:roof:shape",           group: .building, inputType: .select(OSMTags.roofShapeValues),        icon: "house.lodge"),
+        .init(key: "roof:levels",       label: "Этажей в крыше",   hint: "Этажей внутри чердака/крыши", wikiURL: nil,                                                           group: .building, inputType: .text,                                   icon: "chevron.up"),
+        .init(key: "roof:material",     label: "Материал кровли",  hint: "Наружный кровельный материал", wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:roof:material",  group: .building, inputType: .select(OSMTags.roofMaterialValues),     icon: "house.fill"),
+        .init(key: "roof:colour",       label: "Цвет крыши",       hint: "#RRGGBB или имя цвета",       wikiURL: nil,                                                            group: .building, inputType: .text,                                   icon: "paintpalette"),
 
     // Дополнительные ключи/переводы, запрошенные пользователем
     .init(key: "start_date",    label: "Дата открытия/основания", hint: "ГГГГ[-MM[-DD]]", wikiURL: nil, group: .other, inputType: .text, icon: "calendar"),
@@ -229,6 +242,11 @@ enum OSMTags {
         key.hasPrefix("addr:") || key.hasPrefix("addr2:")
     }
 
+    /// Возвращает true, если ключ относится к зданию (building:*, roof:*, height).
+    static func isBuildingKey(_ key: String) -> Bool {
+        key == "building" || key.hasPrefix("building:") || key.hasPrefix("roof:") || key == "height"
+    }
+
     // MARK: Значения для select-полей
 
     static let amenityValues: [String] = [
@@ -296,5 +314,52 @@ enum OSMTags {
         "coffee_shop", "tea", "ice_cream", "cake", "donut",
         "sandwich", "noodle", "hotdog", "kebab", "shawarma",
         "fast_food", "international", "regional"
+    ]
+
+    // MARK: Здание
+
+    static let buildingValues: [String] = [
+        "yes",
+        // Жилые
+        "apartments", "house", "detached", "semidetached_house", "terrace",
+        "residential", "dormitory", "bungalow", "farm", "houseboat",
+        // Коммерческие
+        "commercial", "retail", "office", "industrial", "warehouse", "kiosk", "supermarket",
+        // Религиозные
+        "religious", "cathedral", "chapel", "church", "mosque", "synagogue", "temple", "monastery",
+        // Общественные
+        "civic", "public", "school", "college", "university", "hospital", "kindergarten",
+        "government", "fire_station", "train_station", "museum", "toilets", "transportation",
+        // Сельскохозяйственные
+        "farm_auxiliary", "barn", "greenhouse", "stable", "cowshed",
+        // Спортивные
+        "sports_hall", "sports_centre", "stadium", "grandstand",
+        // Гаражи / хранение
+        "garage", "garages", "parking", "shed", "carport",
+        // Технические
+        "service", "transformer_tower", "water_tower",
+        // Прочие
+        "construction", "ruins",
+    ]
+
+    static let buildingMaterialValues: [String] = [
+        "brick", "plaster", "concrete", "wood", "metal", "steel", "glass",
+        "stone", "cement_block", "masonry", "timber_framing",
+        "sandstone", "limestone", "marble", "clay", "mud", "adobe", "rammed_earth",
+        "plastic", "vinyl", "copper", "mirror", "tiles", "slate", "tin",
+        "metal_plates", "bamboo", "solar_panels",
+    ]
+
+    static let roofShapeValues: [String] = [
+        "flat", "gabled", "hipped", "pyramidal", "skillion",
+        "half-hipped", "side_hipped", "mansard", "gambrel",
+        "cone", "dome", "onion", "round",
+        "saltbox", "sawtooth", "butterfly", "crosspitched",
+    ]
+
+    static let roofMaterialValues: [String] = [
+        "roof_tiles", "metal", "metal_sheet", "concrete", "asphalt", "asphalt_shingle",
+        "tar_paper", "eternit", "glass", "acrylic_glass", "slate", "wood",
+        "copper", "zinc", "grass", "thatch", "gravel", "stone", "plastic", "solar_panels",
     ]
 }

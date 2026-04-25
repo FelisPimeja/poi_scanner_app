@@ -317,12 +317,13 @@ private struct OSMNodeSheet: View {
     /// Ключи, которые всегда показываются как плейсхолдеры в edit-режиме,
     /// даже если тег отсутствует у POI.
     private let essentialPlaceholders: [OSMTagDefinition.TagGroup: [String]] = [
-        .hours:   ["opening_hours"],
-        .address: ["addr:street", "addr:housenumber", "addr:city", "addr:postcode"],
-        .contact: ["phone", "website", "email"],
-        .payment: ["payment:cash", "payment:visa", "payment:mastercard",
-                   "payment:mir", "payment:apple_pay", "payment:sbp"],
-        .other:   ["wheelchair", "description"],
+        .hours:    ["opening_hours"],
+        .address:  ["addr:street", "addr:housenumber", "addr:city", "addr:postcode"],
+        .contact:  ["phone", "website", "email"],
+        .payment:  ["payment:cash", "payment:visa", "payment:mastercard",
+                    "payment:mir", "payment:apple_pay", "payment:sbp"],
+        .building: ["building"],
+        .other:    ["wheelchair", "description"],
     ]
 
     /// True если ключ входит в essentialPlaceholders (для любой группы).
@@ -589,6 +590,8 @@ private struct OSMNodeSheet: View {
                 group = .contact
             } else if OSMTags.isAddressKey(key) {
                 group = .address
+            } else if OSMTags.isBuildingKey(key) {
+                group = .building
             } else {
                 group = OSMTags.definition(for: key)?.group ?? .other
             }
@@ -613,12 +616,13 @@ private struct OSMNodeSheet: View {
 
     /// Определяет группу ключа с учётом prefix-правил (contact:*, payment:* и т.д.)
     private func resolvedGroup(for key: String) -> OSMTagDefinition.TagGroup {
-        if OSMTags.isNameKey(key)    { return .name }
-        if OSMTags.isBrandKey(key)   { return .brand }
-        if OSMTags.isLegalKey(key)   { return .legal }
-        if OSMTags.isPaymentKey(key) { return .payment }
-        if OSMTags.isContactKey(key) { return .contact }
-        if OSMTags.isAddressKey(key) { return .address }
+        if OSMTags.isNameKey(key)     { return .name }
+        if OSMTags.isBrandKey(key)    { return .brand }
+        if OSMTags.isLegalKey(key)    { return .legal }
+        if OSMTags.isPaymentKey(key)  { return .payment }
+        if OSMTags.isContactKey(key)  { return .contact }
+        if OSMTags.isAddressKey(key)  { return .address }
+        if OSMTags.isBuildingKey(key) { return .building }
         return OSMTags.definition(for: key)?.group ?? .other
     }
 
