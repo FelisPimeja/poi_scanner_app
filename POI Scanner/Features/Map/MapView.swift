@@ -367,24 +367,69 @@ private struct OSMNodeSheet: View {
                         CollapsibleNameSection(
                             entries: entries,
                             isEditable: isEditable,
-                            tagRow: { key, value in tagRow(for: key, value: value, isEditable: isEditable) }
+                            tagRow: { key, value in
+                                tagRow(for: key, value: value, isEditable: isEditable)
+                                    .swipeActions(edge: .trailing) {
+                                        if isEditable {
+                                            Button(role: .destructive) {
+                                                poi?.tags.removeValue(forKey: key)
+                                                poi?.fieldStatus.removeValue(forKey: key)
+                                            } label: { Label("Удалить", systemImage: "trash") }
+                                        }
+                                    }
+                            }
                         )
                     } else if group == .brand {
                         CollapsibleBrandSection(
                             entries: entries,
                             isEditable: isEditable,
-                            tagRow: { key, value in tagRow(for: key, value: value, isEditable: isEditable) }
+                            tagRow: { key, value in
+                                tagRow(for: key, value: value, isEditable: isEditable)
+                                    .swipeActions(edge: .trailing) {
+                                        if isEditable {
+                                            Button(role: .destructive) {
+                                                poi?.tags.removeValue(forKey: key)
+                                                poi?.fieldStatus.removeValue(forKey: key)
+                                            } label: { Label("Удалить", systemImage: "trash") }
+                                        }
+                                    }
+                            }
                         )
                     } else if group == .legal {
                         CollapsibleLegalSection(
                             entries: entries,
                             isEditable: isEditable,
-                            tagRow: { key, value in tagRow(for: key, value: value, isEditable: isEditable) }
+                            tagRow: { key, value in
+                                tagRow(for: key, value: value, isEditable: isEditable)
+                                    .swipeActions(edge: .trailing) {
+                                        if isEditable {
+                                            Button(role: .destructive) {
+                                                poi?.tags.removeValue(forKey: key)
+                                                poi?.fieldStatus.removeValue(forKey: key)
+                                            } label: { Label("Удалить", systemImage: "trash") }
+                                        }
+                                    }
+                            }
                         )
                     } else if group == .payment && !isEditable {
                         PaymentTagSection(entries: entries)
                     } else if group == .address && !isEditable {
                         AddressTagSection(entries: entries)
+                    } else if group == .address && isEditable {
+                        // Редактирование адреса: иконка только у первой строки + свайп-удаление
+                        Section(header: Text("Адрес")) {
+                            ForEach(Array(entries.enumerated()), id: \.element.key) { index, item in
+                                tagRow(for: item.key, value: item.value, isEditable: true,
+                                       forceIcon: index == 0 ? "house" : nil,
+                                       hideIcon: index > 0)
+                                    .swipeActions(edge: .trailing) {
+                                        Button(role: .destructive) {
+                                            poi?.tags.removeValue(forKey: item.key)
+                                            poi?.fieldStatus.removeValue(forKey: item.key)
+                                        } label: { Label("Удалить", systemImage: "trash") }
+                                    }
+                            }
+                        }
                     } else if group == .hours && !isEditable {
                         Section {
                             ForEach(entries, id: \.key) { item in
@@ -395,6 +440,14 @@ private struct OSMNodeSheet: View {
                         Section(header: Text(group.rawValue)) {
                             ForEach(entries, id: \.key) { item in
                                 tagRow(for: item.key, value: item.value, isEditable: isEditable)
+                                    .swipeActions(edge: .trailing) {
+                                        if isEditable {
+                                            Button(role: .destructive) {
+                                                poi?.tags.removeValue(forKey: item.key)
+                                                poi?.fieldStatus.removeValue(forKey: item.key)
+                                            } label: { Label("Удалить", systemImage: "trash") }
+                                        }
+                                    }
                             }
                         }
                     }
@@ -431,7 +484,8 @@ private struct OSMNodeSheet: View {
 
     /// Строит одну строку тега — read-only или editable в зависимости от флага.
     @ViewBuilder
-    private func tagRow(for key: String, value: String, isEditable: Bool) -> some View {
+    private func tagRow(for key: String, value: String, isEditable: Bool,
+                        forceIcon: String? = nil, hideIcon: Bool = false) -> some View {
         if isEditable {
             OSMTagRow(
                 tagKey: key,
@@ -442,10 +496,12 @@ private struct OSMNodeSheet: View {
                         self.poi?.fieldStatus[key] = .confirmed
                     }
                 ),
-                status: poi?.fieldStatus[key] ?? .manual
+                status: poi?.fieldStatus[key] ?? .manual,
+                forceIcon: forceIcon,
+                hideIcon: hideIcon
             )
         } else {
-            OSMTagRow(tagKey: key, readOnlyValue: value)
+            OSMTagRow(tagKey: key, readOnlyValue: value, forceIcon: forceIcon, hideIcon: hideIcon)
         }
     }
 
@@ -765,6 +821,7 @@ private struct CollapsibleLegalSection<Row: View>: View {
                 DisclosureGroup(isExpanded: $isExpanded) {
                     ForEach(secondaryEntries, id: \.key) { item in
                         tagRow(item.key, item.value)
+                            .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                     }
                 } label: {
                     if let primary = primaryEntry {
@@ -870,38 +927,56 @@ private struct PaymentTagSection: View {
 
 // MARK: - AddressTagSection
 
-/// Секция «Адрес» в режиме просмотра:
-/// иконка «house» показывается только напротив первой строки,
-/// последующие строки выровнены по тексту без иконки.
+/// Секция «Адрес» в режиме просмотра.
+/// Показывает адрес одной строкой в формате:
+/// «Страна, Индекс, Город, Улица, д. X, эт. Y, кв. Z»
+/// Иконка house — только слева от этой строки.
 private struct AddressTagSection: View {
     let entries: [(key: String, value: String)]
 
-    var body: some View {
-        Section(header: Text("Адрес")) {
-            ForEach(Array(entries.enumerated()), id: \.element.key) { index, item in
-                HStack(spacing: 10) {
-                    // Иконка только у первой строки, у остальных — прозрачный спейсер для выравнивания
-                    if index == 0 {
-                        Image(systemName: "house")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 24, alignment: .center)
-                    } else {
-                        Color.clear
-                            .frame(width: 24, height: 1)
-                    }
+    /// Порядок ключей и префиксы для форматирования
+    private static let addressOrder: [(key: String, prefix: String)] = [
+        ("addr:country",      ""),
+        ("addr:postcode",     ""),
+        ("addr:city",         ""),
+        ("addr:place",        ""),
+        ("addr:suburb",       ""),
+        ("addr:street",       ""),
+        ("addr:housenumber",  "д.\u{00A0}"),
+        ("addr:floor",        "эт.\u{00A0}"),
+        ("addr:unit",         "кв.\u{00A0}"),
+        ("addr2:street",      ""),
+        ("addr2:housenumber", "д.\u{00A0}"),
+    ]
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(OSMTags.definition(for: item.key)?.label ?? item.key)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(item.value)
-                            .font(.body)
-                            .textSelection(.enabled)
-                    }
-                }
-                .padding(.vertical, 2)
+    private var formattedAddress: String {
+        let dict = Dictionary(uniqueKeysWithValues: entries.map { ($0.key, $0.value) })
+        var parts: [String] = []
+        let handledKeys = Set(Self.addressOrder.map { $0.key })
+        for (key, prefix) in Self.addressOrder {
+            if let val = dict[key], !val.isEmpty {
+                parts.append(prefix + val)
             }
+        }
+        // Нераспознанные addr:* ключи — в конец
+        for entry in entries where !handledKeys.contains(entry.key) && !entry.value.isEmpty {
+            parts.append(entry.value)
+        }
+        return parts.joined(separator: ", ")
+    }
+
+    var body: some View {
+        Section(header: Text("")) {
+            HStack(spacing: 10) {
+                Image(systemName: "house")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24, alignment: .center)
+                Text(formattedAddress)
+                    .font(.body)
+                    .textSelection(.enabled)
+            }
+            .padding(.vertical, 2)
         }
     }
 }

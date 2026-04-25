@@ -16,6 +16,11 @@ struct OSMTagRow: View {
     var editableValue: Binding<String>? = nil
     var status: FieldStatus? = nil
 
+    /// Переопределить иконку (используется в секции адреса — первая строка = "house")
+    var forceIcon: String? = nil
+    /// Скрыть иконку и показать прозрачный спейсер (адрес: строки 2…N)
+    var hideIcon: Bool = false
+
     private var definition: OSMTagDefinition? { OSMTags.definition(for: tagKey) }
 
     /// Человекочитаемая метка (из каталога или сам ключ)
@@ -42,12 +47,13 @@ struct OSMTagRow: View {
     ///   - иконки нет  → пустой резервированный блок (выравнивание по сетке)
     @ViewBuilder
     private var leadingIndicator: some View {
-        if let iconName = icon {
+        let effectiveIcon: String? = hideIcon ? nil : (forceIcon ?? icon)
+        if let iconName = effectiveIcon {
             Image(systemName: iconName)
                 .font(.body)
                 .foregroundStyle(status.map(\.color) ?? Color.secondary)
                 .frame(width: 24, alignment: .center)
-        } else if let status {
+        } else if let status, !hideIcon {
             // нет иконки, но есть статус → точка
             Image(systemName: "circle.fill")
                 .font(.caption)
@@ -98,8 +104,26 @@ struct OSMTagRow: View {
                 case .multiselect(let options):
                     MultiSelectTagField(key: tagKey, options: options, value: binding)
                 default:
-                    TextField(tagKey, text: binding)
-                        .font(.body)
+                    if tagKey == "check_date" {
+                        HStack(spacing: 6) {
+                            TextField(tagKey, text: binding)
+                                .font(.body)
+                            Spacer(minLength: 4)
+                            Button {
+                                let fmt = DateFormatter()
+                                fmt.dateFormat = "yyyy-MM-dd"
+                                binding.wrappedValue = fmt.string(from: Date())
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.body)
+                                    .foregroundStyle(.blue)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    } else {
+                        TextField(tagKey, text: binding)
+                            .font(.body)
+                    }
                 }
             } else {
                 // Значение может содержать несколько элементов через ";".
