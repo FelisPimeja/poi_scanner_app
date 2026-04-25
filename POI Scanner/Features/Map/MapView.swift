@@ -808,21 +808,17 @@ private struct CollapsibleLegalSection<Row: View>: View {
                 }
             } else {
                 if let primary = primaryEntry {
-                    Button {
-                        withAnimation { isExpanded.toggle() }
-                    } label: {
-                        HStack(spacing: 0) {
-                            tagRow(primary.key, primary.value)
-                            Spacer(minLength: 8)
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                                .animation(.easeInOut(duration: 0.2), value: isExpanded)
-                        }
+                    HStack(spacing: 0) {
+                        tagRow(primary.key, primary.value)
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: isExpanded)
                     }
                     .contentShape(Rectangle())
-                    .buttonStyle(.plain)
+                    .onTapGesture { withAnimation { isExpanded.toggle() } }
                 }
                 if isExpanded {
                     ForEach(secondaryEntries, id: \.key) { item in
@@ -866,21 +862,17 @@ private struct CollapsibleBrandSection<Row: View>: View {
                 }
             } else {
                 if let primary = primaryEntry {
-                    Button {
-                        withAnimation { isExpanded.toggle() }
-                    } label: {
-                        HStack(spacing: 0) {
-                            tagRow(primary.key, primary.value)
-                            Spacer(minLength: 8)
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                                .animation(.easeInOut(duration: 0.2), value: isExpanded)
-                        }
+                    HStack(spacing: 0) {
+                        tagRow(primary.key, primary.value)
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: isExpanded)
                     }
                     .contentShape(Rectangle())
-                    .buttonStyle(.plain)
+                    .onTapGesture { withAnimation { isExpanded.toggle() } }
                 }
                 if isExpanded {
                     ForEach(secondaryEntries, id: \.key) { item in
@@ -1030,23 +1022,19 @@ private struct CollapsibleNameSection<Row: View>: View {
                     tagRow(primary.key, primary.value, true)
                 }
             } else {
-                // Строка-заголовок с шевроном — без DisclosureGroup, чтобы не добавлять отступ
+                // Строка-заголовок с шевроном
                 if let primary = primaryEntry {
-                    Button {
-                        withAnimation { isExpanded.toggle() }
-                    } label: {
-                        HStack(spacing: 0) {
-                            tagRow(primary.key, primary.value, true)
-                            Spacer(minLength: 8)
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                                .animation(.easeInOut(duration: 0.2), value: isExpanded)
-                        }
+                    HStack(spacing: 0) {
+                        tagRow(primary.key, primary.value, true)
+                        Spacer(minLength: 8)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                            .animation(.easeInOut(duration: 0.2), value: isExpanded)
                     }
                     .contentShape(Rectangle())
-                    .buttonStyle(.plain)
+                    .onTapGesture { withAnimation { isExpanded.toggle() } }
                 }
                 if isExpanded {
                     ForEach(secondaryEntries, id: \.key) { item in
@@ -1094,41 +1082,42 @@ private struct TechInfoSection: View {
 
     var body: some View {
         Section(header: Text("Техническая информация")) {
-            Button {
-                withAnimation { isExpanded.toggle() }
-            } label: {
-                HStack(spacing: 0) {
-                    HStack(spacing: 10) {
-                        Image(systemName: "info.circle")
-                            .font(.body)
+            // Внешний HStack — тап по пустому месту сворачивает/разворачивает.
+            // Link внутри имеет приоритет над родительским .onTapGesture и открывает URL.
+            HStack(spacing: 0) {
+                HStack(spacing: 10) {
+                    Image(systemName: "info.circle")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24, alignment: .center)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("OSM ID")
+                            .font(.caption)
                             .foregroundStyle(.secondary)
-                            .frame(width: 24, alignment: .center)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("OSM ID")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            if let url = osmURL {
-                                Link(destination: url) {
-                                    Text(osmRef)
-                                        .font(.body)
-                                        .foregroundStyle(.blue)
-                                }
-                            } else {
+                        if let url = osmURL {
+                            Link(destination: url) {
                                 Text(osmRef)
                                     .font(.body)
+                                    .foregroundStyle(.blue)
                             }
+                        } else {
+                            Text(osmRef)
+                                .font(.body)
                         }
                     }
-                    Spacer(minLength: 8)
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .animation(.easeInOut(duration: 0.2), value: isExpanded)
                 }
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    .animation(.easeInOut(duration: 0.2), value: isExpanded)
             }
+            .padding(.vertical, 2)
             .contentShape(Rectangle())
-            .buttonStyle(.plain)
+            .simultaneousGesture(TapGesture().onEnded {
+                withAnimation { isExpanded.toggle() }
+            })
 
             if isExpanded {
                 OSMTagRow(tagKey: "version", readOnlyValue: String(node.version))
