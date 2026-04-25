@@ -273,7 +273,11 @@ private struct OSMNodeSheet: View {
     private let priorityKeys = [
         "name", "amenity", "shop", "office", "tourism",
         "addr:street", "addr:housenumber", "addr:city",
-        "phone", "website", "opening_hours"
+        // Контакты: телефон → сайт → email → прочее
+        "phone", "contact:phone",
+        "website", "contact:website",
+        "email", "contact:email",
+        "opening_hours"
     ]
 
     var body: some View {
@@ -359,17 +363,55 @@ private struct OSMNodeSheet: View {
 
             ForEach(OSMTagDefinition.TagGroup.allCases, id: \.self) { group in
                 if let entries = grouped[group], !entries.isEmpty {
-                    Section(header: Text(group.rawValue)) {
-                        ForEach(entries, id: \.key) { item in
-                            tagRow(for: item.key, value: item.value, isEditable: isEditable)
+                    if group == .name {
+                        CollapsibleNameSection(
+                            entries: entries,
+                            isEditable: isEditable,
+                            tagRow: { key, value in tagRow(for: key, value: value, isEditable: isEditable) }
+                        )
+                    } else if group == .brand {
+                        CollapsibleBrandSection(
+                            entries: entries,
+                            isEditable: isEditable,
+                            tagRow: { key, value in tagRow(for: key, value: value, isEditable: isEditable) }
+                        )
+                    } else if group == .legal {
+                        CollapsibleLegalSection(
+                            entries: entries,
+                            isEditable: isEditable,
+                            tagRow: { key, value in tagRow(for: key, value: value, isEditable: isEditable) }
+                        )
+                    } else if group == .payment && !isEditable {
+                        PaymentTagSection(entries: entries)
+                    } else if group == .address && !isEditable {
+                        AddressTagSection(entries: entries)
+                    } else if group == .hours && !isEditable {
+                        Section {
+                            ForEach(entries, id: \.key) { item in
+                                tagRow(for: item.key, value: item.value, isEditable: false)
+                            }
+                        }
+                    } else {
+                        Section(header: Text(group.rawValue)) {
+                            ForEach(entries, id: \.key) { item in
+                                tagRow(for: item.key, value: item.value, isEditable: isEditable)
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Координаты — всегда отдельной секцией, только для чтения
-        Section(header: Text("Координаты")) {
+        // Координаты и тип геометрии — всегда отдельной секцией, только для чтения
+        Section {
+            let typeLabel: String = {
+                switch node.type {
+                case .node:     return AppSettings.shared.language == .ru ? "Точка (node)" : "Node"
+                case .way:      return AppSettings.shared.language == .ru ? "Линия/полигон (way)" : "Way"
+                case .relation: return AppSettings.shared.language == .ru ? "Отношение (relation)" : "Relation"
+                }
+            }()
+            OSMTagRow(tagKey: "type", readOnlyValue: typeLabel)
             OSMTagRow(tagKey: "lat", readOnlyValue: String(format: "%.6f", node.latitude))
             OSMTagRow(tagKey: "lon", readOnlyValue: String(format: "%.6f", node.longitude))
         }
@@ -407,12 +449,26 @@ private struct OSMNodeSheet: View {
 
     /// Группирует теги по `TagGroup`.
     /// Ключи из каталога → в свою группу; неизвестные → `.other`.
+    /// Все name-ключи (name:*, old_name, alt_name и т.д.) → `.name`.
     /// Порядок внутри группы: приоритетные ключи вперёд, остальные по алфавиту.
     private func groupedEntries(from tags: [String: String]) -> [OSMTagDefinition.TagGroup: [(key: String, value: String)]] {
         var result: [OSMTagDefinition.TagGroup: [(key: String, value: String)]] = [:]
         for key in tags.keys.sorted(by: groupSortKey) {
             guard let value = tags[key] else { continue }
-            let group = OSMTags.definition(for: key)?.group ?? .other
+            let group: OSMTagDefinition.TagGroup
+            if OSMTags.isNameKey(key) {
+                group = .name
+            } else if OSMTags.isBrandKey(key) {
+                group = .brand
+            } else if OSMTags.isLegalKey(key) {
+                group = .legal
+            } else if OSMTags.isPaymentKey(key) {
+                group = .payment
+            } else if OSMTags.isContactKey(key) {
+                group = .contact
+            } else {
+                group = OSMTags.definition(for: key)?.group ?? .other
+            }
             result[group, default: []].append((key: key, value: value))
         }
         return result
@@ -422,14 +478,24 @@ private struct OSMNodeSheet: View {
     /// внутри группы — приоритетные ключи вперёд, остальные по алфавиту.
     private func groupSortKey(_ a: String, _ b: String) -> Bool {
         let groupOrder = OSMTagDefinition.TagGroup.allCases
-        let ga = OSMTags.definition(for: a)?.group ?? .other
-        let gb = OSMTags.definition(for: b)?.group ?? .other
+        let ga = resolvedGroup(for: a)
+        let gb = resolvedGroup(for: b)
         let gi = groupOrder.firstIndex(of: ga) ?? 999
         let gj = groupOrder.firstIndex(of: gb) ?? 999
         if gi != gj { return gi < gj }
         let ai = priorityKeys.firstIndex(of: a) ?? 999
         let bi = priorityKeys.firstIndex(of: b) ?? 999
         return ai == bi ? a < b : ai < bi
+    }
+
+    /// Определяет группу ключа с учётом prefix-правил (contact:*, payment:* и т.д.)
+    private func resolvedGroup(for key: String) -> OSMTagDefinition.TagGroup {
+        if OSMTags.isNameKey(key)    { return .name }
+        if OSMTags.isBrandKey(key)   { return .brand }
+        if OSMTags.isLegalKey(key)   { return .legal }
+        if OSMTags.isPaymentKey(key) { return .payment }
+        if OSMTags.isContactKey(key) { return .contact }
+        return OSMTags.definition(for: key)?.group ?? .other
     }
 
     @ViewBuilder
@@ -655,6 +721,231 @@ private struct TagPairRow: View {
             Button(role: .destructive) { onDelete() } label: {
                 Label("Удалить", systemImage: "trash")
             }
+        }
+    }
+}
+
+// MARK: - CollapsibleLegalSection
+
+/// Секция «Юридические данные» — сворачиваемая.
+/// Главный тег: operator, если есть; иначе первый ref:*.
+private struct CollapsibleLegalSection<Row: View>: View {
+    let entries: [(key: String, value: String)]
+    let isEditable: Bool
+    let tagRow: (String, String) -> Row
+
+    @State private var isExpanded = false
+
+    private var primaryEntry: (key: String, value: String)? {
+        for key in OSMTags.legalPrimaryKeys {
+            if let entry = entries.first(where: { $0.key == key }) { return entry }
+        }
+        return entries.first
+    }
+
+    private var secondaryEntries: [(key: String, value: String)] {
+        guard let primary = primaryEntry else { return entries }
+        return entries.filter { $0.key != primary.key }
+    }
+
+    var body: some View {
+        Section {
+            if secondaryEntries.isEmpty {
+                if let primary = primaryEntry {
+                    tagRow(primary.key, primary.value)
+                }
+            } else {
+                DisclosureGroup(isExpanded: $isExpanded) {
+                    ForEach(secondaryEntries, id: \.key) { item in
+                        tagRow(item.key, item.value)
+                    }
+                } label: {
+                    if let primary = primaryEntry {
+                        tagRow(primary.key, primary.value)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - CollapsibleBrandSection
+
+/// Секция «Бренд» аналогична CollapsibleNameSection.
+/// Главный тег: первый из brandPrimaryKeys (brand → operator → network),
+/// иначе первый в списке. Остальные — под DisclosureGroup.
+private struct CollapsibleBrandSection<Row: View>: View {
+    let entries: [(key: String, value: String)]
+    let isEditable: Bool
+    let tagRow: (String, String) -> Row
+
+    @State private var isExpanded = false
+
+    private var primaryEntry: (key: String, value: String)? {
+        for key in OSMTags.brandPrimaryKeys {
+            if let entry = entries.first(where: { $0.key == key }) { return entry }
+        }
+        return entries.first
+    }
+
+    private var secondaryEntries: [(key: String, value: String)] {
+        guard let primary = primaryEntry else { return entries }
+        return entries.filter { $0.key != primary.key }
+    }
+
+    var body: some View {
+        Section(header: isEditable ? Text("Бренд") : Text("")) {
+            if secondaryEntries.isEmpty {
+                if let primary = primaryEntry {
+                    tagRow(primary.key, primary.value)
+                }
+            } else {
+                DisclosureGroup(isExpanded: $isExpanded) {
+                    ForEach(secondaryEntries, id: \.key) { item in
+                        tagRow(item.key, item.value)
+                    }
+                } label: {
+                    if let primary = primaryEntry {
+                        tagRow(primary.key, primary.value)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - PaymentTagSection
+
+/// Секция «Способы оплаты» — компактная: показывает иконку кредитки
+/// только у первой строки, у остальных — отступ без иконки.
+/// Значения yes/no заменяются на чекмарк/крестик.
+private struct PaymentTagSection: View {
+    let entries: [(key: String, value: String)]
+
+    var body: some View {
+        Section(header: Text("Способы оплаты")) {
+            ForEach(Array(entries.enumerated()), id: \.element.key) { index, item in
+                HStack(spacing: 10) {
+                    if index == 0 {
+                        Image(systemName: "creditcard")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24, alignment: .center)
+                    } else {
+                        Color.clear.frame(width: 24, height: 1)
+                    }
+                    Text(OSMTags.definition(for: item.key)?.label ?? item.key)
+                        .font(.body)
+                    Spacer()
+                    paymentValueView(item.value)
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func paymentValueView(_ value: String) -> some View {
+        switch value.lowercased() {
+        case "yes":
+            Image(systemName: "checkmark")
+                .foregroundStyle(.green)
+        case "no":
+            Image(systemName: "xmark")
+                .foregroundStyle(.red)
+        default:
+            Text(value)
+                .font(.body)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - AddressTagSection
+
+/// Секция «Адрес» в режиме просмотра:
+/// иконка «house» показывается только напротив первой строки,
+/// последующие строки выровнены по тексту без иконки.
+private struct AddressTagSection: View {
+    let entries: [(key: String, value: String)]
+
+    var body: some View {
+        Section(header: Text("Адрес")) {
+            ForEach(Array(entries.enumerated()), id: \.element.key) { index, item in
+                HStack(spacing: 10) {
+                    // Иконка только у первой строки, у остальных — прозрачный спейсер для выравнивания
+                    if index == 0 {
+                        Image(systemName: "house")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24, alignment: .center)
+                    } else {
+                        Color.clear
+                            .frame(width: 24, height: 1)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(OSMTags.definition(for: item.key)?.label ?? item.key)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(item.value)
+                            .font(.body)
+                            .textSelection(.enabled)
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+}
+
+// MARK: - CollapsibleNameSection
+
+/// Секция «Название» с DisclosureGroup:
+/// • По умолчанию свёрнута — показывает только главный name-тег.
+/// • Разворачивается → все name-теги.
+/// • Главный тег: первый из OSMTags.nameKeys, присутствующий в entries.
+private struct CollapsibleNameSection<Row: View>: View {
+    let entries: [(key: String, value: String)]
+    let isEditable: Bool
+    let tagRow: (String, String) -> Row
+
+    @State private var isExpanded = false
+
+    /// Главный тег — первый из приоритетного порядка nameKeys, иначе первый.
+    private var primaryEntry: (key: String, value: String)? {
+        for key in OSMTags.nameKeys {
+            if let entry = entries.first(where: { $0.key == key }) { return entry }
+        }
+        return entries.first
+    }
+
+    /// Остальные теги (кроме главного).
+    private var secondaryEntries: [(key: String, value: String)] {
+        guard let primary = primaryEntry else { return entries }
+        return entries.filter { $0.key != primary.key }
+    }
+
+    var body: some View {
+        Section {
+            if secondaryEntries.isEmpty {
+                // Только один name-тег — показываем без DisclosureGroup
+                if let primary = primaryEntry {
+                    tagRow(primary.key, primary.value)
+                }
+            } else {
+                DisclosureGroup(isExpanded: $isExpanded) {
+                    ForEach(secondaryEntries, id: \.key) { item in
+                        tagRow(item.key, item.value)
+                    }
+                } label: {
+                    if let primary = primaryEntry {
+                        tagRow(primary.key, primary.value)
+                    }
+                }
+            }
+        } header: {
+            if isEditable { Text("Название") }
         }
     }
 }
