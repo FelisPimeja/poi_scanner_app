@@ -1,11 +1,31 @@
 import Foundation
 import CoreLocation
 
+// MARK: - CoordinateSource
+
+/// Источник координат POI — отображается под строкой DMS в превью карты.
+enum CoordinateSource: String, Codable {
+    case photo      // EXIF GPS из фото
+    case gps        // текущая геопозиция устройства
+    case mapCenter  // центр карты на момент создания
+    case manual     // пользователь выставил вручную в CoordinatePicker
+
+    var label: String {
+        switch self {
+        case .photo:     return "Координаты из фото"
+        case .gps:       return "Текущая геопозиция GPS"
+        case .mapCenter: return "Центр карты"
+        case .manual:    return "Выставлено вручную"
+        }
+    }
+}
+
 // MARK: - POI
 
 struct POI: Identifiable, Codable {
     var id: UUID = UUID()
     var coordinate: Coordinate
+    var coordinateSource: CoordinateSource = .mapCenter
     var osmNodeId: Int64?                           // nil = новый объект
     var osmVersion: Int?                            // версия ноды для modify
     var osmType: OSMElementType?                    // тип OSM объекта (node/way/relation)

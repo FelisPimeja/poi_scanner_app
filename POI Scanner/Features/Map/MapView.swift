@@ -588,7 +588,8 @@ private struct OSMNodeSheet: View {
             HStack(spacing: 10) {
                 Image(uiImage: LocationPreviewMapView.Coordinator.renderPin(
                     color: canEdit ? .systemBlue : .systemGray,
-                    size: CGSize(width: 18, height: 20)
+                    size: CGSize(width: 20, height: 22),
+                    shadow: false
                 ))
                 .frame(width: 24, alignment: .center)
                 Text(dmsString(lat: lat, lon: lon))
@@ -610,19 +611,7 @@ private struct OSMNodeSheet: View {
 
     /// Конвертирует десятичные градусы в строку формата «55°49′27.84″N  37°37′23.51″E».
     private func dmsString(lat: Double, lon: Double) -> String {
-        func parts(_ deg: Double) -> (d: Int, m: Int, s: Double) {
-            let a = abs(deg)
-            let d = Int(a)
-            let m = Int((a - Double(d)) * 60)
-            let s = ((a - Double(d)) * 60 - Double(m)) * 60
-            return (d, m, s)
-        }
-        let (ld, lm, ls) = parts(lat)
-        let (nd, nm, ns) = parts(lon)
-        let latDir = lat >= 0 ? "N" : "S"
-        let lonDir = lon >= 0 ? "E" : "W"
-        return String(format: "%d°%d′%.2f″%@  %d°%d′%.2f″%@",
-                      ld, lm, ls, latDir, nd, nm, ns, lonDir)
+        String(format: "%.4f°,  %.4f°", lat, lon)
     }
 
     /// Строит одну строку тега — read-only или editable в зависимости от флага.
@@ -1413,12 +1402,15 @@ struct LocationPreviewMapView: UIViewRepresentable {
 
         /// Рисует пин заданного цвета с белой точкой внутри.
         /// `size` — итоговый размер изображения (по умолчанию 28×30 для карты).
-        static func renderPin(color: UIColor, size: CGSize = CGSize(width: 28, height: 30)) -> UIImage {
+        /// `shadow` — рисовать ли тень (отключать для inline UI).
+        static func renderPin(color: UIColor, size: CGSize = CGSize(width: 28, height: 30), shadow: Bool = true) -> UIImage {
             return UIGraphicsImageRenderer(size: size).image { _ in
                 let ctx = UIGraphicsGetCurrentContext()!
                 let s: CGFloat = size.width / 24.0
-                ctx.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 3,
-                              color: UIColor.black.withAlphaComponent(0.3).cgColor)
+                if shadow {
+                    ctx.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 3,
+                                  color: UIColor.black.withAlphaComponent(0.3).cgColor)
+                }
                 let path = UIBezierPath()
                 path.move(to:     CGPoint(x: 12*s, y:  1*s))
                 path.addCurve(to: CGPoint(x:  3*s, y: 10*s),
@@ -1436,7 +1428,7 @@ struct LocationPreviewMapView: UIViewRepresentable {
                 path.close()
                 color.setFill()
                 path.fill()
-                ctx.setShadow(offset: .zero, blur: 0, color: nil)
+                if shadow { ctx.setShadow(offset: .zero, blur: 0, color: nil) }
                 UIColor.white.withAlphaComponent(0.5).setStroke()
                 path.lineWidth = 0.75
                 path.stroke()

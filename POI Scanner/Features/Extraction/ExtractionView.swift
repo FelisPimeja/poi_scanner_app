@@ -33,7 +33,9 @@ struct ExtractionView: View {
             }
         }
         .task {
-            await viewModel.extract(from: image, coordinate: coordinate, existingNode: existingNode)
+            await viewModel.extract(from: image, coordinate: coordinate,
+                                    existingNode: existingNode,
+                                    coordinateFromPhoto: coordinateFromPhoto)
         }
     }
 
@@ -137,7 +139,8 @@ final class ExtractionViewModel: ObservableObject {
 
     private let vision = VisionService()
 
-    func extract(from image: UIImage, coordinate: CLLocationCoordinate2D, existingNode: OSMNode?) async {
+    func extract(from image: UIImage, coordinate: CLLocationCoordinate2D,
+                 existingNode: OSMNode?, coordinateFromPhoto: Bool = false) async {
         do {
             statusText = "Распознаём текст и QR-коды…"
 
@@ -178,6 +181,7 @@ final class ExtractionViewModel: ObservableObject {
                 }
             } else {
                 poi = POI(coordinate: .init(latitude: coordinate.latitude, longitude: coordinate.longitude))
+                poi.coordinateSource = coordinateFromPhoto ? .photo : .mapCenter
                 poi.tags = parseResult.tags
                 poi.fieldStatus = parseResult.fieldStatus
                 poi.extractionConfidence = parseResult.confidence

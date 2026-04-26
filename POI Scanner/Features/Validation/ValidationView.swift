@@ -26,10 +26,21 @@ struct ValidationView: View {
     @State private var selectedDuplicate: DuplicateCandidate? = nil
     @State private var isMergeMode = false
     @State private var diffEntries: [TagDiffEntry] = []
+    @State private var mergePlaceholderTags: [String: String] = [:]
     @State private var originalExtractedTags: [String: String] = [:]
     @State private var originalCoordinate: POI.Coordinate? = nil
 
+    // Источник координаты (может меняться при ручной правке)
+    @State private var coordinateSource: CoordinateSource
+
     // Теги для отображения в редакторе (приоритетные сначала)
+    init(poi: POI, sourceImage: UIImage?, onSave: ((POI) -> Void)? = nil) {
+        _poi = State(initialValue: poi)
+        self.sourceImage = sourceImage
+        self.onSave = onSave
+        _coordinateSource = State(initialValue: poi.coordinateSource)
+    }
+
     private let priorityKeys = [
         "name", "amenity", "shop", "office",
         "addr:street", "addr:housenumber", "addr:city", "addr:postcode",
@@ -70,7 +81,6 @@ struct ValidationView: View {
 
                 if isMergeMode {
                     mergeDiffSection
-                    cancelMergeSection
                 } else {
                     // Теги
                     Section {
@@ -86,6 +96,7 @@ struct ValidationView: View {
                                 ),
                                 status: poi.fieldStatus[item.key] ?? .manual
                             )
+                            .listRowSeparator(.hidden)
                         }
                     }
 
@@ -158,6 +169,7 @@ struct ValidationView: View {
                     initialFloor: floor,
                     onConfirm: { newCoord in
                         poi.coordinate = POI.Coordinate(newCoord)
+                        coordinateSource = .manual
                         showCoordinatePicker = false
                     },
                     onCancel: { showCoordinatePicker = false }
@@ -203,20 +215,41 @@ struct ValidationView: View {
                 .frame(height: 148)
                 .listRowInsets(EdgeInsets())
                 .clipShape(Rectangle())
+                .contentShape(Rectangle())
+                .onTapGesture { showCoordinatePicker = true }
 
             HStack(spacing: 10) {
-                Image(uiImage: LocationPreviewMapView.Coordinator.renderPin(color: .systemBlue, size: CGSize(width: 18, height: 20)))
+                Image(uiImage: LocationPreviewMapView.Coordinator.renderPin(
+                    color: .systemBlue, size: CGSize(width: 20, height: 22), shadow: false))
                     .frame(width: 24, alignment: .center)
-                Text(dmsString(lat: lat, lon: lon))
-                    .font(.body)
-                    .foregroundStyle(Color.accentColor)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(dmsString(lat: lat, lon: lon))
+                        .font(.body)
+                        .foregroundStyle(Color.accentColor)
+                    Text(coordinateSource.label)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                // Радиобаттон — всегда "выбран" когда активна строка координат (не merge-режим)
+                Image(systemName: isMergeMode ? "circle" : "record.circle")
+                    .foregroundStyle(isMergeMode ? Color.secondary : Color.accentColor)
+                    .font(.title3)
             }
             .contentShape(Rectangle())
-            .onTapGesture { showCoordinatePicker = true }
+            .onTapGesture {
+                if isMergeMode {
+                    // Возврат к созданию нового — отменяем merge
+                    withAnimation {
+                        isMergeMode = false
+                        selectedDuplicate = nil
+                        poi.tags = originalExtractedTags
+                        if let orig = originalCoordinate { poi.coordinate = orig }
+                    }
+                } else {
+                    showCoordinatePicker = true
+                }
+            }
 
             // Поиск / результаты дублей
             if isCheckingDuplicates && duplicates.isEmpty {
@@ -227,7 +260,7 @@ struct ValidationView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)
-            } else if !duplicates.isEmpty && !isMergeMode {
+            } else if !duplicates.isEmpty {
                 duplicateCandidatesView
             }
         }
@@ -244,16 +277,16 @@ struct ValidationView: View {
 
             ForEach(Array(candidatesWithColors.enumerated()), id: \.element.candidate.id) { index, item in
                 let isSelected = selectedDuplicate?.id == item.candidate.id
-                if index > 0 { Divider().padding(.leading, 22) }
                 Button {
-                    withAnimation { selectedDuplicate = isSelected ? nil : item.candidate }
+                    applyMerge(with: item.candidate)
                 } label: {
                     HStack(spacing: 10) {
                         Image(uiImage: LocationPreviewMapView.Coordinator.renderPin(
                             color: item.color,
-                            size: CGSize(width: 18, height: 20)
+                            size: CGSize(width: 22, height: 24),
+                            shadow: false
                         ))
-                        .frame(width: 24, alignment: .center)
+                        .frame(width: 28, alignment: .center)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(item.candidate.displayName)
                                 .font(.body)
@@ -263,35 +296,14 @@ struct ValidationView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        if isSelected {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(Color.accentColor)
-                        }
+                        Image(systemName: isSelected ? "record.circle" : "circle")
+                            .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                            .font(.title3)
                     }
                     .padding(.vertical, 5)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-            }
-
-            if selectedDuplicate != nil {
-                HStack(spacing: 8) {
-                    Button { applyMerge() } label: {
-                        Text("Переключиться и обновить")
-                            .font(.subheadline.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-
-                    Button {
-                        withAnimation { selectedDuplicate = nil }
-                    } label: {
-                        Text("+ Добавить как новое")
-                            .font(.subheadline)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                }
-                .padding(.top, 8)
             }
         }
         .padding(.bottom, 6)
@@ -326,65 +338,96 @@ struct ValidationView: View {
         if !conflicts.isEmpty {
             Section(header: Text("Конфликты")) {
                 ForEach($diffEntries) { $entry in
-                    if entry.kind == .conflict { MergeTagRow(entry: $entry) }
+                    if entry.kind == .conflict {
+                        MergeTagRow(entry: $entry)
+                            .listRowSeparator(.hidden)
+                    }
                 }
             }
         }
         if !newTags.isEmpty {
             Section(header: Text("Новые теги")) {
                 ForEach($diffEntries) { $entry in
-                    if entry.kind == .newTag { MergeTagRow(entry: $entry) }
+                    if entry.kind == .newTag {
+                        MergeTagRow(entry: $entry)
+                            .listRowSeparator(.hidden)
+                    }
                 }
             }
         }
         if !osmOnly.isEmpty {
             Section(header: Text("Теги OSM (сохраняются)")) {
                 ForEach($diffEntries) { $entry in
-                    if entry.kind == .osmOnly { MergeTagRow(entry: $entry) }
+                    if entry.kind == .osmOnly {
+                        MergeTagRow(entry: $entry)
+                            .listRowSeparator(.hidden)
+                    }
                 }
             }
         }
-    }
 
-    @ViewBuilder
-    private var cancelMergeSection: some View {
-        Section {
-            Button(role: .destructive) {
-                withAnimation {
-                    isMergeMode = false
-                    selectedDuplicate = nil
-                    diffEntries = []
-                    // Восстанавливаем исходные данные
-                    poi.osmNodeId  = nil
-                    poi.osmVersion = nil
-                    poi.osmType    = nil
-                    if let orig = originalCoordinate { poi.coordinate = orig }
-                    poi.tags = originalExtractedTags
+        // Плейсхолдеры — основные теги, отсутствующие в обоих источниках
+        let placeholderKeys = mergePlaceholderTags.keys.sorted { a, b in
+            let order = ["name", "opening_hours", "phone", "website",
+                         "addr:street", "addr:housenumber", "addr:city"]
+            let ai = order.firstIndex(of: a) ?? 999
+            let bi = order.firstIndex(of: b) ?? 999
+            return ai == bi ? a < b : ai < bi
+        }
+        if !placeholderKeys.isEmpty {
+            Section(header: Text("Дополнить")) {
+                ForEach(placeholderKeys, id: \.self) { key in
+                    OSMTagRow(
+                        tagKey: key,
+                        editableValue: Binding(
+                            get: { mergePlaceholderTags[key] ?? "" },
+                            set: { newVal in
+                                mergePlaceholderTags[key] = newVal.isEmpty ? nil : newVal
+                            }
+                        ),
+                        status: .manual
+                    )
+                    .listRowSeparator(.hidden)
                 }
-            } label: {
-                Label("Добавить как новое место", systemImage: "plus.circle")
             }
         }
     }
 
     // MARK: - Merge helpers
 
-    private func applyMerge() {
-        guard let candidate = selectedDuplicate else { return }
+    private func applyMerge(with candidate: DuplicateCandidate? = nil) {
+        let resolved = candidate ?? selectedDuplicate
+        guard let resolved else { return }
+        selectedDuplicate = resolved
         originalExtractedTags = poi.tags
         originalCoordinate    = poi.coordinate
         // Переключаемся на существующий OSM-узел
-        poi.osmNodeId  = candidate.node.id
-        poi.osmVersion = candidate.node.version
+        poi.osmNodeId  = resolved.node.id
+        poi.osmVersion = resolved.node.version
         poi.osmType    = .node
         poi.coordinate = POI.Coordinate(
-            latitude: candidate.node.latitude,
-            longitude: candidate.node.longitude
+            latitude: resolved.node.latitude,
+            longitude: resolved.node.longitude
         )
         diffEntries = TagDiffEntry.build(
-            osmTags: candidate.node.tags,
+            osmTags: resolved.node.tags,
             extractedTags: originalExtractedTags
         )
+        // Плейсхолдеры: основные теги, отсутствующие в обоих источниках
+        // Учитываем псевдонимы contact: чтобы phone/contact:phone не дублировались
+        let coveredKeys = Set(diffEntries.map(\.key))
+        let aliasExpanded: Set<String> = Set(coveredKeys.flatMap { k -> [String] in
+            var a = [k]
+            if k.hasPrefix("contact:") { a.append(String(k.dropFirst(8))) }
+            else { a.append("contact:" + k) }
+            return a
+        })
+        let essentialKeys = ["name", "opening_hours", "phone", "website",
+                             "addr:street", "addr:housenumber", "addr:city"]
+        mergePlaceholderTags = [:]
+        for key in essentialKeys where !aliasExpanded.contains(key) {
+            mergePlaceholderTags[key] = ""
+        }
         syncMergedTags()
         withAnimation { isMergeMode = true }
     }
@@ -397,23 +440,15 @@ struct ValidationView: View {
                 merged[entry.key] = val
             }
         }
+        // Плейсхолдеры: включаем только непустые
+        for (key, value) in mergePlaceholderTags where !value.isEmpty {
+            merged[key] = value
+        }
         poi.tags = merged
     }
 
     private func dmsString(lat: Double, lon: Double) -> String {
-        func parts(_ deg: Double) -> (d: Int, m: Int, s: Double) {
-            let a = abs(deg)
-            let d = Int(a)
-            let m = Int((a - Double(d)) * 60)
-            let s = ((a - Double(d)) * 60 - Double(m)) * 60
-            return (d, m, s)
-        }
-        let (ld, lm, ls) = parts(lat)
-        let (nd, nm, ns) = parts(lon)
-        let latDir = lat >= 0 ? "N" : "S"
-        let lonDir = lon >= 0 ? "E" : "W"
-        return String(format: "%d°%d′%.2f″%@  %d°%d′%.2f″%@",
-                      ld, lm, ls, latDir, nd, nm, ns, lonDir)
+        String(format: "%.4f°,  %.4f°", lat, lon)
     }
 
     private var legendHeader: some View {
@@ -501,68 +536,118 @@ private struct MergeTagRow: View {
         }
     }
 
-    // Конфликт — два варианта с радио-кнопками
+    // MARK: Конфликт — чекбоксы (можно выбрать оба → запись через «;»)
+
     private var conflictView: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(OSMTags.definition(for: entry.key)?.label ?? entry.key)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Button {
-                entry.resolution = .useOSM
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: entry.resolution == .useOSM ? "circle.fill" : "circle")
-                        .foregroundStyle(entry.resolution == .useOSM ? Color.accentColor : Color.secondary)
-                    Text(entry.osmValue ?? "—")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Text("OSM")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .buttonStyle(.plain)
+            let osmChecked = entry.resolution == .useOSM || entry.resolution == .both
+            let extChecked = entry.resolution == .useExtracted || entry.resolution == .both
 
-            Button {
-                entry.resolution = .useExtracted
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: entry.resolution == .useExtracted ? "circle.fill" : "circle")
-                        .foregroundStyle(entry.resolution == .useExtracted ? Color.accentColor : Color.secondary)
-                    Text(entry.extractedValue ?? "—")
-                        .foregroundStyle(.primary)
-                    Spacer()
-                    Text("Новое")
-                        .font(.caption2)
-                        .foregroundStyle(.blue)
-                }
-            }
-            .buttonStyle(.plain)
+            checkboxOption(
+                label: entry.osmValue ?? "—",
+                badge: "OSM",
+                badgeColor: .secondary,
+                isChecked: osmChecked,
+                action: { toggleOSM() }
+            )
+            checkboxOption(
+                label: entry.extractedValue ?? "—",
+                badge: "Новое",
+                badgeColor: .blue,
+                isChecked: extChecked,
+                action: { toggleExtracted() }
+            )
         }
         .padding(.vertical, 4)
     }
 
-    // Новый тег — переключатель включить/выключить
-    private var newTagView: some View {
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(OSMTags.definition(for: entry.key)?.label ?? entry.key)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(entry.extractedValue ?? "")
-                    .foregroundStyle(.primary)
-            }
-            Spacer()
-            Toggle("", isOn: Binding(
-                get: { entry.resolution == .useExtracted },
-                set: { entry.resolution = $0 ? .useExtracted : .keepOSM }
-            ))
-            .labelsHidden()
+    private func toggleOSM() {
+        switch entry.resolution {
+        case .useOSM:       entry.resolution = .useExtracted   // снять ОSM → оставить только Новое
+        case .useExtracted: entry.resolution = .both           // добавить OSM → оба
+        case .both:         entry.resolution = .useExtracted   // снять OSM → только Новое
+        default:            entry.resolution = .useOSM
         }
     }
 
-    // Тег только в OSM — read-only, сохраняется
+    private func toggleExtracted() {
+        switch entry.resolution {
+        case .useExtracted: entry.resolution = .useOSM         // снять Новое → только OSM
+        case .useOSM:       entry.resolution = .both           // добавить Новое → оба
+        case .both:         entry.resolution = .useOSM         // снять Новое → только OSM
+        default:            entry.resolution = .useExtracted
+        }
+    }
+
+    @ViewBuilder
+    private func checkboxOption(label: String, badge: String, badgeColor: Color,
+                                isChecked: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: isChecked ? "checkmark.square.fill" : "square")
+                    .foregroundStyle(isChecked ? Color.accentColor : Color.secondary)
+                    .font(.title3)
+                Text(label)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+                Text(badge)
+                    .font(.caption2)
+                    .foregroundStyle(badgeColor)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: Новый тег — радио-включить/исключить + OSMTagRow для редактирования
+
+    private var newTagView: some View {
+        HStack(alignment: .center, spacing: 10) {
+            // Радио: включить / исключить
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    if entry.resolution == .keepOSM {
+                        // Восстанавливаем: если текст менялся — custom, иначе extracted
+                        entry.resolution = entry.customEditText == (entry.extractedValue ?? "")
+                            ? .useExtracted
+                            : .custom(entry.customEditText)
+                    } else {
+                        entry.resolution = .keepOSM
+                    }
+                }
+            } label: {
+                Image(systemName: entry.resolution == .keepOSM ? "circle" : "record.circle")
+                    .foregroundStyle(entry.resolution == .keepOSM ? Color.secondary : Color.accentColor)
+                    .font(.title3)
+            }
+            .buttonStyle(.plain)
+
+            // Полноценный OSMTagRow — использует словари, редактор часов и пр.
+            OSMTagRow(
+                tagKey: entry.key,
+                editableValue: Binding(
+                    get: { entry.customEditText },
+                    set: { newVal in
+                        entry.customEditText = newVal
+                        entry.resolution = newVal.isEmpty
+                            ? .keepOSM
+                            : (newVal == (entry.extractedValue ?? "") ? .useExtracted : .custom(newVal))
+                    }
+                ),
+                status: .extracted,
+                hideIcon: true
+            )
+            .opacity(entry.resolution == .keepOSM ? 0.4 : 1)
+            .allowsHitTesting(entry.resolution != .keepOSM)
+        }
+    }
+
+    // MARK: Тег только в OSM — read-only
+
     private var osmOnlyView: some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {

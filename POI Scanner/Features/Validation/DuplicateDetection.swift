@@ -22,7 +22,7 @@ struct DuplicateCandidate: Identifiable, Equatable {
         UIColor.systemTeal,
     ]
 
-    /// Отображаемое имя узла в формате «Тип · Название» (или только тип, если имени нет)
+    /// Отображаемое имя узла в формате «Тип · Название (этаж)»
     var displayName: String {
         let typePart: String? = node.tags["amenity"].map { localizedType($0, key: "amenity") }
             ?? node.tags["shop"].map    { localizedType($0, key: "shop") }
@@ -31,12 +31,28 @@ struct DuplicateCandidate: Identifiable, Equatable {
 
         let namePart = node.tags["name"]
 
+        var base: String
         switch (typePart, namePart) {
-        case let (type?, name?): return "\(type) · \(name)"
-        case let (type?, nil):   return type
-        case let (nil, name?):   return name
-        default:                 return "Без названия"
+        case let (type?, name?): base = "\(type) · \(name)"
+        case let (type?, nil):   base = type
+        case let (nil, name?):   base = name
+        default:                 base = "Без названия"
         }
+
+        if let floorStr = floorLabel {
+            base += " (\(floorStr))"
+        }
+        return base
+    }
+
+    /// Подпись этажа: сначала addr:floor (уже в региональном формате),
+    /// иначе level с конвертацией 0→1, 1→2 и т.д.
+    private var floorLabel: String? {
+        if let f = node.tags["addr:floor"], !f.isEmpty { return f }
+        if let l = node.tags["level"], let lvl = Int(l) {
+            return "\(lvl + 1) эт."
+        }
+        return nil
     }
 
     private func localizedType(_ value: String, key: String) -> String {
@@ -53,6 +69,7 @@ enum DiffResolution: Equatable {
     case useExtracted
     case custom(String)
     case keepOSM    // тег только в OSM — сохраняем без изменений
+    case both       // оба значения через «;»
 }
 
 // MARK: - TagDiffEntry
@@ -89,26 +106,62 @@ struct TagDiffEntry: Identifiable, Equatable {
         case .useExtracted:     return extractedValue
         case .custom(let s):    return s.isEmpty ? nil : s
         case .keepOSM:          return osmValue
+        case .both:
+            let parts = [osmValue, extractedValue].compactMap { $0 }
+            return parts.isEmpty ? nil : parts.joined(separator: ";")
         }
+    }
+
+    /// Псевдонимы contact: ↔ короткий ключ (для нормализации перед diff)
+    private static let contactAliases: [(short: String, full: String)] = [
+        ("phone",   "contact:phone"),
+        ("website", "contact:website"),
+        ("email",   "contact:email"),
+        ("fax",     "contact:fax"),
+    ]
+
+    /// Нормализует ключи extracted-словаря так, чтобы они совпадали с ключами OSM.
+    /// Если OSM использует «contact:phone», а extracted — «phone», переименовываем.
+    static func normalizeExtracted(_ extracted: [String: String],
+                                   against osm: [String: String]) -> [String: String] {
+        var result = extracted
+        for pair in contactAliases {
+            // OSM = full (contact:phone), extracted = short (phone)
+            if osm[pair.full] != nil,
+               let val = extracted[pair.short],
+               extracted[pair.full] == nil {
+                result[pair.full] = val
+                result.removeValue(forKey: pair.short)
+            }
+            // OSM = short (phone), extracted = full (contact:phone)
+            if osm[pair.short] != nil,
+               let val = extracted[pair.full],
+               extracted[pair.short] == nil {
+                result[pair.short] = val
+                result.removeValue(forKey: pair.full)
+            }
+        }
+        return result
     }
 
     /// Строит массив diff-записей из двух словарей тегов
     static func build(osmTags: [String: String],
                       extractedTags: [String: String]) -> [TagDiffEntry] {
-        let allKeys = Set(osmTags.keys).union(extractedTags.keys).sorted()
+        let normalized = normalizeExtracted(extractedTags, against: osmTags)
+        let allKeys = Set(osmTags.keys).union(normalized.keys).sorted()
         return allKeys.map { key in
             let osm = osmTags[key]
-            let ext = extractedTags[key]
+            let ext = normalized[key]
             let defaultResolution: DiffResolution
             switch (osm, ext) {
             case let (.some(a), .some(b)) where a == b:
-                defaultResolution = .useOSM         // совпадает — не меняем
+                defaultResolution = .useOSM
             case (.some, .some):
-                defaultResolution = .useExtracted   // конфликт — новые данные
+                defaultResolution = .useExtracted
             case (.none, .some):
-                defaultResolution = .useExtracted   // новый тег — добавляем
+                defaultResolution = .useExtracted
             case (.some, .none):
-                defaultResolution = .keepOSM        // только OSM — сохраняем
+                defaultResolution = .keepOSM
             default:
                 defaultResolution = .useOSM
             }
