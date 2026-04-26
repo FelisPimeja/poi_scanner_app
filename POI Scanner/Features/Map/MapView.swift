@@ -586,10 +586,11 @@ private struct OSMNodeSheet: View {
 
             // Строка координат
             HStack(spacing: 10) {
-                Image(systemName: "scope")
-                    .font(.body)
-                    .foregroundStyle(canEdit ? Color.accentColor : Color.secondary)
-                    .frame(width: 24, alignment: .center)
+                Image(uiImage: LocationPreviewMapView.Coordinator.renderPin(
+                    color: canEdit ? .systemBlue : .systemGray,
+                    size: CGSize(width: 18, height: 20)
+                ))
+                .frame(width: 24, alignment: .center)
                 Text(dmsString(lat: lat, lon: lon))
                     .font(.body)
                     .foregroundStyle(canEdit ? Color.accentColor : Color.primary)
@@ -1336,6 +1337,8 @@ private struct TechInfoSection: View {
 /// Жесты отключены — карта нетапабельна.
 struct LocationPreviewMapView: UIViewRepresentable {
     let coordinate: CLLocationCoordinate2D
+    /// Дополнительные маркеры кандидатов-дублей: (координата, цвет, индекс цвета)
+    var extraMarkers: [(coordinate: CLLocationCoordinate2D, color: UIColor, colorIndex: Int)] = []
 
     func makeUIView(context: Context) -> MLNMapView {
         let mapView = MLNMapView()
@@ -1371,24 +1374,51 @@ struct LocationPreviewMapView: UIViewRepresentable {
         let annotation = MLNPointAnnotation()
         annotation.coordinate = coordinate
         mapView.addAnnotation(annotation)
+
+        // Маркеры кандидатов-дублей
+        for marker in extraMarkers {
+            let ann = DuplicateMarkerAnnotation(
+                coordinate: marker.coordinate,
+                markerColor: marker.color,
+                colorIndex: marker.colorIndex
+            )
+            mapView.addAnnotation(ann)
+        }
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     final class Coordinator: NSObject, MLNMapViewDelegate {
         func mapView(_ mapView: MLNMapView, imageFor annotation: MLNAnnotation) -> MLNAnnotationImage? {
+            // Маркер кандидата-дубля
+            if let dup = annotation as? DuplicateMarkerAnnotation {
+                let reuseId = "dup_\(dup.colorIndex % DuplicateCandidate.palette.count)"
+                if let existing = mapView.dequeueReusableAnnotationImage(withIdentifier: reuseId) {
+                    return existing
+                }
+                return MLNAnnotationImage(
+                    image: Self.renderPin(color: dup.markerColor),
+                    reuseIdentifier: reuseId
+                )
+            }
             let reuseId = "preview_pin"
             if let existing = mapView.dequeueReusableAnnotationImage(withIdentifier: reuseId) {
                 return existing
             }
-            // Рисуем простой цветной пин через SF Symbol
-            let size = CGSize(width: 28, height: 30)
-            let image = UIGraphicsImageRenderer(size: size).image { _ in
+            return MLNAnnotationImage(
+                image: Self.renderPin(color: .systemBlue),
+                reuseIdentifier: reuseId
+            )
+        }
+
+        /// Рисует пин заданного цвета с белой точкой внутри.
+        /// `size` — итоговый размер изображения (по умолчанию 28×30 для карты).
+        static func renderPin(color: UIColor, size: CGSize = CGSize(width: 28, height: 30)) -> UIImage {
+            return UIGraphicsImageRenderer(size: size).image { _ in
                 let ctx = UIGraphicsGetCurrentContext()!
                 let s: CGFloat = size.width / 24.0
                 ctx.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 3,
                               color: UIColor.black.withAlphaComponent(0.3).cgColor)
-                // Форма пина
                 let path = UIBezierPath()
                 path.move(to:     CGPoint(x: 12*s, y:  1*s))
                 path.addCurve(to: CGPoint(x:  3*s, y: 10*s),
@@ -1404,18 +1434,32 @@ struct LocationPreviewMapView: UIViewRepresentable {
                               controlPoint1: CGPoint(x: 21*s,    y:  5.03*s),
                               controlPoint2: CGPoint(x: 16.97*s, y:  1*s))
                 path.close()
-                UIColor.systemBlue.setFill()
+                color.setFill()
                 path.fill()
                 ctx.setShadow(offset: .zero, blur: 0, color: nil)
                 UIColor.white.withAlphaComponent(0.5).setStroke()
                 path.lineWidth = 0.75
                 path.stroke()
-                // Белая точка в центре
                 let cx = 12 * s, cy = 10 * s, r = 3.5 * s
                 UIColor.white.setFill()
                 UIBezierPath(ovalIn: CGRect(x: cx-r, y: cy-r, width: r*2, height: r*2)).fill()
             }
-            return MLNAnnotationImage(image: image, reuseIdentifier: reuseId)
         }
     }
 }
+
+// MARK: - DuplicateMarkerAnnotation
+
+/// Аннотация для маркера кандидата-дубля на превью-карте.
+final class DuplicateMarkerAnnotation: MLNPointAnnotation {
+    let markerColor: UIColor
+    let colorIndex: Int
+    init(coordinate: CLLocationCoordinate2D, markerColor: UIColor, colorIndex: Int) {
+        self.markerColor = markerColor
+        self.colorIndex  = colorIndex
+        super.init()
+        self.coordinate = coordinate
+    }
+    required init?(coder: NSCoder) { nil }
+}
+
