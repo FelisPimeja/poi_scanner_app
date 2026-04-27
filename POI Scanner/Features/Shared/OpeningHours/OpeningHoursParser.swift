@@ -148,10 +148,8 @@ struct OpeningHoursParser {
     private static func parseTimeRange(_ s: String) -> (OHTime, OHTime)? {
         // Handle "HH:MM-HH:MM" — careful: "24:00" is valid closing time
         // Find the dash that separates open from close (skip first char to avoid negative hour)
-        guard let dashIdx = s.dropFirst(4).firstIndex(of: "-") else { return nil }
-        let realDash = s.index(dashIdx, offsetBy: 0)
-        // Actually: split on "-" but the range might be "09:00-18:00"
-        // Use regex-free approach: times are always 5 chars HH:MM
+        guard s.dropFirst(4).firstIndex(of: "-") != nil else { return nil }
+        // Split on "-"; times are always 5 chars HH:MM
         let parts = s.components(separatedBy: "-")
         guard parts.count == 2,
               let t1 = parseTime(parts[0]),

@@ -7,7 +7,7 @@ import Photos
 // Выбор фото из галереи или камеры. Возвращает UIImage через onCapture.
 
 struct CaptureView: View {
-    let onCapture: (UIImage, CLLocationCoordinate2D?) -> Void
+    let onCapture: (UIImage, CLLocationCoordinate2D?, Double?, Date?) -> Void
     let onSkip: (() -> Void)?          // «Пропустить фото» — для редактирования без OCR
 
     @Environment(\.dismiss) private var dismiss
@@ -115,9 +115,9 @@ struct CaptureView: View {
             }
             .fullScreenCover(isPresented: $showCamera) {
                 CameraPickerView(
-                    onCapture: { image, coord in
+                    onCapture: { image, coord, acc, date in
                         showCamera = false
-                        handleImage(image, coordinate: coord)
+                        handleImage(image, coordinate: coord, accuracy: acc, captureDate: date)
                     },
                     onCancel: {
                         showCamera = false
@@ -164,6 +164,8 @@ struct CaptureView: View {
         print("[GPS] Photos authorization: \(authStatus.rawValue) (0=notDetermined,1=restricted,2=denied,3=authorized,4=limited)")
 
         var coord: CLLocationCoordinate2D? = nil
+        var accuracy: Double? = nil
+        var captureDate: Date? = nil
         if let assetId = item.itemIdentifier {
             coord = await phAssetCoordinate(assetIdentifier: assetId)
         } else {
@@ -174,15 +176,17 @@ struct CaptureView: View {
               let image = UIImage(data: data) else { return }
 
         if coord == nil {
-            coord = PhotoMetadataService.coordinate(from: data)
-            if let coord {
-                print("[GPS] EXIF из Data: \(coord.latitude), \(coord.longitude)")
+            if let result = PhotoMetadataService.gpsResult(from: data) {
+                coord = result.coordinate
+                accuracy = result.horizontalAccuracy
+                print("[GPS] EXIF из Data: \(result.coordinate.latitude), \(result.coordinate.longitude), accuracy: \(accuracy.map { String($0) } ?? "nil")")
             } else {
                 print("[GPS] EXIF из Data: не найден")
             }
         }
+        captureDate = PhotoMetadataService.captureDate(from: data)
 
-        handleImage(image, coordinate: coord)
+        handleImage(image, coordinate: coord, accuracy: accuracy, captureDate: captureDate)
     }
 
     private func phAssetCoordinate(assetIdentifier: String) async -> CLLocationCoordinate2D? {
@@ -215,21 +219,21 @@ struct CaptureView: View {
         }
     }
 
-    private func handleImage(_ image: UIImage, coordinate: CLLocationCoordinate2D? = nil) {
+    private func handleImage(_ image: UIImage, coordinate: CLLocationCoordinate2D? = nil,
+                             accuracy: Double? = nil, captureDate: Date? = nil) {
         dismiss()
-        onCapture(image, coordinate)
+        onCapture(image, coordinate, accuracy, captureDate)
     }
 }
 
 // MARK: - CameraPickerView (UIImagePickerController wrapper)
 
 struct CameraPickerView: UIViewControllerRepresentable {
-    let onCapture: (UIImage, CLLocationCoordinate2D?) -> Void
+    let onCapture: (UIImage, CLLocationCoordinate2D?, Double?, Date?) -> Void
     let onCancel: () -> Void
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        // Защита: на симуляторе .camera недоступен, fallback на .photoLibrary
         picker.sourceType = UIImagePickerController.isSourceTypeAvailable(.camera) ? .camera : .photoLibrary
         picker.delegate = context.coordinator
         return picker
@@ -240,10 +244,10 @@ struct CameraPickerView: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(onCapture: onCapture, onCancel: onCancel) }
 
     final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let onCapture: (UIImage, CLLocationCoordinate2D?) -> Void
+        let onCapture: (UIImage, CLLocationCoordinate2D?, Double?, Date?) -> Void
         let onCancel: () -> Void
 
-        init(onCapture: @escaping (UIImage, CLLocationCoordinate2D?) -> Void,
+        init(onCapture: @escaping (UIImage, CLLocationCoordinate2D?, Double?, Date?) -> Void,
              onCancel: @escaping () -> Void) {
             self.onCapture = onCapture
             self.onCancel = onCancel
@@ -252,18 +256,19 @@ struct CameraPickerView: UIViewControllerRepresentable {
         func imagePickerController(_ picker: UIImagePickerController,
                                    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             guard let image = info[.originalImage] as? UIImage else { return }
-            let coord = PhotoMetadataService.coordinate(fromCameraInfo: info)
+            let result = PhotoMetadataService.gpsResult(fromCameraInfo: info)
+            let coord = result?.coordinate
+            let accuracy = result?.horizontalAccuracy
+            let captureDate = PhotoMetadataService.captureDate(fromCameraInfo: info)
             if let coord {
-                print("[EXIF] координаты из камеры: \(coord.latitude), \(coord.longitude)")
+                print("[EXIF] координаты из камеры: \(coord.latitude), \(coord.longitude), accuracy: \(accuracy.map { String($0) } ?? "nil")")
             } else {
                 print("[EXIF] GPS в снимке камеры не найден")
             }
-            // Всегда на главном потоке — изменение @State из UIKit-колбека
-            DispatchQueue.main.async { self.onCapture(image, coord) }
+            DispatchQueue.main.async { self.onCapture(image, coord, accuracy, captureDate) }
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            // Не вызываем picker.dismiss() — SwiftUI управляет презентацией через fullScreenCover
             DispatchQueue.main.async { self.onCancel() }
         }
     }

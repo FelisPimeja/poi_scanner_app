@@ -76,7 +76,7 @@ struct OpeningHoursEditorView: View {
     private func load() {
         let (parsed, _) = OpeningHoursParser.parse(value)
         schedules = parsed.isEmpty
-            ? [OHSchedule(days: [], isAllDay: false,
+            ? [OHSchedule(days: Set(OHWeekday.allCases), isAllDay: false,
                           open: .defaultOpen, close: .defaultClose, breaks: [])]
             : parsed
     }

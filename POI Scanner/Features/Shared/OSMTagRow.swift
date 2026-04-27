@@ -152,21 +152,7 @@ struct OSMTagRow: View {
                     BooleanTagToggle(value: binding)
                 default:
                     if tagKey == "check_date" {
-                        HStack(spacing: 6) {
-                            TextField(tagKey, text: binding)
-                                .font(.body)
-                            Spacer(minLength: 4)
-                            Button {
-                                let fmt = DateFormatter()
-                                fmt.dateFormat = "yyyy-MM-dd"
-                                binding.wrappedValue = fmt.string(from: Date())
-                            } label: {
-                                Image(systemName: "arrow.clockwise")
-                                    .font(.body)
-                                    .foregroundStyle(.blue)
-                            }
-                            .buttonStyle(.plain)
-                        }
+                        CheckDateField(value: binding)
                     } else {
                         TextField(tagKey, text: binding)
                             .font(.body)
@@ -542,6 +528,102 @@ private struct SelectTagField: View {
 
 // MARK: - MultiSelectTagField
 // Кнопка, открывающая лист с множественным выбором (.multiselect)
+
+// MARK: - CheckDateField
+/// Поле check_date: DatePicker + кнопка «сегодня».
+/// Хранит значение в OSM-формате "yyyy-MM-dd".
+private struct CheckDateField: View {
+    @Binding var value: String
+    @State private var showPicker = false
+
+    private static let osmFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    private static let displayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        f.timeStyle = .none
+        return f
+    }()
+
+    private var parsedDate: Date {
+        Self.osmFormatter.date(from: value) ?? Date()
+    }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button {
+                showPicker = true
+            } label: {
+                Text(value.isEmpty ? "Выбрать дату" : (Self.displayFormatter.string(from: parsedDate)))
+                    .font(.body)
+                    .foregroundStyle(value.isEmpty ? .secondary : .primary)
+            }
+            .buttonStyle(.plain)
+            Spacer(minLength: 0)
+            // Кнопка «сегодня»
+            Button {
+                value = Self.osmFormatter.string(from: Date())
+            } label: {
+                Image(systemName: "calendar.badge.clock")
+                    .font(.body)
+                    .foregroundStyle(.blue)
+            }
+            .buttonStyle(.plain)
+        }
+        .sheet(isPresented: $showPicker) {
+            NavigationStack {
+                DatePickerSheet(value: $value)
+            }
+            .presentationDetents([.medium])
+        }
+    }
+}
+
+private struct DatePickerSheet: View {
+    @Binding var value: String
+    @Environment(\.dismiss) private var dismiss
+
+    private static let osmFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f
+    }()
+
+    @State private var selected: Date
+
+    init(value: Binding<String>) {
+        _value = value
+        _selected = State(initialValue: Self.osmFormatter.date(from: value.wrappedValue) ?? Date())
+    }
+
+    var body: some View {
+        VStack {
+            DatePicker("Дата проверки", selection: $selected, displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .padding(.horizontal)
+            Spacer()
+        }
+        .navigationTitle("Дата проверки")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Готово") {
+                    value = Self.osmFormatter.string(from: selected)
+                    dismiss()
+                }
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Отмена") { dismiss() }
+            }
+        }
+    }
+}
 
 private struct MultiSelectTagField: View {
     let key: String

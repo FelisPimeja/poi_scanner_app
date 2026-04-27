@@ -45,13 +45,9 @@ struct DuplicateCandidate: Identifiable, Equatable {
         return base
     }
 
-    /// Подпись этажа: сначала addr:floor (уже в региональном формате),
-    /// иначе level с конвертацией 0→1, 1→2 и т.д.
     private var floorLabel: String? {
         if let f = node.tags["addr:floor"], !f.isEmpty { return f }
-        if let l = node.tags["level"], let lvl = Int(l) {
-            return "\(lvl + 1) эт."
-        }
+        if let l = node.tags["level"], let lvl = Int(l) { return "\(lvl + 1) эт." }
         return nil
     }
 
@@ -99,7 +95,6 @@ struct TagDiffEntry: Identifiable, Equatable {
         }
     }
 
-    /// Итоговое значение тега для загрузки
     var resolvedValue: String? {
         switch resolution {
         case .useOSM:           return osmValue
@@ -112,7 +107,6 @@ struct TagDiffEntry: Identifiable, Equatable {
         }
     }
 
-    /// Псевдонимы contact: ↔ короткий ключ (для нормализации перед diff)
     private static let contactAliases: [(short: String, full: String)] = [
         ("phone",   "contact:phone"),
         ("website", "contact:website"),
@@ -120,23 +114,15 @@ struct TagDiffEntry: Identifiable, Equatable {
         ("fax",     "contact:fax"),
     ]
 
-    /// Нормализует ключи extracted-словаря так, чтобы они совпадали с ключами OSM.
-    /// Если OSM использует «contact:phone», а extracted — «phone», переименовываем.
     static func normalizeExtracted(_ extracted: [String: String],
                                    against osm: [String: String]) -> [String: String] {
         var result = extracted
         for pair in contactAliases {
-            // OSM = full (contact:phone), extracted = short (phone)
-            if osm[pair.full] != nil,
-               let val = extracted[pair.short],
-               extracted[pair.full] == nil {
+            if osm[pair.full] != nil, let val = extracted[pair.short], extracted[pair.full] == nil {
                 result[pair.full] = val
                 result.removeValue(forKey: pair.short)
             }
-            // OSM = short (phone), extracted = full (contact:phone)
-            if osm[pair.short] != nil,
-               let val = extracted[pair.full],
-               extracted[pair.short] == nil {
+            if osm[pair.short] != nil, let val = extracted[pair.full], extracted[pair.short] == nil {
                 result[pair.short] = val
                 result.removeValue(forKey: pair.full)
             }
@@ -144,7 +130,6 @@ struct TagDiffEntry: Identifiable, Equatable {
         return result
     }
 
-    /// Строит массив diff-записей из двух словарей тегов
     static func build(osmTags: [String: String],
                       extractedTags: [String: String]) -> [TagDiffEntry] {
         let normalized = normalizeExtracted(extractedTags, against: osmTags)
@@ -154,16 +139,11 @@ struct TagDiffEntry: Identifiable, Equatable {
             let ext = normalized[key]
             let defaultResolution: DiffResolution
             switch (osm, ext) {
-            case let (.some(a), .some(b)) where a == b:
-                defaultResolution = .useOSM
-            case (.some, .some):
-                defaultResolution = .useExtracted
-            case (.none, .some):
-                defaultResolution = .useExtracted
-            case (.some, .none):
-                defaultResolution = .keepOSM
-            default:
-                defaultResolution = .useOSM
+            case let (.some(a), .some(b)) where a == b: defaultResolution = .useOSM
+            case (.some, .some):                        defaultResolution = .useExtracted
+            case (.none, .some):                        defaultResolution = .useExtracted
+            case (.some, .none):                        defaultResolution = .keepOSM
+            default:                                    defaultResolution = .useOSM
             }
             return TagDiffEntry(
                 key: key,
@@ -173,98 +153,5 @@ struct TagDiffEntry: Identifiable, Equatable {
                 customEditText: ext ?? osm ?? ""
             )
         }
-    }
-}
-
-// MARK: - DuplicateChecker
-
-actor DuplicateChecker {
-    static let shared = DuplicateChecker()
-    private init() {}
-
-    private static let primaryKeys: [String] = [
-        "amenity", "shop", "tourism", "office",
-        "leisure", "craft", "healthcare", "emergency",
-    ]
-    private static let nameKeys: [String]    = ["name", "name:ru", "brand", "operator"]
-    private static let contactKeys: [String] = [
-        "phone", "contact:phone", "website", "contact:website",
-    ]
-
-    /// Находит OSM-ноды в радиусе `radiusMeters`, похожие на `poi`.
-    func findDuplicates(near poi: POI,
-                        radiusMeters: Double = 30) async throws -> [DuplicateCandidate] {
-        let lat = poi.coordinate.latitude
-        let lon = poi.coordinate.longitude
-
-        let query = """
-        [out:json][timeout:10];
-        node(around:\(Int(radiusMeters)),\(lat),\(lon));
-        out meta;
-        """
-
-        var request = URLRequest(
-            url: URL(string: "https://overpass-api.de/api/interpreter")!,
-            timeoutInterval: 15
-        )
-        request.httpMethod = "POST"
-        request.setValue("application/x-www-form-urlencoded",
-                         forHTTPHeaderField: "Content-Type")
-        let body = "data=" + (query.addingPercentEncoding(
-            withAllowedCharacters: .urlQueryAllowed) ?? "")
-        request.httpBody = body.data(using: .utf8)
-
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let resp = try JSONDecoder().decode(OverpassResponse.self, from: data)
-
-        let origin = CLLocation(latitude: lat, longitude: lon)
-        var candidates: [DuplicateCandidate] = []
-
-        for element in resp.elements {
-            guard let node = element.toOSMNode(), node.type == .node else { continue }
-            guard node.id != (poi.osmNodeId ?? -1) else { continue }
-            guard isSimilar(node: node, to: poi) else { continue }
-            let dist = CLLocation(latitude: node.latitude, longitude: node.longitude)
-                .distance(from: origin)
-            candidates.append(DuplicateCandidate(node: node, distance: dist))
-        }
-
-        return candidates.sorted { $0.distance < $1.distance }
-    }
-
-    // MARK: Private helpers
-
-    private func isSimilar(node: OSMNode, to poi: POI) -> Bool {
-        // 1. Совпадение значения основного тега
-        for key in Self.primaryKeys {
-            if let nv = node.tags[key], let pv = poi.tags[key], nv == pv { return true }
-        }
-        // 2. Совпадение наличия основного тега (оба — кафе/аптека, разные имена)
-        for key in Self.primaryKeys {
-            if node.tags[key] != nil, poi.tags[key] != nil { return true }
-        }
-        // 3. Похожие названия / бренды
-        for key in Self.nameKeys {
-            if let a = node.tags[key], let b = poi.tags[key],
-               namesAreSimilar(a, b) { return true }
-        }
-        // 4. Совпадение контактов
-        for key in Self.contactKeys {
-            if let a = node.tags[key], let b = poi.tags[key] {
-                let na = digits(a), nb = digits(b)
-                if na.count >= 6, na == nb { return true }
-            }
-        }
-        return false
-    }
-
-    private func namesAreSimilar(_ a: String, _ b: String) -> Bool {
-        let la = a.lowercased().trimmingCharacters(in: .whitespaces)
-        let lb = b.lowercased().trimmingCharacters(in: .whitespaces)
-        return la == lb || la.contains(lb) || lb.contains(la)
-    }
-
-    private func digits(_ s: String) -> String {
-        s.filter(\.isNumber)
     }
 }

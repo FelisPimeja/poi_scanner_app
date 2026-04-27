@@ -26,8 +26,15 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(language.rawValue, forKey: "appLanguage") }
     }
 
+    /// Последний известный город (addr:city) — заполняется из OSM-тегов при сохранении POI
+    /// или из Overpass-ответа при поиске дублей. Предлагается как подсказка при заполнении.
+    @Published var lastCity: String {
+        didSet { UserDefaults.standard.set(lastCity, forKey: "lastCity") }
+    }
+
     private init() {
         let saved = UserDefaults.standard.string(forKey: "appLanguage") ?? ""
         self.language = AppLanguage(rawValue: saved) ?? .en
+        self.lastCity = UserDefaults.standard.string(forKey: "lastCity") ?? ""
     }
 }

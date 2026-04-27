@@ -71,28 +71,29 @@ struct MapView: View {
                 .allowsHitTesting(false)
         }
 
-        // Sheet: информация о существующей ноде
+        // Sheet: просмотр информации о существующей ноде
         .sheet(item: $viewModel.selectedNode) { node in
-            OSMNodeSheet(
+            OSMNodeInfoView(
                 initialNode: node,
                 viewModel: viewModel,
                 onSave: { updatedPOI in
                     viewModel.saveDraftPOI(updatedPOI)
                     viewModel.selectedNode = nil
+                },
+                onClose: {
+                    viewModel.selectedNode = nil
                 }
-            ) {
-                viewModel.selectedNode = nil
-            }
+            )
         }
 
         // Sheet: CaptureView для нового POI
         .sheet(isPresented: $viewModel.isAddingPOI) {
             CaptureView(
-                onCapture: { image, coord in
+                onCapture: { image, coord, acc, date in
                     viewModel.isAddingPOI = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        // Координата зашита прямо в item — нет гонки со State
-                        extractionItemForNew = IdentifiableImage(image: image, coordinate: coord)
+                        extractionItemForNew = IdentifiableImage(image: image, coordinate: coord,
+                                                                 accuracy: acc, captureDate: date)
                     }
                 },
                 onSkip: {
@@ -113,6 +114,8 @@ struct MapView: View {
                     image: wrapper.image,
                     coordinate: coord,
                     coordinateFromPhoto: wrapper.coordinate != nil,
+                    photoAccuracy: wrapper.accuracy,
+                    photoDate: wrapper.captureDate,
                     onSave: { savedPOI in
                         viewModel.saveDraftPOI(savedPOI)
                         viewModel.centerOn(coordinate: CLLocationCoordinate2D(
@@ -122,6 +125,7 @@ struct MapView: View {
                     }
                 )
             }
+            .presentationDetents([.large])
             .onAppear { viewModel.pendingPOICoordinate = wrapper.coordinate }
             .onDisappear { viewModel.pendingPOICoordinate = nil }
         }
@@ -129,22 +133,23 @@ struct MapView: View {
         // Sheet: редактирование черновика POI (тап на оранжевый маркер)
         .sheet(item: $viewModel.selectedDraftPOI) { draft in
             NavigationStack {
-                ValidationView(
+                POIEditorView(
                     poi: draft,
-                    sourceImage: nil,
+                    mode: .new(sourceImage: nil),
                     onSave: { updatedPOI in
                         viewModel.updateDraftPOI(updatedPOI)
                     }
                 )
             }
+            .presentationDetents([.large])
         }
 
         // Sheet: ручное добавление нового POI (Пропустить из CaptureView)
         .sheet(item: $manualPOIForNew) { emptyPOI in
             NavigationStack {
-                ValidationView(
+                POIEditorView(
                     poi: emptyPOI,
-                    sourceImage: nil,
+                    mode: .new(sourceImage: nil),
                     onSave: { savedPOI in
                         viewModel.saveDraftPOI(savedPOI)
                         viewModel.centerOn(coordinate: CLLocationCoordinate2D(
@@ -154,6 +159,7 @@ struct MapView: View {
                     }
                 )
             }
+            .presentationDetents([.large])
         }
     }
 }
@@ -236,647 +242,7 @@ private struct LocationButton: View {
     }
 }
 
-// MARK: - OSMNodeSheet
-
-private struct OSMNodeSheet: View {
-    /// Нода, с которой открылся шит (может быть без деталей — version: 1).
-    /// Используется как fallback пока грузится selectedNodeDetails.
-    let initialNode: OSMNode
-    @ObservedObject var viewModel: MapViewModel
-    var onSave: ((POI) -> Void)? = nil
-    let onClose: () -> Void
-
-    /// Актуальная нода: selectedNodeDetails если уже загружен, иначе initialNode.
-    /// Т.к. viewModel — @ObservedObject, при обновлении selectedNodeDetails
-    /// SwiftUI перестраивает шит и передаёт свежую версию с правильным version.
-    private var node: OSMNode { viewModel.selectedNodeDetails ?? initialNode }
-    private var isLoadingDetails: Bool { viewModel.isLoadingDetails }
-
-    // Режим отображения
-    @State private var isEditing = false
-    @State private var editMode: EditTab = .simplified
-    @State private var poi: POI? = nil          // POI для редактирования, создаётся при входе в режим
-    @State private var tagPairs: [TagPair] = [] // плоский массив для Tags-режима
-
-    // Состояние загрузки
-    @State private var isUploading = false
-    @State private var uploadError: String? = nil
-    @State private var showUploadError = false
-    private let authService = OSMAuthService.shared
-
-    // Undo / Redo
-    @State private var undoStack: [[String: String]] = []
-    @State private var redoStack: [[String: String]] = []
-    @State private var snapshotTask: Task<Void, Never>? = nil
-
-    // Редактор координат
-    @State private var showCoordinatePicker = false
-
-    private var canUndo: Bool { undoStack.count >= 2 }
-    private var canRedo: Bool { !redoStack.isEmpty }
-
-    /// Планирует снимок текущих тегов через 0.6 с (дебаунс).
-    /// Вызывается при каждом изменении `poi.tags`.
-    private func scheduleSnapshot() {
-        snapshotTask?.cancel()
-        snapshotTask = Task {
-            try? await Task.sleep(nanoseconds: 600_000_000)
-            guard !Task.isCancelled else { return }
-            guard let tags = poi?.tags, tags != undoStack.last else { return }
-            undoStack.append(tags)
-            redoStack.removeAll()
-        }
-    }
-
-    private func undo() {
-        guard undoStack.count >= 2 else { return }
-        let current = undoStack.removeLast()
-        redoStack.append(current)
-        poi?.tags = undoStack.last ?? [:]
-    }
-
-    private func redo() {
-        guard let next = redoStack.popLast() else { return }
-        undoStack.append(next)
-        poi?.tags = next
-    }
-
-    enum EditTab: String, CaseIterable {
-        case simplified = "Форма"
-        case tags       = "Теги"
-    }
-
-    // Приоритетные ключи для Simplified-режима
-    private let priorityKeys = [
-        "name", "amenity", "shop", "office", "tourism",
-        "addr:street", "addr:housenumber", "addr:city",
-        // Контакты: телефон → сайт → email → прочее
-        "phone", "contact:phone",
-        "website", "contact:website",
-        "email", "contact:email",
-        "opening_hours"
-    ]
-
-    /// Ключи, которые всегда показываются как плейсхолдеры в edit-режиме,
-    /// даже если тег отсутствует у POI.
-    private let essentialPlaceholders: [OSMTagDefinition.TagGroup: [String]] = [
-        .hours:    ["opening_hours"],
-        .address:  ["addr:street", "addr:housenumber", "addr:city", "addr:postcode"],
-        .contact:  ["phone", "website", "email"],
-        .payment:  ["payment:cash", "payment:visa", "payment:mastercard",
-                    "payment:mir", "payment:apple_pay", "payment:sbp"],
-        .building: ["building"],
-        .other:    ["wheelchair", "description"],
-    ]
-
-    /// True если ключ входит в essentialPlaceholders (для любой группы).
-    private func isEssentialKey(_ key: String) -> Bool {
-        essentialPlaceholders.values.contains { $0.contains(key) }
-    }
-
-    /// Свайп-действие для строки тега:
-    /// - essential-ключи → «Очистить» (удаляет значение, плейсхолдер остаётся)
-    /// - прочие          → «Удалить»  (полностью убирает строку)
-    @ViewBuilder
-    private func swipeDeleteAction(forKey key: String) -> some View {
-        if isEssentialKey(key) {
-            Button {
-                poi?.tags.removeValue(forKey: key)
-                poi?.fieldStatus.removeValue(forKey: key)
-            } label: {
-                Label("Очистить", systemImage: "xmark.circle")
-            }
-            .tint(.orange)
-        } else {
-            Button(role: .destructive) {
-                poi?.tags.removeValue(forKey: key)
-                poi?.fieldStatus.removeValue(forKey: key)
-            } label: {
-                Label("Удалить", systemImage: "trash")
-            }
-        }
-    }
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Segmented control — только в режиме редактирования
-                if isEditing {
-                    Picker("Режим", selection: $editMode) {
-                        ForEach(EditTab.allCases, id: \.self) { tab in
-                            Text(tab.rawValue).tag(tab)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Color(.systemGroupedBackground))
-                }
-
-                List {
-                    if !isEditing {
-                        // ── Режим просмотра ──
-                        tagListSection(isEditable: false)
-                    } else if editMode == .simplified {
-                        // ── Simplified редактор (тот же компонент, isEditable: true) ──
-                        tagListSection(isEditable: true)
-                    } else {
-                        // ── Raw Tags редактор ──
-                        tagsSection
-                    }
-                }
-                .onChange(of: editMode) { _, newTab in
-                    // Simplified → Tags: строим пары из актуальных тегов POI
-                    if newTab == .tags { syncPairsFromTags() }
-                    // Tags → Simplified: применяем пары обратно в POI
-                    if newTab == .simplified { syncTagsFromPairs() }
-                }
-            }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { toolbarContent }
-            .onChange(of: poi?.tags) { _, _ in
-                // Дебаунс-снимок после каждого изменения тегов
-                scheduleSnapshot()
-            }
-            .alert("Ошибка загрузки", isPresented: $showUploadError) {
-                Button("Скопировать") {
-                    UIPasteboard.general.string = uploadError
-                }
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(uploadError ?? "Неизвестная ошибка")
-            }
-            .sheet(isPresented: $showCoordinatePicker) {
-                let coord = CLLocationCoordinate2D(
-                    latitude: poi?.coordinate.latitude ?? node.latitude,
-                    longitude: poi?.coordinate.longitude ?? node.longitude
-                )
-                let floor = poi?.tags["level"].flatMap(Int.init) ?? 0
-                CoordinatePickerView(
-                    initialCoordinate: coord,
-                    initialFloor: floor,
-                    onConfirm: { newCoord in
-                        poi?.coordinate = POI.Coordinate(newCoord)
-                        showCoordinatePicker = false
-                    },
-                    onCancel: { showCoordinatePicker = false }
-                )
-            }
-        }
-        .presentationDetents([.medium, .large], selection: Binding(
-            get: { isEditing ? .large : .medium },
-            set: { _ in }  // пользователь может тянуть вручную, но не переключаем обратно
-        ))
-    }
-
-    // MARK: - Секции
-
-    /// Единый список тегов — один компонент для просмотра (isEditable: false)
-    /// и Simplified-редактора (isEditable: true).
-    ///
-    /// Теги группируются по `TagGroup` в порядке `CaseIterable`.
-    /// Неизвестные ключи (не в каталоге) попадают в секцию «Прочее».
-    /// Координаты вынесены в отдельную финальную секцию (всегда read-only).
-    @ViewBuilder
-    private func tagListSection(isEditable: Bool) -> some View {
-        let tags = isEditable ? (poi?.tags ?? [:]) : node.tags
-
-        // Спиннер — только в режиме просмотра, пока теги загружаются
-        if !isEditable && isLoadingDetails {
-            Section {
-                HStack {
-                    ProgressView()
-                    Text("Загружаем теги…")
-                        .foregroundStyle(.secondary)
-                        .padding(.leading, 8)
-                }
-            }
-        } else if !isEditable && tags.isEmpty {
-            Section { Text("Нет тегов").foregroundStyle(.secondary) }
-        } else {
-            // Распределяем теги по группам
-            let grouped = groupedEntries(from: tags)
-
-            // Карта + координаты — только в Simplified edit-режиме
-            if isEditable {
-                locationPreviewSection
-            }
-
-            ForEach(OSMTagDefinition.TagGroup.allCases, id: \.self) { group in
-                let entries = grouped[group] ?? []
-                // Ключи из essentialPlaceholders, которых нет у POI (только edit-режим)
-                let absentKeys: [String] = isEditable
-                    ? (essentialPlaceholders[group] ?? []).filter { poi?.tags[$0] == nil }
-                    : []
-
-                if !entries.isEmpty || !absentKeys.isEmpty {
-                    if group == .name && !entries.isEmpty {
-                        CollapsibleNameSection(
-                            entries: entries,
-                            isEditable: isEditable,
-                            tagRow: { key, value, isPrimary in
-                                tagRow(for: key, value: value, isEditable: isEditable, isPrimary: isPrimary)
-                                    .swipeActions(edge: .trailing) {
-                                        if isEditable { swipeDeleteAction(forKey: key) }
-                                    }
-                            }
-                        )
-                    } else if group == .brand && !entries.isEmpty {
-                        CollapsibleBrandSection(
-                            entries: entries,
-                            isEditable: isEditable,
-                            tagRow: { key, value in
-                                tagRow(for: key, value: value, isEditable: isEditable)
-                                    .swipeActions(edge: .trailing) {
-                                        if isEditable { swipeDeleteAction(forKey: key) }
-                                    }
-                            }
-                        )
-                    } else if group == .legal && !entries.isEmpty {
-                        CollapsibleLegalSection(
-                            entries: entries,
-                            isEditable: isEditable,
-                            tagRow: { key, value in
-                                tagRow(for: key, value: value, isEditable: isEditable)
-                                    .swipeActions(edge: .trailing) {
-                                        if isEditable { swipeDeleteAction(forKey: key) }
-                                    }
-                            }
-                        )
-                    } else if group == .payment && !isEditable {
-                        PaymentTagSection(entries: entries)
-                    } else if group == .address && !isEditable {
-                        AddressTagSection(entries: entries)
-                    } else if group == .address && isEditable {
-                        // Редактирование адреса: иконка только у первой строки + свайп-удаление
-                        Section(header: Text("Адрес")) {
-                            ForEach(Array(entries.enumerated()), id: \.element.key) { index, item in
-                                tagRow(for: item.key, value: item.value, isEditable: true,
-                                       forceIcon: index == 0 && absentKeys.isEmpty ? "house" : nil,
-                                       hideIcon: index > 0 || !absentKeys.isEmpty)
-                                    .swipeActions(edge: .trailing) {
-                                        swipeDeleteAction(forKey: item.key)
-                                    }
-                            }
-                            // Плейсхолдеры для отсутствующих ключей адреса
-                            ForEach(Array(absentKeys.enumerated()), id: \.element) { index, key in
-                                tagRow(for: key, value: "", isEditable: true,
-                                       forceIcon: index == 0 && entries.isEmpty ? "house" : nil,
-                                       hideIcon: !(index == 0 && entries.isEmpty))
-                            }
-                        }
-                    } else if group == .hours && !isEditable {
-                        Section {
-                            ForEach(entries, id: \.key) { item in
-                                tagRow(for: item.key, value: item.value, isEditable: false)
-                            }
-                        }
-                    } else {
-                        Section(header: Text(group.rawValue)) {
-                            ForEach(entries, id: \.key) { item in
-                                tagRow(for: item.key, value: item.value, isEditable: isEditable)
-                                    .swipeActions(edge: .trailing) {
-                                        if isEditable { swipeDeleteAction(forKey: item.key) }
-                                    }
-                            }
-                            // Плейсхолдеры для отсутствующих ключей группы
-                            if isEditable {
-                                ForEach(absentKeys, id: \.self) { key in
-                                    tagRow(for: key, value: "", isEditable: true)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Техническая информация — всегда read-only, сворачиваемая секция
-        TechInfoSection(node: node)
-
-        // Строка добавления нового тега — только в режиме редактирования
-        if isEditable {
-            Section {
-                AddTagRow { key, value in
-                    self.poi?.tags[key] = value
-                    self.poi?.fieldStatus[key] = .manual
-                }
-            }
-        }
-    }
-
-    // MARK: - Мини-карта с координатами (только Simplified edit)
-
-    /// Секция с превью карты и строкой координат в формате DMS.
-    /// Карта — только отображение, строка координат — навигация в CoordinatePickerView.
-    @ViewBuilder
-    private var locationPreviewSection: some View {
-        let lat = poi?.coordinate.latitude  ?? node.latitude
-        let lon = poi?.coordinate.longitude ?? node.longitude
-        let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-        let canEdit = node.type == .node
-
-        Section {
-            // Mini-map (read-only, полная ширина) — MapLibre с тем же стилем
-            LocationPreviewMapView(coordinate: coord)
-                .frame(height: 148)
-                .listRowInsets(EdgeInsets())
-                .clipShape(Rectangle())
-
-            // Строка координат
-            HStack(spacing: 10) {
-                Image(uiImage: LocationPreviewMapView.Coordinator.renderPin(
-                    color: canEdit ? .systemBlue : .systemGray,
-                    size: CGSize(width: 20, height: 22),
-                    shadow: false
-                ))
-                .frame(width: 24, alignment: .center)
-                Text(dmsString(lat: lat, lon: lon))
-                    .font(.body)
-                    .foregroundStyle(canEdit ? Color.accentColor : Color.primary)
-                Spacer()
-                if canEdit {
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                if canEdit { showCoordinatePicker = true }
-            }
-        }
-    }
-
-    /// Конвертирует десятичные градусы в строку формата «55°49′27.84″N  37°37′23.51″E».
-    private func dmsString(lat: Double, lon: Double) -> String {
-        String(format: "%.4f°,  %.4f°", lat, lon)
-    }
-
-    /// Строит одну строку тега — read-only или editable в зависимости от флага.
-    @ViewBuilder
-    private func tagRow(for key: String, value: String, isEditable: Bool,                        forceIcon: String? = nil, hideIcon: Bool = false,
-                        isPrimary: Bool = false) -> some View {
-        if isEditable {
-            OSMTagRow(
-                tagKey: key,
-                editableValue: Binding(
-                    get: { self.poi?.tags[key] ?? "" },
-                    set: { newVal in
-                        self.poi?.tags[key] = newVal.isEmpty ? nil : newVal
-                        self.poi?.fieldStatus[key] = .confirmed
-                    }
-                ),
-                status: poi?.fieldStatus[key] ?? .manual,
-                forceIcon: forceIcon,
-                hideIcon: hideIcon,
-                isPrimary: isPrimary
-            )
-        } else {
-            OSMTagRow(tagKey: key, readOnlyValue: value, forceIcon: forceIcon, hideIcon: hideIcon, isPrimary: isPrimary)
-        }
-    }
-
-    /// Группирует теги по `TagGroup`.
-    /// Ключи из каталога → в свою группу; неизвестные → `.other`.
-    /// Все name-ключи (name:*, old_name, alt_name и т.д.) → `.name`.
-    /// Порядок внутри группы: приоритетные ключи вперёд, остальные по алфавиту.
-    private func groupedEntries(from tags: [String: String]) -> [OSMTagDefinition.TagGroup: [(key: String, value: String)]] {
-        var result: [OSMTagDefinition.TagGroup: [(key: String, value: String)]] = [:]
-        for key in tags.keys.sorted(by: groupSortKey) {
-            guard let value = tags[key] else { continue }
-            // Фильтруем служебный type=multipolygon — тип геометрии уже отображается отдельно
-            if key == "type" && value == "multipolygon" { continue }
-            let group: OSMTagDefinition.TagGroup
-            if OSMTags.isNameKey(key) {
-                group = .name
-            } else if OSMTags.isBrandKey(key) {
-                group = .brand
-            } else if OSMTags.isLegalKey(key) {
-                group = .legal
-            } else if OSMTags.isPaymentKey(key) {
-                group = .payment
-            } else if OSMTags.isContactKey(key) {
-                group = .contact
-            } else if OSMTags.isAddressKey(key) {
-                group = .address
-            } else if OSMTags.isBuildingKey(key) {
-                group = .building
-            } else {
-                group = OSMTags.definition(for: key)?.group ?? .other
-            }
-            result[group, default: []].append((key: key, value: value))
-        }
-        return result
-    }
-
-    /// Компаратор: сначала по индексу группы в `TagGroup.allCases`,
-    /// внутри группы — приоритетные ключи вперёд, остальные по алфавиту.
-    private func groupSortKey(_ a: String, _ b: String) -> Bool {
-        let groupOrder = OSMTagDefinition.TagGroup.allCases
-        let ga = resolvedGroup(for: a)
-        let gb = resolvedGroup(for: b)
-        let gi = groupOrder.firstIndex(of: ga) ?? 999
-        let gj = groupOrder.firstIndex(of: gb) ?? 999
-        if gi != gj { return gi < gj }
-        let ai = priorityKeys.firstIndex(of: a) ?? 999
-        let bi = priorityKeys.firstIndex(of: b) ?? 999
-        return ai == bi ? a < b : ai < bi
-    }
-
-    /// Определяет группу ключа с учётом prefix-правил (contact:*, payment:* и т.д.)
-    private func resolvedGroup(for key: String) -> OSMTagDefinition.TagGroup {
-        if OSMTags.isNameKey(key)     { return .name }
-        if OSMTags.isBrandKey(key)    { return .brand }
-        if OSMTags.isLegalKey(key)    { return .legal }
-        if OSMTags.isPaymentKey(key)  { return .payment }
-        if OSMTags.isContactKey(key)  { return .contact }
-        if OSMTags.isAddressKey(key)  { return .address }
-        if OSMTags.isBuildingKey(key) { return .building }
-        return OSMTags.definition(for: key)?.group ?? .other
-    }
-
-    @ViewBuilder
-    private var tagsSection: some View {
-        if poi != nil {
-            Section {
-                ForEach(tagPairs.indices, id: \.self) { i in
-                    TagPairRow(
-                        pair: $tagPairs[i],
-                        onDelete: { deleteTag(at: i) }
-                    )
-                }
-            }
-            Section {
-                AddTagRow { key, value in
-                    tagPairs.append(TagPair(key: key, value: value))
-                    syncTagsFromPairs()
-                }
-            }
-        }
-    }
-
-    // MARK: - Toolbar
-
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            if isEditing {
-                HStack(spacing: 16) {
-                    Button {
-                        poi = nil
-                        undoStack = []
-                        redoStack = []
-                        snapshotTask?.cancel()
-                        isEditing = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .fontWeight(.semibold)
-                    }
-                    Button { undo() } label: {
-                        Image(systemName: "arrow.uturn.backward")
-                    }
-                    .disabled(!canUndo || isUploading)
-                    Button { redo() } label: {
-                        Image(systemName: "arrow.uturn.forward")
-                    }
-                    .disabled(!canRedo || isUploading)
-                }
-            } else {
-                Button {
-                    onClose()
-                } label: {
-                    Image(systemName: "chevron.down")
-                        .fontWeight(.semibold)
-                }
-            }
-        }
-        ToolbarItem(placement: .confirmationAction) {
-            if isEditing {
-                // Загрузить в OSM
-                Button {
-                    Task { await upload() }
-                } label: {
-                    if isUploading {
-                        ProgressView()
-                    } else {
-                        Image(systemName: authService.isAuthenticated
-                              ? "arrow.up.circle.fill"
-                              : "arrow.up.circle")
-                    }
-                }
-                .disabled(isUploading)
-            } else {
-                Button {
-                    let p = node.toPOI()
-                    poi = p
-                    tagPairs = p.tags.keys.sorted().map { TagPair(key: $0, value: p.tags[$0] ?? "") }
-                    undoStack = [p.tags]
-                    redoStack = []
-                    isEditing = true
-                } label: {
-                    Image(systemName: "pencil")
-                }
-                .disabled(isLoadingDetails)
-            }
-        }
-        if isEditing {
-            ToolbarItem(placement: .confirmationAction) {
-                // Сохранить локально
-                Button {
-                    saveLocally()
-                } label: {
-                    Image(systemName: "square.and.arrow.down")
-                }
-                .disabled(isUploading)
-            }
-        }
-    }
-
-    // MARK: - Tag pairs sync
-
-    /// Пары → poi.tags (вызывается при изменении ключа/значения в Tags-режиме)
-    private func syncTagsFromPairs() {
-        guard poi != nil else { return }
-        var newTags: [String: String] = [:]
-        for pair in tagPairs where !pair.key.isEmpty {
-            newTags[pair.key] = pair.value
-        }
-        poi?.tags = newTags
-    }
-
-    /// poi.tags → пары (вызывается при переключении на Tags-вкладку)
-    private func syncPairsFromTags() {
-        guard let p = poi else { return }
-        tagPairs = p.tags.keys.sorted().map { TagPair(key: $0, value: p.tags[$0] ?? "") }
-    }
-
-    private func deleteTag(at index: Int) {
-        tagPairs.remove(at: index)
-        syncTagsFromPairs()
-    }
-
-    // MARK: - Actions
-
-    private func saveLocally() {
-        if editMode == .tags { syncTagsFromPairs() }
-        guard var p = poi else { return }
-        p.status = .validated
-        onSave?(p)
-        onClose()
-    }
-
-    @MainActor
-    private func upload() async {
-        if editMode == .tags { syncTagsFromPairs() }
-        guard var p = poi else { return }
-
-        // Последняя защита от version mismatch: если selectedNodeDetails загружен
-        // и содержит более актуальную версию — берём её. Это страховка на случай
-        // если poi был создан до окончания загрузки деталей (гонка).
-        if let details = viewModel.selectedNodeDetails,
-           details.id == p.osmNodeId,
-           let serverVersion = p.osmVersion, details.version > serverVersion {
-            p.osmVersion = details.version
-            p.osmType = details.type
-        }
-
-        print("[Upload] 🚀 poi.osmNodeId=\(String(describing: p.osmNodeId)) osmVersion=\(String(describing: p.osmVersion)) osmType=\(String(describing: p.osmType?.rawValue))")
-        print("[Upload] 📋 selectedNodeDetails: id=\(String(describing: viewModel.selectedNodeDetails?.id)) version=\(String(describing: viewModel.selectedNodeDetails?.version))")
-        print("[Upload] 🏷 tags=\(p.tags)")
-
-        if !authService.isAuthenticated {
-            guard let anchor = presentationAnchor() else { return }
-            do {
-                try await authService.signIn(presentationAnchor: anchor)
-            } catch {
-                uploadError = error.localizedDescription
-                showUploadError = true
-                return
-            }
-        }
-
-        isUploading = true
-        do {
-            let uploaded = try await OSMAPIService.shared.upload(poi: p)
-            onSave?(uploaded)
-            onClose()
-        } catch {
-            uploadError = error.localizedDescription
-            showUploadError = true
-        }
-        isUploading = false
-    }
-
-    private func presentationAnchor() -> UIWindow? {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .filter { $0.activationState == .foregroundActive }
-            .compactMap { $0.keyWindow ?? $0.windows.first }
-            .first
-    }
-}
+// MARK: - IdentifiableImage (для .sheet(item:))
 
 // MARK: - IdentifiableImage (для .sheet(item:))
 
@@ -884,6 +250,8 @@ struct IdentifiableImage: Identifiable {
     let id = UUID()
     let image: UIImage
     let coordinate: CLLocationCoordinate2D?   // GPS из фото, зашит в момент создания
+    let accuracy: Double?                     // горизонтальная погрешность GPS из EXIF (метры)
+    let captureDate: Date?                    // дата съёмки из EXIF
 }
 
 // MARK: - TagPair (модель строки в Tags-режиме)
@@ -896,7 +264,7 @@ struct TagPair: Identifiable {
 
 // MARK: - TagPairRow
 
-private struct TagPairRow: View {
+struct TagPairRow: View {
     @Binding var pair: TagPair
     let onDelete: () -> Void
 
@@ -943,7 +311,7 @@ private struct TagPairRow: View {
 
 /// Секция «Юридические данные» — сворачиваемая.
 /// Главный тег: operator, если есть; иначе первый ref:*.
-private struct CollapsibleLegalSection<Row: View>: View {
+struct CollapsibleLegalSection<Row: View>: View {
     let entries: [(key: String, value: String)]
     let isEditable: Bool
     let tagRow: (String, String) -> Row
@@ -997,7 +365,7 @@ private struct CollapsibleLegalSection<Row: View>: View {
 /// Секция «Бренд» аналогична CollapsibleNameSection.
 /// Главный тег: первый из brandPrimaryKeys (brand → operator → network),
 /// иначе первый в списке. Остальные — под DisclosureGroup.
-private struct CollapsibleBrandSection<Row: View>: View {
+struct CollapsibleBrandSection<Row: View>: View {
     let entries: [(key: String, value: String)]
     let isEditable: Bool
     let tagRow: (String, String) -> Row
@@ -1046,145 +414,13 @@ private struct CollapsibleBrandSection<Row: View>: View {
     }
 }
 
-// MARK: - PaymentTagSection
-
-/// Секция «Способы оплаты» — компактная: показывает иконку кредитки
-/// только у первой строки, у остальных — отступ без иконки.
-/// Значения yes/no заменяются на чекмарк/крестик.
-private struct PaymentTagSection: View {
-    let entries: [(key: String, value: String)]
-
-    var body: some View {
-        Section(header: Text("Способы оплаты")) {
-            ForEach(Array(entries.enumerated()), id: \.element.key) { index, item in
-                HStack(spacing: 10) {
-                    if index == 0 {
-                        Image(systemName: "creditcard")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 24, alignment: .center)
-                    } else {
-                        Color.clear.frame(width: 24, height: 1)
-                    }
-                    Text(OSMTags.definition(for: item.key)?.label ?? item.key)
-                        .font(.body)
-                    Spacer()
-                    paymentValueView(item.value)
-                }
-                .padding(.vertical, 2)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func paymentValueView(_ value: String) -> some View {
-        switch value.lowercased() {
-        case "yes":
-            Image(systemName: "checkmark")
-                .foregroundStyle(.green)
-        case "no":
-            Image(systemName: "xmark")
-                .foregroundStyle(.red)
-        default:
-            Text(value)
-                .font(.body)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-// MARK: - AddressTagSection
-
-/// Секция «Адрес» в режиме просмотра.
-/// Показывает адрес одной строкой в формате:
-/// «Страна, Индекс, Город, Улица, д. X, эт. Y, кв. Z»
-/// Иконка house — только слева от этой строки.
-private struct AddressTagSection: View {
-    let entries: [(key: String, value: String)]
-
-    /// Порядок ключей и префиксы для форматирования
-    private static let addressOrder: [(key: String, prefix: String)] = [
-        ("addr:country",      ""),
-        ("addr:postcode",     ""),
-        ("addr:city",         ""),
-        ("addr:place",        ""),
-        ("addr:suburb",       ""),
-        ("addr:street",       ""),
-        ("addr:housenumber",  "д.\u{00A0}"),
-        ("addr:floor",        "эт.\u{00A0}"),
-        ("addr:unit",         "кв.\u{00A0}"),
-        ("addr2:street",      ""),
-        ("addr2:housenumber", "д.\u{00A0}"),
-    ]
-
-    /// Строит массив отформатированных адресов.
-    /// Если какое-либо поле содержит несколько значений через «;»,
-    /// формируется отдельная строка для каждого слота (по аналогии
-    /// с остальными тегами в OSMTagRow).
-    private var formattedAddresses: [String] {
-        let dict = Dictionary(uniqueKeysWithValues: entries.map { ($0.key, $0.value) })
-        let handledKeys = Set(Self.addressOrder.map { $0.key })
-
-        // Для каждого ключа разбиваем значение по «;» → получаем слоты.
-        // slotCount — максимальное число слотов среди всех присутствующих ключей.
-        var slottedValues: [(prefix: String, slots: [String])] = []
-        for (key, prefix) in Self.addressOrder {
-            guard let raw = dict[key], !raw.isEmpty else { continue }
-            let slots = raw.split(separator: ";", omittingEmptySubsequences: true)
-                          .map { $0.trimmingCharacters(in: .whitespaces) }
-            slottedValues.append((prefix, slots))
-        }
-        // Нераспознанные addr:* ключи — в конец (без префикса)
-        for entry in entries where !handledKeys.contains(entry.key) && !entry.value.isEmpty {
-            let slots = entry.value.split(separator: ";", omittingEmptySubsequences: true)
-                                   .map { $0.trimmingCharacters(in: .whitespaces) }
-            slottedValues.append(("", slots))
-        }
-
-        guard !slottedValues.isEmpty else { return [] }
-
-        let slotCount = slottedValues.map { $0.slots.count }.max() ?? 1
-        var result: [String] = []
-        for i in 0..<slotCount {
-            var parts: [String] = []
-            for (prefix, slots) in slottedValues {
-                // Если у данного поля меньше слотов — берём последний
-                let val = i < slots.count ? slots[i] : slots.last ?? ""
-                if !val.isEmpty { parts.append(prefix + val) }
-            }
-            let line = parts.joined(separator: ", ")
-            if !line.isEmpty { result.append(line) }
-        }
-        return result
-    }
-
-    var body: some View {
-        Section(header: Text("Адрес")) {
-            HStack(spacing: 10) {
-                Image(systemName: "house")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 24, alignment: .center)
-                VStack(alignment: .leading, spacing: 1) {
-                    ForEach(formattedAddresses.isEmpty ? [""] : formattedAddresses, id: \.self) { line in
-                        Text(line)
-                            .font(.body)
-                            .textSelection(.enabled)
-                    }
-                }
-            }
-            .padding(.vertical, 2)
-        }
-    }
-}
-
 // MARK: - CollapsibleNameSection
 
 /// Секция «Название»:
 /// • По умолчанию свёрнута — показывает только главный name-тег + шеврон.
 /// • Разворачивается → все name-теги без дополнительного отступа.
 /// • Главный тег: первый из OSMTags.nameKeys, присутствующий в entries.
-private struct CollapsibleNameSection<Row: View>: View {
+struct CollapsibleNameSection<Row: View>: View {
     let entries: [(key: String, value: String)]
     let isEditable: Bool
     /// (key, value, isPrimary) → Row
@@ -1244,7 +480,7 @@ private struct CollapsibleNameSection<Row: View>: View {
 /// Секция «Техническая информация» — сворачиваемая, всегда read-only.
 /// Первичная строка: иконка info.circle + тип+id в формате «n123456789».
 /// Вторичные строки: версия, широта, долгота.
-private struct TechInfoSection: View {
+struct TechInfoSection: View {
     let node: OSMNode
     @State private var isExpanded = false
 
@@ -1328,6 +564,9 @@ struct LocationPreviewMapView: UIViewRepresentable {
     let coordinate: CLLocationCoordinate2D
     /// Дополнительные маркеры кандидатов-дублей: (координата, цвет, индекс цвета)
     var extraMarkers: [(coordinate: CLLocationCoordinate2D, color: UIColor, colorIndex: Int)] = []
+    /// Минимальный радиус видимой области в метрах (например, из погрешности GPS).
+    /// Nil = авто по маркерам или zoom 17 если маркеров нет.
+    var accuracyMeters: Double? = nil
 
     func makeUIView(context: Context) -> MLNMapView {
         let mapView = MLNMapView()
@@ -1343,7 +582,7 @@ struct LocationPreviewMapView: UIViewRepresentable {
         mapView.logoView.isHidden = true
         mapView.compassView.isHidden = true
 
-        mapView.setCenter(coordinate, zoomLevel: 17, animated: false)
+        applyCamera(to: mapView, animated: false)
 
         // Маркер
         let annotation = MLNPointAnnotation()
@@ -1354,9 +593,64 @@ struct LocationPreviewMapView: UIViewRepresentable {
         return mapView
     }
 
+    // MARK: - Camera
+
+    /// Вычисляет bbox по всем точкам (POI + кандидаты) с учётом минимального радиуса точности.
+    /// При отсутствии кандидатов и точности — устанавливает zoom 17.
+    private func applyCamera(to mapView: MLNMapView, animated: Bool) {
+        let allCoords = [coordinate] + extraMarkers.map(\.coordinate)
+
+        // Минимальный отступ в градусах от точности (accuracyMeters → °)
+        // 1° широты ≈ 111 000 м
+        let minDeltaDeg = (accuracyMeters ?? 0) / 111_000.0
+
+        if allCoords.count == 1 && minDeltaDeg == 0 {
+            // Нет кандидатов и нет заданной точности — фиксированный zoom
+            mapView.setCenter(coordinate, zoomLevel: 17, animated: animated)
+            return
+        }
+
+        // cameraThatFitsCoordinateBounds требует ненулевой фрейм карты.
+        // Если view ещё не разложена (makeUIView до layout) — падаем на разумный zoom.
+        guard mapView.frame.width > 0 && mapView.frame.height > 0 else {
+            mapView.setCenter(coordinate, zoomLevel: 15, animated: animated)
+            return
+        }
+
+        var minLat = allCoords.map(\.latitude).min()!
+        var maxLat = allCoords.map(\.latitude).max()!
+        var minLon = allCoords.map(\.longitude).min()!
+        var maxLon = allCoords.map(\.longitude).max()!
+
+        // Расширяем bbox до минимального радиуса точности
+        let center = coordinate
+        minLat = min(minLat, center.latitude  - minDeltaDeg)
+        maxLat = max(maxLat, center.latitude  + minDeltaDeg)
+        // longitude degrees per meter зависит от широты
+        let lonDeg = minDeltaDeg / max(cos(center.latitude * .pi / 180), 0.01)
+        minLon = min(minLon, center.longitude - lonDeg)
+        maxLon = max(maxLon, center.longitude + lonDeg)
+
+        // Добавляем padding 25% чтобы пины не упирались в края
+        let latPad = (maxLat - minLat) * 0.25
+        let lonPad = (maxLon - minLon) * 0.25
+        let sw = CLLocationCoordinate2D(latitude:  minLat - latPad, longitude: minLon - lonPad)
+        let ne = CLLocationCoordinate2D(latitude:  maxLat + latPad, longitude: maxLon + lonPad)
+        let bounds = MLNCoordinateBounds(sw: sw, ne: ne)
+
+        let insets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        let camera = mapView.cameraThatFitsCoordinateBounds(bounds, edgePadding: insets)
+        // Ограничиваем диапазон зума: altitude ~600м ≈ zoom 15, ~150м ≈ zoom 17.
+        // cameraThatFits может вернуть слишком широкий охват — зажимаем высоту.
+        camera.altitude = min(max(camera.altitude, 150), 600)
+        mapView.setCamera(camera, animated: animated)
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
+
     func updateUIView(_ mapView: MLNMapView, context: Context) {
-        // Обновляем центр и маркер при изменении координаты
-        mapView.setCenter(coordinate, zoomLevel: 17, animated: false)
+        context.coordinator.parent = self
+        // Обновляем центр/bbox и маркеры при изменении координаты или кандидатов
         if let existing = mapView.annotations {
             mapView.removeAnnotations(existing)
         }
@@ -1373,11 +667,20 @@ struct LocationPreviewMapView: UIViewRepresentable {
             )
             mapView.addAnnotation(ann)
         }
+
+        applyCamera(to: mapView, animated: true)
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
     final class Coordinator: NSObject, MLNMapViewDelegate {
+        var parent: LocationPreviewMapView
+
+        init(parent: LocationPreviewMapView) { self.parent = parent }
+
+        // После загрузки стиля фрейм уже установлен — пересчитываем bbox корректно.
+        func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
+            parent.applyCamera(to: mapView, animated: false)
+        }
+
         func mapView(_ mapView: MLNMapView, imageFor annotation: MLNAnnotation) -> MLNAnnotationImage? {
             // Маркер кандидата-дубля
             if let dup = annotation as? DuplicateMarkerAnnotation {

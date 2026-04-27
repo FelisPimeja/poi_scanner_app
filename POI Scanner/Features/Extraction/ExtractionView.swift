@@ -9,16 +9,22 @@ struct ExtractionView: View {
     let image: UIImage
     let coordinate: CLLocationCoordinate2D
     let coordinateFromPhoto: Bool           // true = EXIF GPS из фото, false = центр карты
+    let photoAccuracy: Double?              // горизонтальная погрешность GPS из EXIF (метры)
+    let photoDate: Date?                    // дата съёмки из EXIF
     let existingNode: OSMNode?              // nil = новый POI
     var onSave: ((POI) -> Void)? = nil
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ExtractionViewModel
 
-    init(image: UIImage, coordinate: CLLocationCoordinate2D, coordinateFromPhoto: Bool = false, existingNode: OSMNode? = nil, onSave: ((POI) -> Void)? = nil) {
+    init(image: UIImage, coordinate: CLLocationCoordinate2D, coordinateFromPhoto: Bool = false,
+         photoAccuracy: Double? = nil, photoDate: Date? = nil,
+         existingNode: OSMNode? = nil, onSave: ((POI) -> Void)? = nil) {
         self.image = image
         self.coordinate = coordinate
         self.coordinateFromPhoto = coordinateFromPhoto
+        self.photoAccuracy = photoAccuracy
+        self.photoDate = photoDate
         self.existingNode = existingNode
         self.onSave = onSave
         _viewModel = StateObject(wrappedValue: ExtractionViewModel())
@@ -27,7 +33,7 @@ struct ExtractionView: View {
     var body: some View {
         Group {
             if let poi = viewModel.extractedPOI {
-                ValidationView(poi: poi, sourceImage: image, onSave: onSave)
+                POIEditorView(poi: poi, mode: .new(sourceImage: image), onSave: onSave)
             } else {
                 extractionProgress
             }
@@ -35,7 +41,9 @@ struct ExtractionView: View {
         .task {
             await viewModel.extract(from: image, coordinate: coordinate,
                                     existingNode: existingNode,
-                                    coordinateFromPhoto: coordinateFromPhoto)
+                                    coordinateFromPhoto: coordinateFromPhoto,
+                                    photoAccuracy: photoAccuracy,
+                                    photoDate: photoDate)
         }
     }
 
@@ -140,7 +148,8 @@ final class ExtractionViewModel: ObservableObject {
     private let vision = VisionService()
 
     func extract(from image: UIImage, coordinate: CLLocationCoordinate2D,
-                 existingNode: OSMNode?, coordinateFromPhoto: Bool = false) async {
+                 existingNode: OSMNode?, coordinateFromPhoto: Bool = false,
+                 photoAccuracy: Double? = nil, photoDate: Date? = nil) async {
         do {
             statusText = "Распознаём текст и QR-коды…"
 
@@ -182,6 +191,8 @@ final class ExtractionViewModel: ObservableObject {
             } else {
                 poi = POI(coordinate: .init(latitude: coordinate.latitude, longitude: coordinate.longitude))
                 poi.coordinateSource = coordinateFromPhoto ? .photo : .mapCenter
+                poi.photoAccuracy = photoAccuracy
+                poi.photoDate = photoDate
                 poi.tags = parseResult.tags
                 poi.fieldStatus = parseResult.fieldStatus
                 poi.extractionConfidence = parseResult.confidence

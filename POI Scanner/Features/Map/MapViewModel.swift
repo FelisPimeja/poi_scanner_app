@@ -108,26 +108,13 @@ final class MapViewModel: ObservableObject {
     /// Загрузить OSM ноды для видимой области (вызывается при первой загрузке стиля)
     func loadNodes(for bounds: MLNCoordinateBounds) async {
         // 🧪 TEMP: отключено для диагностики фризов
-        return
-        guard shouldLoad(bounds: bounds) else { return }
-        await fetchNodes(for: expandedBounds(bounds))
+        _ = bounds; return
     }
 
     /// Загрузить ноды с дебаунсом 1.5с и отменой предыдущего запроса
     func loadNodesIfNeeded(for bounds: MLNCoordinateBounds) {
         // 🧪 TEMP: отключено для диагностики фризов
-        return
-        guard shouldLoad(bounds: bounds), escapedCachedArea(bounds) else { return }
-
-        debounceTask?.cancel()
-        debounceTask = Task {
-            // Ждём пока пользователь остановится
-            try? await Task.sleep(for: .milliseconds(1500))
-            guard !Task.isCancelled else { return }
-
-            loadTask?.cancel()
-            loadTask = Task { await self.fetchNodes(for: self.expandedBounds(bounds)) }
-        }
+        _ = bounds; return
     }
 
     // MARK: - Private

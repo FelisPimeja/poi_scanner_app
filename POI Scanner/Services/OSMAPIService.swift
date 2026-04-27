@@ -34,14 +34,26 @@ final class OSMAPIService {
         // 2. Создаём или обновляем объект
         var updated = poi
         if let osmID = poi.osmNodeId {
+            // Всегда получаем актуальную версию из API перед modify —
+            // Overpass и кэш могут отставать.
             switch poi.osmType {
             case .way:
+                let currentVersion = try await fetchCurrentVersion(type: "way", id: osmID, token: token)
+                var withFreshVersion = poi
+                withFreshVersion.osmVersion = currentVersion
                 let nodeRefs = try await fetchWayNodeRefs(wayID: osmID, token: token)
-                try await modifyWay(poi: poi, wayID: osmID, nodeRefs: nodeRefs, changesetID: changesetID, token: token)
+                try await modifyWay(poi: withFreshVersion, wayID: osmID, nodeRefs: nodeRefs, changesetID: changesetID, token: token)
             case .relation:
-                throw OSMAPIError.unsupportedType("Редактирование relation пока не поддерживается")
+                let currentVersion = try await fetchCurrentVersion(type: "relation", id: osmID, token: token)
+                var withFreshVersion = poi
+                withFreshVersion.osmVersion = currentVersion
+                let members = try await fetchRelationMembers(relationID: osmID, token: token)
+                try await modifyRelation(poi: withFreshVersion, relationID: osmID, members: members, changesetID: changesetID, token: token)
             default:
-                try await modifyNode(poi: poi, nodeID: osmID, changesetID: changesetID, token: token)
+                let currentVersion = try await fetchCurrentVersion(type: "node", id: osmID, token: token)
+                var withFreshVersion = poi
+                withFreshVersion.osmVersion = currentVersion
+                try await modifyNode(poi: withFreshVersion, nodeID: osmID, changesetID: changesetID, token: token)
             }
         } else {
             let newID = try await createNode(poi: poi, changesetID: changesetID, token: token)
@@ -91,6 +103,40 @@ final class OSMAPIService {
     }
 
     // MARK: - Node
+
+    /// Запрашивает актуальную версию объекта прямо из OSM API.
+    /// type = "node" | "way" | "relation"
+    private func fetchCurrentVersion(type: String, id: Int64, token: String) async throws -> Int {
+        let url = URL(string: "\(baseURL)/\(type)/\(id)")!
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+
+        let xml = String(data: data, encoding: .utf8) ?? ""
+        // Ищем версию в теге вида: <node id="123" version="7" ...>
+        // Паттерн: ищем открывающий тег объекта, затем атрибут version внутри него.
+        let openTag = "<\(type) "
+        guard let tagStart = xml.range(of: openTag) else {
+            throw OSMAPIError.unexpectedResponse("Тег <\(type) не найден в ответе")
+        }
+        // Берём только первый тег объекта, до первого ">"
+        let tagContent: Substring
+        if let tagEnd = xml[tagStart.lowerBound...].firstIndex(of: ">") {
+            tagContent = xml[tagStart.lowerBound..<tagEnd]
+        } else {
+            tagContent = xml[tagStart.lowerBound...]
+        }
+        guard let vRange = tagContent.range(of: "version=\""),
+              let vEnd = tagContent[vRange.upperBound...].firstIndex(of: "\"") else {
+            throw OSMAPIError.unexpectedResponse("version не найден в теге \(type)/\(id)")
+        }
+        let versionStr = String(tagContent[vRange.upperBound..<vEnd])
+        guard let version = Int(versionStr) else {
+            throw OSMAPIError.unexpectedResponse("Не удалось распарсить version: \(versionStr)")
+        }
+        return version
+    }
 
     private func createNode(poi: POI, changesetID: Int, token: String) async throws -> Int64 {
         let xml = nodeXML(poi: poi, changesetID: changesetID, nodeID: "")
@@ -167,6 +213,67 @@ final class OSMAPIService {
         </osm>
         """
         let url = URL(string: "\(baseURL)/way/\(wayID)")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("text/xml; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        request.httpBody = xml.data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+    }
+
+    // MARK: - Relation modify
+
+    /// Загружает актуальный список member'ов для relation из OSM API.
+    private func fetchRelationMembers(relationID: Int64, token: String) async throws -> [(type: String, ref: Int64, role: String)] {
+        let url = URL(string: "\(baseURL)/relation/\(relationID)")!
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try validate(response: response, data: data)
+
+        let xml = String(data: data, encoding: .utf8) ?? ""
+        // Парсим <member type="..." ref="..." role="..."/>
+        var members: [(type: String, ref: Int64, role: String)] = []
+        let chunks = xml.components(separatedBy: "<member ").dropFirst()
+        for chunk in chunks {
+            guard let end = chunk.firstIndex(of: ">") ?? chunk.firstIndex(of: "/") else { continue }
+            let attrs = String(chunk[chunk.startIndex..<end])
+            func attr(_ name: String) -> String {
+                guard let r = attrs.range(of: "\(name)=\""),
+                      let e = attrs[r.upperBound...].firstIndex(of: "\"") else { return "" }
+                return String(attrs[r.upperBound..<e])
+            }
+            let type_ = attr("type")
+            guard let ref = Int64(attr("ref")), !type_.isEmpty else { continue }
+            members.append((type: type_, ref: ref, role: attr("role")))
+        }
+        return members
+    }
+
+    private func modifyRelation(poi: POI, relationID: Int64,
+                                members: [(type: String, ref: Int64, role: String)],
+                                changesetID: Int, token: String) async throws {
+        guard let version = poi.osmVersion else {
+            throw OSMAPIError.unexpectedResponse("Версия relation \(relationID) неизвестна")
+        }
+        let tagsXML = poi.tags.map { k, v in
+            "    <tag k=\"\(xmlEscape(k))\" v=\"\(xmlEscape(v))\"/>"
+        }.joined(separator: "\n")
+        let membersXML = members.map { m in
+            "    <member type=\"\(m.type)\" ref=\"\(m.ref)\" role=\"\(xmlEscape(m.role))\"/>"
+        }.joined(separator: "\n")
+        let xml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <osm>
+          <relation id="\(relationID)" version="\(version)" changeset="\(changesetID)">
+        \(membersXML)
+        \(tagsXML)
+          </relation>
+        </osm>
+        """
+        let url = URL(string: "\(baseURL)/relation/\(relationID)")!
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

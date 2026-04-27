@@ -26,6 +26,12 @@ struct POI: Identifiable, Codable {
     var id: UUID = UUID()
     var coordinate: Coordinate
     var coordinateSource: CoordinateSource = .mapCenter
+    /// Горизонтальная погрешность GPS из EXIF (метры). nil = неизвестна.
+    var photoAccuracy: Double? = nil
+    /// Дата съёмки фото из EXIF. nil = фото не использовалось или дата отсутствует.
+    var photoDate: Date? = nil
+    /// Горизонтальная погрешность текущего GPS-сигнала устройства (метры). nil = неизвестна.
+    var gpsAccuracy: Double? = nil
     var osmNodeId: Int64?                           // nil = новый объект
     var osmVersion: Int?                            // версия ноды для modify
     var osmType: OSMElementType?                    // тип OSM объекта (node/way/relation)
