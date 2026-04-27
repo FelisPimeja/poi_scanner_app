@@ -187,7 +187,10 @@ struct POIEditorView: View {
             }
             .task { await onAppearTask() }
             .onChange(of: poi.coordinate) { _, _ in onCoordinateChange() }
-            .onChange(of: activeTypeKeys) { _, _ in scheduleTypeBasedDuplicateSearch() }
+            .onChange(of: activeTypeKeys) { old, new in
+                updatePresetsOnTypeChange(old: old, new: new)
+                scheduleTypeBasedDuplicateSearch()
+            }
             .onChange(of: diffEntries) { _, v in onDiffEntriesChange(v) }
             .onChange(of: mergePlaceholderTags) { _, v in onPlaceholdersChange(v) }
             .alert("Ошибка загрузки", isPresented: $showUploadError) {
@@ -683,8 +686,9 @@ struct POIEditorView: View {
 
     // MARK: - Apply type
 
-    /// Применяет выбранный тип: ставит тег и добавляет пустые плейсхолдеры пресетов.
+    /// Применяет выбранный тип: ставит тег.
     /// Если ключ уже занят другим значением и `force == false` — показывает алерт.
+    /// Управление пресетами (добавление/удаление плейсхолдеров) происходит в onChange(of: activeTypeKeys).
     private func applyPOIType(_ type: POIType, force: Bool = false) {
         // Если ключ уже занят другим непустым значением — предупреждаем
         if !force,
@@ -695,35 +699,9 @@ struct POIEditorView: View {
             return
         }
 
-        // Устанавливаем базовый тег
+        // Устанавливаем базовый тег — onChange(of: activeTypeKeys) подхватит смену и обновит пресеты
         poi.tags[type.key] = type.value
         poi.fieldStatus[type.key] = .manual
-
-        // Удаляем пустые плейсхолдеры, добавленные предыдущим типом с тем же ключом,
-        // которые пользователь не заполнил — они уже не актуальны для нового типа.
-        let oldPresets = appliedPresets[type.key] ?? []
-        let newPresets = Set(type.presets)
-        for staleKey in oldPresets.subtracting(newPresets) {
-            if poi.tags[staleKey] == "" {   // пустой плейсхолдер — удаляем
-                poi.tags.removeValue(forKey: staleKey)
-                poi.fieldStatus.removeValue(forKey: staleKey)
-            }
-        }
-
-        // Добавляем пустые плейсхолдеры для рекомендуемых ключей нового типа.
-        // Ставим "" даже если ключ уже есть как "" (идемпотентно),
-        // но не перезаписываем заполненные значения.
-        for presetKey in type.presets {
-            if (poi.tags[presetKey] ?? "") == "" {
-                poi.tags[presetKey] = ""
-            }
-        }
-
-        // Запоминаем набор пресетов для этого базового ключа
-        appliedPresets[type.key] = newPresets
-
-        // Перезапускаем поиск дублей — тип изменился
-        scheduleTypeBasedDuplicateSearch()
     }
 
     /// Перезапускает поиск дублей при смене базового ключа типа (только new mode, не merge).
@@ -732,6 +710,47 @@ struct POIEditorView: View {
         cancelMergeIfActive()
         duplicates = []
         Task { await runDuplicateSearch() }
+    }
+
+    /// Вызывается из onChange(of: activeTypeKeys).
+    /// Для каждого базового ключа, у которого сменилось значение:
+    ///   - удаляет пустые плейсхолдеры старого типа (не вошедшие в новый),
+    ///   - добавляет пустые плейсхолдеры нового типа (если ключ ещё не заполнен).
+    private func updatePresetsOnTypeChange(old: [String: String], new: [String: String]) {
+        let registry = POITypeRegistry.shared
+        let changedKeys = Set(old.keys).union(new.keys).filter { old[$0] != new[$0] }
+
+        for baseKey in changedKeys {
+            let oldVal = old[baseKey] ?? ""
+            let newVal = new[baseKey] ?? ""
+
+            let oldPresets: Set<String> = registry.find(key: baseKey, value: oldVal)
+                .map { Set($0.presets) } ?? appliedPresets[baseKey] ?? []
+            let newPresets: Set<String>  = registry.find(key: baseKey, value: newVal)
+                .map { Set($0.presets) } ?? []
+
+            // Удаляем пустые плейсхолдеры старого типа, которых нет в новом
+            for staleKey in oldPresets.subtracting(newPresets) {
+                if poi.tags[staleKey] == "" {
+                    poi.tags.removeValue(forKey: staleKey)
+                    poi.fieldStatus.removeValue(forKey: staleKey)
+                }
+            }
+
+            // Добавляем пустые плейсхолдеры нового типа (не перезаписываем заполненные)
+            for presetKey in newPresets {
+                if (poi.tags[presetKey] ?? "") == "" {
+                    poi.tags[presetKey] = ""
+                }
+            }
+
+            // Обновляем кеш
+            if newVal.isEmpty {
+                appliedPresets.removeValue(forKey: baseKey)
+            } else {
+                appliedPresets[baseKey] = newPresets
+            }
+        }
     }
 
     // MARK: - Tag group sections (simplified mode, non-merge)
