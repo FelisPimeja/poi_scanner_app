@@ -25,9 +25,14 @@ struct OSMTagRow: View {
 
     private var definition: OSMTagDefinition? { OSMTags.definition(for: tagKey) }
 
-    /// Человекочитаемая метка (из каталога, либо авто-генерация для name:XX / old_name:XX и т.д.)
+    /// Определение поля из POIFieldRegistry — используется как фолбэк
+    /// когда OSMTags не содержит определения для данного ключа.
+    private var poiField: POIField? { POIFieldRegistry.shared.field(forOSMKey: tagKey) }
+
+    /// Человекочитаемая метка (из каталога OSMTags → POIField → авто-генерация)
     private var label: String {
         if let def = definition { return def.label }
+        if let field = poiField { return field.label }
         return Self.localizedNameLabel(for: tagKey)
     }
 
@@ -153,6 +158,18 @@ struct OSMTagRow: View {
                 default:
                     if tagKey == "check_date" {
                         CheckDateField(value: binding)
+                    } else if let field = poiField, !field.options.isEmpty {
+                        // Фолбэк: поле есть в POIFieldRegistry с вариантами значений
+                        switch field.inputType {
+                        case .select:
+                            SelectTagField(key: tagKey, poiOptions: field.options, value: binding)
+                        case .semiCombo:
+                            MultiSelectTagField(key: tagKey, poiOptions: field.options, value: binding)
+                        default:
+                            TextField(tagKey, text: binding).font(.body)
+                        }
+                    } else if let field = poiField, field.inputType == .check {
+                        BooleanTagToggle(value: binding)
                     } else {
                         TextField(tagKey, text: binding)
                             .font(.body)
@@ -478,13 +495,30 @@ private struct BooleanTagToggle: View {
 private struct SelectTagField: View {
     let key: String
     let options: [String]
+    /// Готовые переводы из POIField (если есть — используются вместо OSMValueLocalizations)
+    let poiOptions: [POIFieldOption]
     @Binding var value: String
+
+    init(key: String, options: [String], value: Binding<String>) {
+        self.key = key
+        self.options = options
+        self.poiOptions = []
+        self._value = value
+    }
+
+    init(key: String, poiOptions: [POIFieldOption], value: Binding<String>) {
+        self.key = key
+        self.options = poiOptions.map(\.value)
+        self.poiOptions = poiOptions
+        self._value = value
+    }
 
     @State private var showCustomAlert = false
     @State private var customDraft = ""
 
     private func label(for opt: String) -> String {
-        OSMValueLocalizations.label(for: opt, key: key)
+        if let po = poiOptions.first(where: { $0.value == opt }) { return po.label }
+        return OSMValueLocalizations.label(for: opt, key: key)
     }
 
     var body: some View {
@@ -628,14 +662,30 @@ private struct DatePickerSheet: View {
 private struct MultiSelectTagField: View {
     let key: String
     let options: [String]
+    let poiOptions: [POIFieldOption]
     @Binding var value: String
 
+    init(key: String, options: [String], value: Binding<String>) {
+        self.key = key; self.options = options; self.poiOptions = []; self._value = value
+    }
+    init(key: String, poiOptions: [POIFieldOption], value: Binding<String>) {
+        self.key = key
+        self.options = poiOptions.map(\.value)
+        self.poiOptions = poiOptions
+        self._value = value
+    }
+
     @State private var showSheet = false
+
+    private func label(for opt: String) -> String {
+        if let po = poiOptions.first(where: { $0.value == opt }) { return po.label }
+        return OSMValueLocalizations.label(for: opt, key: key)
+    }
 
     var displayText: String {
         if value.isEmpty { return "Выбрать…" }
         let parts = value.split(separator: ";").map {
-            OSMValueLocalizations.label(for: $0.trimmingCharacters(in: .whitespaces), key: key)
+            label(for: $0.trimmingCharacters(in: .whitespaces))
         }
         return parts.joined(separator: ", ")
     }
@@ -654,7 +704,7 @@ private struct MultiSelectTagField: View {
             }
         }
         .sheet(isPresented: $showSheet) {
-            MultiSelectSheet(key: key, options: options, value: $value)
+            MultiSelectSheet(key: key, options: options, poiOptions: poiOptions, value: $value)
         }
     }
 }
@@ -664,6 +714,7 @@ private struct MultiSelectTagField: View {
 private struct MultiSelectSheet: View {
     let key: String
     let options: [String]
+    let poiOptions: [POIFieldOption]
     @Binding var value: String
 
     @State private var selected: Set<String> = []
@@ -671,7 +722,8 @@ private struct MultiSelectSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private func label(for opt: String) -> String {
-        OSMValueLocalizations.label(for: opt, key: key)
+        if let po = poiOptions.first(where: { $0.value == opt }) { return po.label }
+        return OSMValueLocalizations.label(for: opt, key: key)
     }
 
     var body: some View {
