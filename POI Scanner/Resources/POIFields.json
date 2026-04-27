@@ -1,0 +1,2676 @@
+{
+  "_generated": "2026-04-27T15:34:56.260Z",
+  "_source": "https://github.com/openstreetmap/id-tagging-schema",
+  "fields": [
+    {
+      "id": "access",
+      "osmKey": "access",
+      "inputType": "text",
+      "label": "Ограничения доступа"
+    },
+    {
+      "id": "agrarian",
+      "osmKey": "agrarian",
+      "inputType": "semiCombo",
+      "label": "Товары"
+    },
+    {
+      "id": "air_conditioning",
+      "osmKey": "air_conditioning",
+      "inputType": "check",
+      "label": "Кондиционирование воздуха"
+    },
+    {
+      "id": "animal_boarding",
+      "osmKey": "animal_boarding",
+      "inputType": "semiCombo",
+      "label": "Для каких животных?"
+    },
+    {
+      "id": "animal_breeding",
+      "osmKey": "animal_breeding",
+      "inputType": "semiCombo",
+      "label": "Для каких животных?"
+    },
+    {
+      "id": "animal_shelter",
+      "osmKey": "animal_shelter",
+      "inputType": "semiCombo",
+      "label": "Для каких животных?"
+    },
+    {
+      "id": "armrest",
+      "osmKey": "armrest",
+      "inputType": "check",
+      "label": "Подлокотники"
+    },
+    {
+      "id": "atm",
+      "osmKey": "atm",
+      "inputType": "check",
+      "label": "Банкомат"
+    },
+    {
+      "id": "automated",
+      "osmKey": "automated",
+      "inputType": "check",
+      "label": "Автоматизированная"
+    },
+    {
+      "id": "baby_feeding",
+      "osmKey": "baby_feeding",
+      "inputType": "select",
+      "label": "Место для грудного кормления",
+      "options": [
+        {
+          "value": "room",
+          "label": "Выделенная комната"
+        },
+        {
+          "value": "yes",
+          "label": "Отмеченное место"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        }
+      ]
+    },
+    {
+      "id": "backrest",
+      "osmKey": "backrest",
+      "inputType": "check",
+      "label": "Спинка"
+    },
+    {
+      "id": "bar",
+      "osmKey": "bar",
+      "inputType": "check",
+      "label": "Бар"
+    },
+    {
+      "id": "beauty",
+      "osmKey": "beauty",
+      "inputType": "semiCombo",
+      "label": "Услуги",
+      "options": [
+        {
+          "value": "nails",
+          "label": "Маникюр/педикюр"
+        },
+        {
+          "value": "tanning",
+          "label": "Солярий"
+        },
+        {
+          "value": "cosmetics",
+          "label": "Косметика"
+        },
+        {
+          "value": "spa",
+          "label": "Дневной СПА"
+        },
+        {
+          "value": "skin_care",
+          "label": "Уход за кожей"
+        },
+        {
+          "value": "waxing",
+          "label": "Ваксинг"
+        },
+        {
+          "value": "hair_removal",
+          "label": "Депиляция"
+        }
+      ]
+    },
+    {
+      "id": "bench",
+      "osmKey": "bench",
+      "inputType": "check",
+      "label": "Скамейка"
+    },
+    {
+      "id": "bicycle_parking",
+      "osmKey": "bicycle_parking",
+      "inputType": "select",
+      "label": "Тип велосипедной парковки",
+      "options": [
+        {
+          "value": "stands",
+          "label": "Стойка для велосипеда (например, турникообразная)"
+        },
+        {
+          "value": "wall_loops",
+          "label": "Парковка креплением колеса"
+        },
+        {
+          "value": "shed",
+          "label": "Крытый велогараж"
+        },
+        {
+          "value": "lockers",
+          "label": "Отдельные шкафчики для велосипедов"
+        },
+        {
+          "value": "building",
+          "label": "В здании"
+        },
+        {
+          "value": "handlebar_holder",
+          "label": "Навесная велопарковка"
+        }
+      ]
+    },
+    {
+      "id": "bike_ride",
+      "osmKey": "bike_ride",
+      "inputType": "check",
+      "label": "Стоянка велосипедов, совмещенная с остановкой общественного транспорта"
+    },
+    {
+      "id": "bin",
+      "osmKey": "bin",
+      "inputType": "check",
+      "label": "Урна для мусора"
+    },
+    {
+      "id": "blind",
+      "osmKey": "blind",
+      "inputType": "select",
+      "label": "Доступно для слабовидящих",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "limited",
+          "label": "Ограничено"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        }
+      ]
+    },
+    {
+      "id": "books",
+      "osmKey": "books",
+      "inputType": "semiCombo",
+      "label": "Типы книг"
+    },
+    {
+      "id": "booth",
+      "osmKey": "booth",
+      "inputType": "select",
+      "label": "Тип будки"
+    },
+    {
+      "id": "bottle",
+      "osmKey": "bottle",
+      "inputType": "check",
+      "label": "Наполнение бутылки питьевой водой"
+    },
+    {
+      "id": "brand",
+      "osmKey": "brand",
+      "inputType": "text",
+      "label": "Бренд"
+    },
+    {
+      "id": "brewery",
+      "osmKey": "brewery",
+      "inputType": "semiCombo",
+      "label": "Продаваемые марки пива"
+    },
+    {
+      "id": "building",
+      "osmKey": "building",
+      "inputType": "select",
+      "label": "Тип здания / конструкция",
+      "options": [
+        {
+          "value": "yes",
+          "label": "yes"
+        },
+        {
+          "value": "allotment_house",
+          "label": "Дачный домик"
+        },
+        {
+          "value": "apartments",
+          "label": "Многоквартирный дом"
+        },
+        {
+          "value": "barn",
+          "label": "Амбар"
+        },
+        {
+          "value": "boathouse",
+          "label": "Эллинг"
+        },
+        {
+          "value": "bungalow",
+          "label": "Бунгало"
+        },
+        {
+          "value": "bunker",
+          "label": "Бункер"
+        },
+        {
+          "value": "cabin",
+          "label": "Хижина"
+        },
+        {
+          "value": "carport",
+          "label": "Навес для автомобилей"
+        },
+        {
+          "value": "cathedral",
+          "label": "Собор"
+        },
+        {
+          "value": "chapel",
+          "label": "Капелла"
+        },
+        {
+          "value": "church",
+          "label": "Церковь"
+        },
+        {
+          "value": "civic",
+          "label": "Общественное здание"
+        },
+        {
+          "value": "college",
+          "label": "Здание колледжа"
+        },
+        {
+          "value": "commercial",
+          "label": "Коммерческое здание"
+        },
+        {
+          "value": "construction",
+          "label": "Строящееся здание"
+        },
+        {
+          "value": "cowshed",
+          "label": "Коровник"
+        },
+        {
+          "value": "detached",
+          "label": "Отдельно стоящий частный жилой дом"
+        },
+        {
+          "value": "dormitory",
+          "label": "Общежитие"
+        },
+        {
+          "value": "farm",
+          "label": "Фермерский дом"
+        },
+        {
+          "value": "farm_auxiliary",
+          "label": "Нежилое здание на ферме"
+        },
+        {
+          "value": "fire_station",
+          "label": "Здание пожарной станции"
+        },
+        {
+          "value": "garage",
+          "label": "Гараж"
+        },
+        {
+          "value": "garages",
+          "label": "Гаражи"
+        },
+        {
+          "value": "ger",
+          "label": "Юрта"
+        },
+        {
+          "value": "grandstand",
+          "label": "Трибуна"
+        },
+        {
+          "value": "greenhouse",
+          "label": "Теплица"
+        },
+        {
+          "value": "hangar",
+          "label": "Ангар"
+        },
+        {
+          "value": "hospital",
+          "label": "Здание больницы"
+        },
+        {
+          "value": "hotel",
+          "label": "Гостиница"
+        },
+        {
+          "value": "house",
+          "label": "Дом"
+        },
+        {
+          "value": "houseboat",
+          "label": "Плавучий дом"
+        },
+        {
+          "value": "hut",
+          "label": "Хижина"
+        },
+        {
+          "value": "industrial",
+          "label": "Промышленное здание"
+        },
+        {
+          "value": "kindergarten",
+          "label": "Здание подготовительной школы / детского сада"
+        },
+        {
+          "value": "manufacture",
+          "label": "Здание промышленного производства"
+        },
+        {
+          "value": "mosque",
+          "label": "Мечеть"
+        },
+        {
+          "value": "office",
+          "label": "Офисное здание"
+        },
+        {
+          "value": "outbuilding",
+          "label": "Пристройка"
+        },
+        {
+          "value": "pavilion",
+          "label": "Спортивный павильон"
+        },
+        {
+          "value": "public",
+          "label": "Общественное здание"
+        },
+        {
+          "value": "residential",
+          "label": "Жилое здание"
+        },
+        {
+          "value": "retail",
+          "label": "Торговое здание"
+        },
+        {
+          "value": "riding_hall",
+          "label": "Арена для верховой езды"
+        },
+        {
+          "value": "roof",
+          "label": "Крыша"
+        },
+        {
+          "value": "ruins",
+          "label": "Разрушенное здание"
+        },
+        {
+          "value": "school",
+          "label": "Здание школы"
+        },
+        {
+          "value": "semidetached_house",
+          "label": "Сблокированный дом (дуплекс)"
+        },
+        {
+          "value": "service",
+          "label": "Служебное здание"
+        },
+        {
+          "value": "shed",
+          "label": "Сарай"
+        },
+        {
+          "value": "stable",
+          "label": "Конюшня, стойло"
+        },
+        {
+          "value": "stadium",
+          "label": "Здание стадиона"
+        },
+        {
+          "value": "static_caravan",
+          "label": "Передвижной дом"
+        },
+        {
+          "value": "sty",
+          "label": "Свинарник"
+        },
+        {
+          "value": "synagogue",
+          "label": "Здание синагоги"
+        },
+        {
+          "value": "temple",
+          "label": "Здание храма"
+        },
+        {
+          "value": "terrace",
+          "label": "Ряд из примыкающих домов"
+        },
+        {
+          "value": "train_station",
+          "label": "Здание железнодорожного вокзала/станции"
+        },
+        {
+          "value": "transportation",
+          "label": "Здание транспортного терминала/вокзал"
+        },
+        {
+          "value": "university",
+          "label": "Здание университета, института "
+        },
+        {
+          "value": "warehouse",
+          "label": "Склад"
+        },
+        {
+          "value": "container",
+          "label": "container"
+        }
+      ]
+    },
+    {
+      "id": "capacity",
+      "osmKey": "capacity",
+      "inputType": "number",
+      "label": "Вместимость"
+    },
+    {
+      "id": "cash_in",
+      "osmKey": "cash_in",
+      "inputType": "check",
+      "label": "Депозит"
+    },
+    {
+      "id": "changing_table",
+      "osmKey": "changing_table",
+      "inputType": "check",
+      "label": "Пеленальный стол"
+    },
+    {
+      "id": "clothes",
+      "osmKey": "clothes",
+      "inputType": "semiCombo",
+      "label": "Одежда",
+      "options": [
+        {
+          "value": "babies",
+          "label": "Детская одежда"
+        },
+        {
+          "value": "children",
+          "label": "Детская одежда"
+        },
+        {
+          "value": "denim",
+          "label": "Джинсовая одежда"
+        },
+        {
+          "value": "fur",
+          "label": "Меховая одежда"
+        },
+        {
+          "value": "hats",
+          "label": "Шляпы"
+        },
+        {
+          "value": "maternity",
+          "label": "Одежда для беременных"
+        },
+        {
+          "value": "men",
+          "label": "Мужская одежда"
+        },
+        {
+          "value": "motorcycle",
+          "label": "Одежда для мотоциклов"
+        },
+        {
+          "value": "oversize",
+          "label": "Одежда больших размеров"
+        },
+        {
+          "value": "socks",
+          "label": "Носки"
+        },
+        {
+          "value": "sports",
+          "label": "Одежда для спорта"
+        },
+        {
+          "value": "suits",
+          "label": "Костюмы"
+        },
+        {
+          "value": "swimwear",
+          "label": "Одежда для плавания"
+        },
+        {
+          "value": "traditional",
+          "label": "Традиционные (национальные) костюмы"
+        },
+        {
+          "value": "underwear",
+          "label": "Нижнее бельё"
+        },
+        {
+          "value": "wedding",
+          "label": "Свадебная одежда"
+        },
+        {
+          "value": "women",
+          "label": "Женская одежда"
+        },
+        {
+          "value": "workwear",
+          "label": "Рабочая одежда"
+        }
+      ]
+    },
+    {
+      "id": "collection_times",
+      "osmKey": "collection_times",
+      "inputType": "text",
+      "label": "Расписание проверки"
+    },
+    {
+      "id": "collector",
+      "osmKey": "collector",
+      "inputType": "semiCombo",
+      "label": "Предметы",
+      "options": [
+        {
+          "value": "coins",
+          "label": "Нумизматика (монеты)"
+        },
+        {
+          "value": "stamps",
+          "label": "Филателия (марки)"
+        },
+        {
+          "value": "comics",
+          "label": "Комиксы"
+        }
+      ]
+    },
+    {
+      "id": "colour",
+      "osmKey": "colour",
+      "inputType": "text",
+      "label": "Цвет"
+    },
+    {
+      "id": "community_centre",
+      "osmKey": "community_centre",
+      "inputType": "select",
+      "label": "Тип",
+      "options": [
+        {
+          "value": "club_home",
+          "label": "Клубный дом"
+        },
+        {
+          "value": "community_hall",
+          "label": "Общественный центр"
+        },
+        {
+          "value": "cultural_centre",
+          "label": "Культурный центр"
+        },
+        {
+          "value": "family_centre",
+          "label": "Семейный центр"
+        },
+        {
+          "value": "parish_hall",
+          "label": "Приходской зал"
+        },
+        {
+          "value": "village_hall",
+          "label": "Сельский клуб"
+        },
+        {
+          "value": "youth_centre",
+          "label": "Молодежный центр"
+        }
+      ]
+    },
+    {
+      "id": "covered",
+      "osmKey": "covered",
+      "inputType": "check",
+      "label": "Крытое(-ая)"
+    },
+    {
+      "id": "cuisine",
+      "osmKey": "cuisine",
+      "inputType": "semiCombo",
+      "label": "Кухня",
+      "options": [
+        {
+          "value": "pizza",
+          "label": "Пицца"
+        },
+        {
+          "value": "burger",
+          "label": "Гамбургеры"
+        },
+        {
+          "value": "coffee_shop",
+          "label": "Кофейня"
+        },
+        {
+          "value": "regional",
+          "label": "Национальная кухня (любая)"
+        },
+        {
+          "value": "italian",
+          "label": "Итальянская кухня"
+        },
+        {
+          "value": "sandwich",
+          "label": "Сэндвичи"
+        },
+        {
+          "value": "chinese",
+          "label": "Китайская кухня"
+        },
+        {
+          "value": "chicken",
+          "label": "Курица"
+        },
+        {
+          "value": "japanese",
+          "label": "Японская кухня"
+        },
+        {
+          "value": "kebab",
+          "label": "Шашлык, кебаб"
+        },
+        {
+          "value": "mexican",
+          "label": "Мексиканская кухня"
+        },
+        {
+          "value": "american",
+          "label": "Американская кухня"
+        },
+        {
+          "value": "asian",
+          "label": "Азиатская кухня"
+        },
+        {
+          "value": "ice_cream",
+          "label": "Мороженое"
+        },
+        {
+          "value": "indian",
+          "label": "Индийская кухня"
+        },
+        {
+          "value": "sushi",
+          "label": "Суши"
+        },
+        {
+          "value": "seafood",
+          "label": "Морепродукты"
+        },
+        {
+          "value": "thai",
+          "label": "Тайская кухня"
+        },
+        {
+          "value": "french",
+          "label": "Французская кухня"
+        },
+        {
+          "value": "german",
+          "label": "Немецкая кухня"
+        },
+        {
+          "value": "breakfast",
+          "label": "Завтрак"
+        },
+        {
+          "value": "greek",
+          "label": "Греческая кухня"
+        },
+        {
+          "value": "steak_house",
+          "label": "Стейки"
+        },
+        {
+          "value": "fish_and_chips",
+          "label": "Рыба и Картофель фри"
+        },
+        {
+          "value": "korean",
+          "label": "Корейская кухня"
+        },
+        {
+          "value": "barbecue",
+          "label": "Барбекю"
+        },
+        {
+          "value": "donut",
+          "label": "Пончики"
+        },
+        {
+          "value": "noodle",
+          "label": "Лапша"
+        },
+        {
+          "value": "vietnamese",
+          "label": "Вьетнамская кухня"
+        },
+        {
+          "value": "fish",
+          "label": "Рыба"
+        },
+        {
+          "value": "turkish",
+          "label": "Турецкая кухня"
+        },
+        {
+          "value": "cake",
+          "label": "Торты"
+        },
+        {
+          "value": "pasta",
+          "label": "Паста"
+        },
+        {
+          "value": "tex-mex",
+          "label": "Текс-мексиканская кухня"
+        },
+        {
+          "value": "bubble_tea",
+          "label": "Бабл-ти"
+        },
+        {
+          "value": "ramen",
+          "label": "Рамен"
+        },
+        {
+          "value": "mediterranean",
+          "label": "Средиземноморская кухня"
+        },
+        {
+          "value": "spanish",
+          "label": "Испанская кухня"
+        },
+        {
+          "value": "friture",
+          "label": "Фритюрница"
+        },
+        {
+          "value": "tea",
+          "label": "Чай"
+        },
+        {
+          "value": "grill",
+          "label": "Бар и Гриль"
+        },
+        {
+          "value": "juice",
+          "label": "Соки"
+        },
+        {
+          "value": "salad",
+          "label": "Салаты"
+        },
+        {
+          "value": "crepe",
+          "label": "Тонкие блинчики"
+        },
+        {
+          "value": "hot_dog",
+          "label": "Хотдоги"
+        },
+        {
+          "value": "hotpot",
+          "label": "hotpot"
+        },
+        {
+          "value": "pancake",
+          "label": "Панкейк"
+        },
+        {
+          "value": "dessert",
+          "label": "Десерты"
+        },
+        {
+          "value": "diner",
+          "label": "Закусочная"
+        },
+        {
+          "value": "tapas",
+          "label": "Тапас"
+        },
+        {
+          "value": "portuguese",
+          "label": "Португальская кухня"
+        },
+        {
+          "value": "beef_bowl",
+          "label": "Гюдон"
+        },
+        {
+          "value": "russian",
+          "label": "Русская кухня"
+        },
+        {
+          "value": "indonesian",
+          "label": "Индонезийская кухня"
+        },
+        {
+          "value": "wings",
+          "label": "Куриные крылышки"
+        },
+        {
+          "value": "lebanese",
+          "label": "Ливанская кухня"
+        },
+        {
+          "value": "arab",
+          "label": "Арабская кухня"
+        },
+        {
+          "value": "curry",
+          "label": "Карри"
+        },
+        {
+          "value": "malaysian",
+          "label": "Малазийская кухня"
+        },
+        {
+          "value": "bagel",
+          "label": "Бейгл"
+        },
+        {
+          "value": "georgian",
+          "label": "Грузинская кухня"
+        },
+        {
+          "value": "polish",
+          "label": "Польская кухня"
+        },
+        {
+          "value": "african",
+          "label": "Африканская кухня"
+        },
+        {
+          "value": "western",
+          "label": "Западная кухня"
+        },
+        {
+          "value": "sausage",
+          "label": "Колбаски"
+        },
+        {
+          "value": "filipino",
+          "label": "Филиппинская кухня"
+        },
+        {
+          "value": "caribbean",
+          "label": "Карибская кухня"
+        },
+        {
+          "value": "soba",
+          "label": "Соба"
+        },
+        {
+          "value": "peruvian",
+          "label": "Перуанская кухня"
+        },
+        {
+          "value": "brazilian",
+          "label": "Бразильская кухня"
+        },
+        {
+          "value": "oriental",
+          "label": "Восточная кухня"
+        },
+        {
+          "value": "fine_dining",
+          "label": "Изысканная кухня"
+        },
+        {
+          "value": "frozen_yogurt",
+          "label": "Замороженный йогурт"
+        },
+        {
+          "value": "argentinian",
+          "label": "Аргентинская кухня"
+        },
+        {
+          "value": "balkan",
+          "label": "Балканская кухня"
+        },
+        {
+          "value": "bavarian",
+          "label": "Баварская кухня"
+        },
+        {
+          "value": "british",
+          "label": "british"
+        },
+        {
+          "value": "ethiopian",
+          "label": "ethiopian"
+        },
+        {
+          "value": "shawarma",
+          "label": "Шаурма/Шаверма"
+        },
+        {
+          "value": "persian",
+          "label": "Персидская кухня"
+        },
+        {
+          "value": "middle_eastern",
+          "label": "Ближневосточная кухня"
+        },
+        {
+          "value": "pastry",
+          "label": "Выпечка"
+        },
+        {
+          "value": "soup",
+          "label": "Суп"
+        },
+        {
+          "value": "fries",
+          "label": " Картофель фри"
+        },
+        {
+          "value": "taiwanese",
+          "label": "Тайваньская кухня"
+        },
+        {
+          "value": "bistro",
+          "label": "Бистро"
+        },
+        {
+          "value": "european",
+          "label": "Европейская кухня"
+        },
+        {
+          "value": "moroccan",
+          "label": "Марокканская кухня"
+        },
+        {
+          "value": "hawaiian",
+          "label": "Гавайская кухня"
+        },
+        {
+          "value": "brunch",
+          "label": " Поздний завтрак"
+        },
+        {
+          "value": "udon",
+          "label": "Удон"
+        },
+        {
+          "value": "ukrainian",
+          "label": "Украинская кухня"
+        }
+      ]
+    },
+    {
+      "id": "date",
+      "osmKey": "date",
+      "inputType": "check",
+      "label": "Дата"
+    },
+    {
+      "id": "delivery",
+      "osmKey": "delivery",
+      "inputType": "check",
+      "label": "Доставка"
+    },
+    {
+      "id": "denomination",
+      "osmKey": "denomination",
+      "inputType": "select",
+      "label": "Конфессия"
+    },
+    {
+      "id": "departures_board",
+      "osmKey": "departures_board",
+      "inputType": "select",
+      "label": "Расписание отправления/прибытия",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Есть"
+        },
+        {
+          "value": "timetable",
+          "label": "Точное расписание"
+        },
+        {
+          "value": "realtime",
+          "label": "В режиме реального времени"
+        },
+        {
+          "value": "no",
+          "label": "Ничего"
+        }
+      ]
+    },
+    {
+      "id": "direction",
+      "osmKey": "direction",
+      "inputType": "number",
+      "label": "Направление (градусы по часовой)"
+    },
+    {
+      "id": "dispensing",
+      "osmKey": "dispensing",
+      "inputType": "check",
+      "label": "Лекарства по рецепту"
+    },
+    {
+      "id": "display",
+      "osmKey": "display",
+      "inputType": "select",
+      "label": "Циферблат",
+      "options": [
+        {
+          "value": "analog",
+          "label": "Аналоговый дисплей"
+        },
+        {
+          "value": "digital",
+          "label": "Цифровой"
+        },
+        {
+          "value": "sundial",
+          "label": "Солнечные часы"
+        },
+        {
+          "value": "unorthodox",
+          "label": "Нетрадиционный"
+        }
+      ]
+    },
+    {
+      "id": "dog",
+      "osmKey": "dog",
+      "inputType": "select",
+      "label": "Собаки",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Разрешено"
+        },
+        {
+          "value": "leashed",
+          "label": "Только на поводке"
+        },
+        {
+          "value": "unleashed",
+          "label": "Поводки не требуются"
+        },
+        {
+          "value": "no",
+          "label": "Не разрешено"
+        }
+      ]
+    },
+    {
+      "id": "door",
+      "osmKey": "door",
+      "inputType": "select",
+      "label": "Дверь"
+    },
+    {
+      "id": "drinking_water",
+      "osmKey": "drinking_water",
+      "inputType": "check",
+      "label": "Пригодно для питья"
+    },
+    {
+      "id": "drive_through",
+      "osmKey": "drive_through",
+      "inputType": "check",
+      "label": "Доступен без выхода из машины"
+    },
+    {
+      "id": "ele",
+      "osmKey": "ele",
+      "inputType": "number",
+      "label": "Возвышение (в метрах)"
+    },
+    {
+      "id": "email",
+      "osmKey": "email",
+      "inputType": "email",
+      "label": "Email"
+    },
+    {
+      "id": "emergency",
+      "osmKey": "emergency",
+      "inputType": "check",
+      "label": "Экстренные службы"
+    },
+    {
+      "id": "faces",
+      "osmKey": "faces",
+      "inputType": "number",
+      "label": "Количество сторон"
+    },
+    {
+      "id": "fee",
+      "osmKey": "fee",
+      "inputType": "check",
+      "label": "Платная (-ый)"
+    },
+    {
+      "id": "fountain",
+      "osmKey": "fountain",
+      "inputType": "select",
+      "label": "Тип фонтана"
+    },
+    {
+      "id": "fuel",
+      "osmKey": "fuel",
+      "inputType": "select",
+      "label": "Топливо"
+    },
+    {
+      "id": "gambling",
+      "osmKey": "gambling",
+      "inputType": "semiCombo",
+      "label": "Игры"
+    },
+    {
+      "id": "height",
+      "osmKey": "height",
+      "inputType": "number",
+      "label": "Высота (метры)"
+    },
+    {
+      "id": "highchair",
+      "osmKey": "highchair",
+      "inputType": "check",
+      "label": "Детский стул"
+    },
+    {
+      "id": "hot_water",
+      "osmKey": "hot_water",
+      "inputType": "check",
+      "label": "Горячая вода"
+    },
+    {
+      "id": "indoor",
+      "osmKey": "indoor",
+      "inputType": "check",
+      "label": "В помещении"
+    },
+    {
+      "id": "informal",
+      "osmKey": "informal",
+      "inputType": "check",
+      "label": "Неформальный"
+    },
+    {
+      "id": "inscription",
+      "osmKey": "inscription",
+      "inputType": "text",
+      "label": "Надпись"
+    },
+    {
+      "id": "internet_access",
+      "osmKey": "internet_access",
+      "inputType": "select",
+      "label": "Соединение с Internet",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        },
+        {
+          "value": "wlan",
+          "label": "Wi-Fi"
+        },
+        {
+          "value": "wired",
+          "label": "Проводной"
+        },
+        {
+          "value": "terminal",
+          "label": "Терминал"
+        }
+      ]
+    },
+    {
+      "id": "layer",
+      "osmKey": "layer",
+      "inputType": "number",
+      "label": "Уровень"
+    },
+    {
+      "id": "level",
+      "osmKey": "level",
+      "inputType": "select",
+      "label": "Этаж (первый = 0)"
+    },
+    {
+      "id": "license_classes",
+      "osmKey": "license_classes",
+      "inputType": "semiCombo",
+      "label": "Виды водительских прав"
+    },
+    {
+      "id": "lit",
+      "osmKey": "lit",
+      "inputType": "check",
+      "label": "Освещение"
+    },
+    {
+      "id": "location",
+      "osmKey": "location",
+      "inputType": "select",
+      "label": "Местоположение"
+    },
+    {
+      "id": "lockable",
+      "osmKey": "lockable",
+      "inputType": "check",
+      "label": "Запираемо"
+    },
+    {
+      "id": "manufacturer",
+      "osmKey": "manufacturer",
+      "inputType": "select",
+      "label": "Производитель"
+    },
+    {
+      "id": "material",
+      "osmKey": "material",
+      "inputType": "select",
+      "label": "Материал",
+      "options": [
+        {
+          "value": "adobe",
+          "label": "Саман"
+        },
+        {
+          "value": "aluminium",
+          "label": "Алюминий"
+        },
+        {
+          "value": "brass",
+          "label": "Латунь"
+        },
+        {
+          "value": "brick",
+          "label": "Кирпич"
+        },
+        {
+          "value": "bronze",
+          "label": "Бронза"
+        },
+        {
+          "value": "concrete",
+          "label": "Бетон"
+        },
+        {
+          "value": "dry_stone",
+          "label": "Сухая кладка (без раствора)"
+        },
+        {
+          "value": "glass",
+          "label": "Стекло"
+        },
+        {
+          "value": "granite",
+          "label": "Гранит"
+        },
+        {
+          "value": "iron",
+          "label": "Железо"
+        },
+        {
+          "value": "limestone",
+          "label": "Известняк"
+        },
+        {
+          "value": "marble",
+          "label": "Мрамор"
+        },
+        {
+          "value": "metal",
+          "label": "Металл"
+        },
+        {
+          "value": "plastic",
+          "label": "Пластик"
+        },
+        {
+          "value": "reinforced_concrete",
+          "label": "Железобетон"
+        },
+        {
+          "value": "rock",
+          "label": "Скальная порода"
+        },
+        {
+          "value": "sand",
+          "label": "Песок"
+        },
+        {
+          "value": "sandstone",
+          "label": "Песчаник"
+        },
+        {
+          "value": "soil",
+          "label": "Почва, земля"
+        },
+        {
+          "value": "steel",
+          "label": "Сталь"
+        },
+        {
+          "value": "stone",
+          "label": "Камень"
+        },
+        {
+          "value": "wood",
+          "label": "Дерево"
+        }
+      ]
+    },
+    {
+      "id": "max_age",
+      "osmKey": "max_age",
+      "inputType": "number",
+      "label": "Максимальный возраст"
+    },
+    {
+      "id": "maxheight",
+      "osmKey": "maxheight",
+      "inputType": "text",
+      "label": "Ограничение по высоте"
+    },
+    {
+      "id": "maxlength",
+      "osmKey": "maxlength",
+      "inputType": "text",
+      "label": "Ограничение по длине"
+    },
+    {
+      "id": "maxstay",
+      "osmKey": "maxstay",
+      "inputType": "select",
+      "label": "Ограничение по времени",
+      "options": [
+        {
+          "value": "15 minutes",
+          "label": "15 minutes"
+        },
+        {
+          "value": "30 minutes",
+          "label": "30 minutes"
+        },
+        {
+          "value": "45 minutes",
+          "label": "45 minutes"
+        },
+        {
+          "value": "1 hour",
+          "label": "1 hour"
+        },
+        {
+          "value": "1.5 hours",
+          "label": "1.5 hours"
+        },
+        {
+          "value": "2 hours",
+          "label": "2 hours"
+        },
+        {
+          "value": "2.5 hours",
+          "label": "2.5 hours"
+        },
+        {
+          "value": "3 hours",
+          "label": "3 hours"
+        },
+        {
+          "value": "4 hours",
+          "label": "4 hours"
+        },
+        {
+          "value": "1 day",
+          "label": "1 day"
+        },
+        {
+          "value": "2 days",
+          "label": "2 days"
+        }
+      ]
+    },
+    {
+      "id": "maxweight",
+      "osmKey": "maxweight",
+      "inputType": "select",
+      "label": "Ограничение по весу"
+    },
+    {
+      "id": "maxwidth",
+      "osmKey": "maxwidth",
+      "inputType": "text",
+      "label": "Ограничение по ширине"
+    },
+    {
+      "id": "microbrewery",
+      "osmKey": "microbrewery",
+      "inputType": "check",
+      "label": "Пивоварение"
+    },
+    {
+      "id": "min_age",
+      "osmKey": "min_age",
+      "inputType": "number",
+      "label": "Минимальный возраст"
+    },
+    {
+      "id": "model",
+      "osmKey": "model",
+      "inputType": "select",
+      "label": "Модель"
+    },
+    {
+      "id": "network",
+      "osmKey": "network",
+      "inputType": "text",
+      "label": "Сеть"
+    },
+    {
+      "id": "opening_hours",
+      "osmKey": "opening_hours",
+      "inputType": "openingHours",
+      "label": "Время работы"
+    },
+    {
+      "id": "operator",
+      "osmKey": "operator",
+      "inputType": "text",
+      "label": "Обслуживающая компания"
+    },
+    {
+      "id": "organic",
+      "osmKey": "organic",
+      "inputType": "select",
+      "label": "Органические продукты",
+      "options": [
+        {
+          "value": "no",
+          "label": "Нет"
+        },
+        {
+          "value": "yes",
+          "label": "Некоторые"
+        },
+        {
+          "value": "only",
+          "label": "Только органические продукты"
+        }
+      ]
+    },
+    {
+      "id": "outdoor_seating",
+      "osmKey": "outdoor_seating",
+      "inputType": "check",
+      "label": "Места на открытом воздухе"
+    },
+    {
+      "id": "parcel_pickup",
+      "osmKey": "parcel_pickup",
+      "inputType": "check",
+      "label": "Получение посылок"
+    },
+    {
+      "id": "park_ride",
+      "osmKey": "park_ride",
+      "inputType": "check",
+      "label": "Перехватывающая парковка"
+    },
+    {
+      "id": "parking",
+      "osmKey": "parking",
+      "inputType": "select",
+      "label": "Тип",
+      "options": [
+        {
+          "value": "surface",
+          "label": {
+            "title": "Наземная"
+          }
+        },
+        {
+          "value": "street_side",
+          "label": {
+            "title": "В кармане"
+          }
+        },
+        {
+          "value": "lane",
+          "label": {
+            "title": "На полосе"
+          }
+        },
+        {
+          "value": "underground",
+          "label": {
+            "description": "Подземная парковка.",
+            "title": "Подземный"
+          }
+        },
+        {
+          "value": "multi-storey",
+          "label": {
+            "title": "Многоуровневая"
+          }
+        },
+        {
+          "value": "rooftop",
+          "label": {
+            "title": "На крыше"
+          }
+        },
+        {
+          "value": "carports",
+          "label": {
+            "title": "Навес"
+          }
+        },
+        {
+          "value": "garage_boxes",
+          "label": {
+            "title": "Одноярусные гаражи"
+          }
+        },
+        {
+          "value": "sheds",
+          "label": {
+            "title": "Козырёк"
+          }
+        },
+        {
+          "value": "layby",
+          "label": {
+            "description": "Парковка в зоне отдыха, рядом с дорогой."
+          }
+        },
+        {
+          "value": "on_kerb",
+          "label": {
+            "title": "На тротуаре"
+          }
+        },
+        {
+          "value": "half_on_kerb",
+          "label": {
+            "description": "Парковка частично на тротуаре",
+            "title": "Частично на тротуаре"
+          }
+        },
+        {
+          "value": "shoulder",
+          "label": {
+            "title": "На обочине"
+          }
+        }
+      ]
+    },
+    {
+      "id": "parking_space",
+      "osmKey": "parking_space",
+      "inputType": "select",
+      "label": "Тип"
+    },
+    {
+      "id": "phone",
+      "osmKey": "phone",
+      "inputType": "tel",
+      "label": "Телефон"
+    },
+    {
+      "id": "piercing",
+      "osmKey": "piercing",
+      "inputType": "check",
+      "label": "piercing"
+    },
+    {
+      "id": "polling_station",
+      "osmKey": "polling_station",
+      "inputType": "check",
+      "label": "Избирательный участок"
+    },
+    {
+      "id": "population",
+      "osmKey": "population",
+      "inputType": "number",
+      "label": "Население"
+    },
+    {
+      "id": "portable",
+      "osmKey": "portable",
+      "inputType": "check",
+      "label": "Перемещаемый"
+    },
+    {
+      "id": "post",
+      "osmKey": "post",
+      "inputType": "text",
+      "label": "Адрес доставки"
+    },
+    {
+      "id": "product",
+      "osmKey": "product",
+      "inputType": "semiCombo",
+      "label": "Продукция"
+    },
+    {
+      "id": "ref",
+      "osmKey": "ref",
+      "inputType": "text",
+      "label": "Номер / идентификатор"
+    },
+    {
+      "id": "religion",
+      "osmKey": "religion",
+      "inputType": "select",
+      "label": "Религия",
+      "options": [
+        {
+          "value": "bahai",
+          "label": "Бахаи"
+        },
+        {
+          "value": "benzhu",
+          "label": "Бенджу"
+        },
+        {
+          "value": "buddhist",
+          "label": "Буддизм"
+        },
+        {
+          "value": "caodaism",
+          "label": "Каодай"
+        },
+        {
+          "value": "chinese_folk",
+          "label": "Традиционные китайские верования"
+        },
+        {
+          "value": "christian",
+          "label": "Христианство"
+        },
+        {
+          "value": "confucian",
+          "label": "Конфуцианство"
+        },
+        {
+          "value": "hindu",
+          "label": "Индуизм"
+        },
+        {
+          "value": "jain",
+          "label": "Джайнизм"
+        },
+        {
+          "value": "jewish",
+          "label": "Иудаизм"
+        },
+        {
+          "value": "multifaith",
+          "label": "Многоверие"
+        },
+        {
+          "value": "muslim",
+          "label": "Ислам"
+        },
+        {
+          "value": "none",
+          "label": "Светский"
+        },
+        {
+          "value": "pagan",
+          "label": "Языческий"
+        },
+        {
+          "value": "shinto",
+          "label": "Синтоизм"
+        },
+        {
+          "value": "sikh",
+          "label": "Сикхизм"
+        },
+        {
+          "value": "spiritualist",
+          "label": "Спиритуализм"
+        },
+        {
+          "value": "taoist",
+          "label": "Таоизм"
+        },
+        {
+          "value": "tenrikyo",
+          "label": "Тэнрикё"
+        },
+        {
+          "value": "unitarian_universalist",
+          "label": "Унитарианский универсализм"
+        },
+        {
+          "value": "vietnamese_folk",
+          "label": "Традиционные вьетнамские верования"
+        },
+        {
+          "value": "voodoo",
+          "label": "Вудуизм"
+        }
+      ]
+    },
+    {
+      "id": "reservation",
+      "osmKey": "reservation",
+      "inputType": "select",
+      "label": "Бронирование",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Доступно"
+        },
+        {
+          "value": "no",
+          "label": "Не доступно"
+        },
+        {
+          "value": "required",
+          "label": "Обязательно"
+        },
+        {
+          "value": "recommended",
+          "label": "Рекомендуется"
+        }
+      ]
+    },
+    {
+      "id": "rooms",
+      "osmKey": "rooms",
+      "inputType": "number",
+      "label": "Номера"
+    },
+    {
+      "id": "sample_collection",
+      "osmKey": "sample_collection",
+      "inputType": "semiCombo",
+      "label": "Примеры"
+    },
+    {
+      "id": "screen",
+      "osmKey": "screen",
+      "inputType": "number",
+      "label": "Экраны"
+    },
+    {
+      "id": "seasonal",
+      "osmKey": "seasonal",
+      "inputType": "check",
+      "label": "Сезонный объект"
+    },
+    {
+      "id": "seats",
+      "osmKey": "seats",
+      "inputType": "number",
+      "label": "Мест"
+    },
+    {
+      "id": "second_hand",
+      "osmKey": "second_hand",
+      "inputType": "select",
+      "label": "Продажа подержанного товара",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        },
+        {
+          "value": "only",
+          "label": "Только"
+        }
+      ]
+    },
+    {
+      "id": "self_checkout",
+      "osmKey": "self_checkout",
+      "inputType": "select",
+      "label": "Кассы самообслуживания",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "only",
+          "label": "Без альтернативы"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        }
+      ]
+    },
+    {
+      "id": "self_service",
+      "osmKey": "self_service",
+      "inputType": "check",
+      "label": "Самообслуживание"
+    },
+    {
+      "id": "service_times",
+      "osmKey": "service_times",
+      "inputType": "text",
+      "label": "Время обслуживания"
+    },
+    {
+      "id": "shelter",
+      "osmKey": "shelter",
+      "inputType": "check",
+      "label": "Укрытие от непогоды"
+    },
+    {
+      "id": "shelter_type",
+      "osmKey": "shelter_type",
+      "inputType": "select",
+      "label": "Тип укрытия"
+    },
+    {
+      "id": "shoes",
+      "osmKey": "shoes",
+      "inputType": "semiCombo",
+      "label": "Обувь"
+    },
+    {
+      "id": "smoking",
+      "osmKey": "smoking",
+      "inputType": "select",
+      "label": "Курение",
+      "options": [
+        {
+          "value": "no",
+          "label": "Курить запрещено везде"
+        },
+        {
+          "value": "separated",
+          "label": "В зоне для курящих, не отделённой физически"
+        },
+        {
+          "value": "isolated",
+          "label": "В зоне для курящих, отделённой физически"
+        },
+        {
+          "value": "outside",
+          "label": "Разрешено снаружи"
+        },
+        {
+          "value": "yes",
+          "label": "Разрешено везде"
+        },
+        {
+          "value": "dedicated",
+          "label": "Предназначено для курящих (например, сигарный клуб)"
+        }
+      ]
+    },
+    {
+      "id": "sms",
+      "osmKey": "sms",
+      "inputType": "check",
+      "label": "СМС"
+    },
+    {
+      "id": "social_facility",
+      "osmKey": "social_facility",
+      "inputType": "select",
+      "label": "Тип",
+      "options": [
+        {
+          "value": "ambulatory_care",
+          "label": "Амбулаторная помощь"
+        },
+        {
+          "value": "assisted_living",
+          "label": "Проживание с оказанием помощи"
+        },
+        {
+          "value": "day_care",
+          "label": "Дневной уход"
+        },
+        {
+          "value": "food_bank",
+          "label": "Пищевой банк"
+        },
+        {
+          "value": "group_home",
+          "label": "group_home"
+        },
+        {
+          "value": "nursing_home",
+          "label": "Дом престарелых"
+        },
+        {
+          "value": "outreach",
+          "label": "outreach"
+        },
+        {
+          "value": "shelter",
+          "label": "Убежище"
+        },
+        {
+          "value": "workshop",
+          "label": "Мастерская"
+        }
+      ]
+    },
+    {
+      "id": "sport",
+      "osmKey": "sport",
+      "inputType": "semiCombo",
+      "label": "Вид спорта",
+      "options": [
+        {
+          "value": "10pin",
+          "label": "Боулинг с десятью кеглями"
+        },
+        {
+          "value": "5pin",
+          "label": "5pin"
+        },
+        {
+          "value": "9pin",
+          "label": "Боулинг с девятью кеглями"
+        },
+        {
+          "value": "american_football",
+          "label": "Американский футбол"
+        },
+        {
+          "value": "athletics",
+          "label": "athletics"
+        },
+        {
+          "value": "badminton",
+          "label": "Бадминтон"
+        },
+        {
+          "value": "baseball",
+          "label": "Бейсбол"
+        },
+        {
+          "value": "basketball",
+          "label": "Баскетбол"
+        },
+        {
+          "value": "beachvolleyball",
+          "label": "Пляжный волейбол"
+        },
+        {
+          "value": "billiards",
+          "label": "Бильярд"
+        },
+        {
+          "value": "bmx",
+          "label": "BMX"
+        },
+        {
+          "value": "boules",
+          "label": "Игра в шары (буль)"
+        },
+        {
+          "value": "bowls",
+          "label": "Игра в боулз"
+        },
+        {
+          "value": "candlepin",
+          "label": "candlepin"
+        },
+        {
+          "value": "canoe",
+          "label": "Каноэ"
+        },
+        {
+          "value": "chess",
+          "label": "Шахматы"
+        },
+        {
+          "value": "climbing",
+          "label": "Скалолазание"
+        },
+        {
+          "value": "cricket",
+          "label": "Крикет"
+        },
+        {
+          "value": "curling",
+          "label": "Кёрлинг"
+        },
+        {
+          "value": "cycling",
+          "label": "Езда на велосипеде"
+        },
+        {
+          "value": "darts",
+          "label": "Дартс"
+        },
+        {
+          "value": "disc_golf",
+          "label": "Диск-гольф"
+        },
+        {
+          "value": "dog_racing",
+          "label": "Собачьи бега"
+        },
+        {
+          "value": "duckpin",
+          "label": "duckpin"
+        },
+        {
+          "value": "equestrian",
+          "label": "Конный спорт"
+        },
+        {
+          "value": "fitness",
+          "label": "Фитнес"
+        },
+        {
+          "value": "free_flying",
+          "label": "Парапланеризм / дельтапланеризм"
+        },
+        {
+          "value": "futsal",
+          "label": "Футзал (мини-футбол)"
+        },
+        {
+          "value": "gaelic_games",
+          "label": "Гэльские игры"
+        },
+        {
+          "value": "golf",
+          "label": "Гольф"
+        },
+        {
+          "value": "gymnastics",
+          "label": "Гимнастика"
+        },
+        {
+          "value": "handball",
+          "label": "Командный гандбол"
+        },
+        {
+          "value": "horse_racing",
+          "label": "Скачки"
+        },
+        {
+          "value": "ice_hockey",
+          "label": "Хоккей на льду"
+        },
+        {
+          "value": "ice_skating",
+          "label": "Фигурное катание"
+        },
+        {
+          "value": "ice_stock",
+          "label": "Баварский кёрлинг"
+        },
+        {
+          "value": "karting",
+          "label": "Картинг"
+        },
+        {
+          "value": "motocross",
+          "label": "Мотокросс"
+        },
+        {
+          "value": "motor",
+          "label": "Мотоспорт"
+        },
+        {
+          "value": "multi",
+          "label": "Другие виды спорта"
+        },
+        {
+          "value": "netball",
+          "label": "Нетбол"
+        },
+        {
+          "value": "orienteering",
+          "label": "Спортивное ориентирование"
+        },
+        {
+          "value": "padel",
+          "label": "Падел"
+        },
+        {
+          "value": "pelota",
+          "label": "Пелота"
+        },
+        {
+          "value": "rugby_union",
+          "label": "Регби"
+        },
+        {
+          "value": "running",
+          "label": "Бег"
+        },
+        {
+          "value": "scuba_diving",
+          "label": "Плавание с аквалангом"
+        },
+        {
+          "value": "shooting",
+          "label": "Стрельба"
+        },
+        {
+          "value": "skateboard",
+          "label": "Скейтборд"
+        },
+        {
+          "value": "skiing",
+          "label": "Катание на лыжах"
+        },
+        {
+          "value": "ski_jumping",
+          "label": "Прыжки на лыжах с трамплина"
+        },
+        {
+          "value": "soccer",
+          "label": "Футбол"
+        },
+        {
+          "value": "softball",
+          "label": "Софтбол"
+        },
+        {
+          "value": "speedway",
+          "label": "Спидвей"
+        },
+        {
+          "value": "swimming",
+          "label": "Плавание"
+        },
+        {
+          "value": "table_tennis",
+          "label": "Настольный теннис"
+        },
+        {
+          "value": "tennis",
+          "label": "Теннис"
+        },
+        {
+          "value": "volleyball",
+          "label": "Волейбол"
+        },
+        {
+          "value": "yoga",
+          "label": "Йога"
+        }
+      ]
+    },
+    {
+      "id": "stars",
+      "osmKey": "stars",
+      "inputType": "select",
+      "label": "Звёзды"
+    },
+    {
+      "id": "start_date",
+      "osmKey": "start_date",
+      "inputType": "text",
+      "label": "Дата открытия"
+    },
+    {
+      "id": "stroller",
+      "osmKey": "stroller",
+      "inputType": "select",
+      "label": "Доступность для детских колясок",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "limited",
+          "label": "Ограничено"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        }
+      ]
+    },
+    {
+      "id": "studio",
+      "osmKey": "studio",
+      "inputType": "select",
+      "label": "Тип"
+    },
+    {
+      "id": "supervised",
+      "osmKey": "supervised",
+      "inputType": "check",
+      "label": "Охраняемая(-ый)"
+    },
+    {
+      "id": "support",
+      "osmKey": "support",
+      "inputType": "select",
+      "label": "Находится на"
+    },
+    {
+      "id": "surface",
+      "osmKey": "surface",
+      "inputType": "select",
+      "label": "Дорожное покрытие",
+      "options": [
+        {
+          "value": "artificial_turf",
+          "label": "Искуственная трава"
+        },
+        {
+          "value": "asphalt",
+          "label": "Асфальт"
+        },
+        {
+          "value": "clay",
+          "label": "Глина"
+        },
+        {
+          "value": "compacted",
+          "label": "Утрамбованный грунт"
+        },
+        {
+          "value": "concrete",
+          "label": "Бетон"
+        },
+        {
+          "value": "concrete:lanes",
+          "label": "Бетонные полосы"
+        },
+        {
+          "value": "concrete:plates",
+          "label": "Бетонные плиты"
+        },
+        {
+          "value": "dirt",
+          "label": "Влажная грязь"
+        },
+        {
+          "value": "fine_gravel",
+          "label": "Мелкий Гравий"
+        },
+        {
+          "value": "grass",
+          "label": "Трава"
+        },
+        {
+          "value": "grass_paver",
+          "label": "Газонная решётка"
+        },
+        {
+          "value": "gravel",
+          "label": "Гравий"
+        },
+        {
+          "value": "ground",
+          "label": "Голая почва"
+        },
+        {
+          "value": "metal",
+          "label": "Металл"
+        },
+        {
+          "value": "mud",
+          "label": "Грязь"
+        },
+        {
+          "value": "paved",
+          "label": "Твердое покрытие (любое)"
+        },
+        {
+          "value": "paving_stones",
+          "label": "Тротуарная плитка"
+        },
+        {
+          "value": "pebblestone",
+          "label": "Галька"
+        },
+        {
+          "value": "salt",
+          "label": "Соль"
+        },
+        {
+          "value": "sand",
+          "label": "Песок"
+        },
+        {
+          "value": "sett",
+          "label": "Брусчатка"
+        },
+        {
+          "value": "tartan",
+          "label": "Тартан"
+        },
+        {
+          "value": "unhewn_cobblestone",
+          "label": "Булыжник (необработанные, округлые камни)"
+        },
+        {
+          "value": "unpaved",
+          "label": "Рыхлое покрытие (любое)"
+        },
+        {
+          "value": "wood",
+          "label": "Дерево"
+        },
+        {
+          "value": "woodchips",
+          "label": "Древесная щепа"
+        }
+      ]
+    },
+    {
+      "id": "surveillance",
+      "osmKey": "surveillance",
+      "inputType": "select",
+      "label": "Тип наблюдения"
+    },
+    {
+      "id": "tactile_paving",
+      "osmKey": "tactile_paving",
+      "inputType": "check",
+      "label": "Тактильное покрытие"
+    },
+    {
+      "id": "takeaway",
+      "osmKey": "takeaway",
+      "inputType": "select",
+      "label": "Еда на вынос",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        },
+        {
+          "value": "only",
+          "label": "Только на вынос"
+        }
+      ]
+    },
+    {
+      "id": "taxi_vehicle",
+      "osmKey": "taxi_vehicle",
+      "inputType": "semiCombo",
+      "label": "Тип транспорта",
+      "options": [
+        {
+          "value": "motorcar",
+          "label": {
+            "title": "Автомобиль"
+          }
+        },
+        {
+          "value": "motorcycle",
+          "label": {
+            "title": "Мотоцикл"
+          }
+        },
+        {
+          "value": "auto_rickshaw",
+          "label": {
+            "description": "Моторикши (например, баджадж, трехколесный велосипед, тук-тук и т.д.)",
+            "title": "Моторикша"
+          }
+        },
+        {
+          "value": "cycle_rickshaw",
+          "label": {
+            "description": "Рикши с педальным приводом (например, падяк, велотакси и т.д.)",
+            "title": "Велорикша"
+          }
+        }
+      ]
+    },
+    {
+      "id": "toilets",
+      "osmKey": "toilets",
+      "inputType": "check",
+      "label": "Туалет"
+    },
+    {
+      "id": "trade",
+      "osmKey": "trade",
+      "inputType": "text",
+      "label": "Тип"
+    },
+    {
+      "id": "vending",
+      "osmKey": "vending",
+      "inputType": "semiCombo",
+      "label": "Тип автомата",
+      "options": [
+        {
+          "value": "bicycle_tube",
+          "label": "Велосипедные камеры"
+        },
+        {
+          "value": "bread",
+          "label": "Хлеб"
+        },
+        {
+          "value": "cigarettes",
+          "label": "Сигарета"
+        },
+        {
+          "value": "coffee",
+          "label": "Кофе"
+        },
+        {
+          "value": "condoms",
+          "label": "Презервативы"
+        },
+        {
+          "value": "drinks",
+          "label": "Напитки"
+        },
+        {
+          "value": "e-cigarettes",
+          "label": "Электронные сигареты"
+        },
+        {
+          "value": "eggs",
+          "label": "Яйца"
+        },
+        {
+          "value": "electronics",
+          "label": "Электроника"
+        },
+        {
+          "value": "elongated_coin",
+          "label": "Сувенирные монеты"
+        },
+        {
+          "value": "excrement_bags",
+          "label": "Мешки для экскрементов"
+        },
+        {
+          "value": "feminine_hygiene",
+          "label": "Средства женской гигиены"
+        },
+        {
+          "value": "food",
+          "label": "Еда"
+        },
+        {
+          "value": "fuel",
+          "label": "Топливо"
+        },
+        {
+          "value": "ice_cream",
+          "label": "Мороженое"
+        },
+        {
+          "value": "ice_cubes",
+          "label": "Кубики льда"
+        },
+        {
+          "value": "milk",
+          "label": "Молоко"
+        },
+        {
+          "value": "newspapers",
+          "label": "Газета"
+        },
+        {
+          "value": "parking_tickets",
+          "label": "Парковочные билеты"
+        },
+        {
+          "value": "pizza",
+          "label": "Пицца"
+        },
+        {
+          "value": "public_transport_tickets",
+          "label": "Билеты на общественный транспорт"
+        },
+        {
+          "value": "stamps",
+          "label": "Почтовые марки"
+        },
+        {
+          "value": "sweets",
+          "label": "Конфеты"
+        },
+        {
+          "value": "water",
+          "label": "Питьевая вода"
+        }
+      ]
+    },
+    {
+      "id": "visibility",
+      "osmKey": "visibility",
+      "inputType": "select",
+      "label": "Видимость",
+      "options": [
+        {
+          "value": "house",
+          "label": "До 5 м"
+        },
+        {
+          "value": "street",
+          "label": "От 5 до 20 м"
+        },
+        {
+          "value": "area",
+          "label": "Более 20 м"
+        }
+      ]
+    },
+    {
+      "id": "waste",
+      "osmKey": "waste",
+      "inputType": "semiCombo",
+      "label": "Отходы",
+      "options": [
+        {
+          "value": "cigarettes",
+          "label": "Сигареты"
+        },
+        {
+          "value": "dog_excrement",
+          "label": "Экскременты собак"
+        },
+        {
+          "value": "organic",
+          "label": "Органические отходы"
+        },
+        {
+          "value": "trash",
+          "label": "Мусор"
+        }
+      ]
+    },
+    {
+      "id": "water_point",
+      "osmKey": "water_point",
+      "inputType": "check",
+      "label": "Источник воды"
+    },
+    {
+      "id": "website",
+      "osmKey": "website",
+      "inputType": "url",
+      "label": "Веб-сайт"
+    },
+    {
+      "id": "wheelchair",
+      "osmKey": "wheelchair",
+      "inputType": "select",
+      "label": "Доступность для инвалидных колясок",
+      "options": [
+        {
+          "value": "designated",
+          "label": "designated"
+        },
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "limited",
+          "label": "Ограничено"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        }
+      ]
+    },
+    {
+      "id": "wholesale",
+      "osmKey": "wholesale",
+      "inputType": "text",
+      "label": "Вид продукции"
+    }
+  ]
+}

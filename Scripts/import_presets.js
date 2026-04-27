@@ -2,14 +2,17 @@
 /**
  * import_presets.js
  *
- * Downloads the latest @openstreetmap/id-tagging-schema and converts
- * a curated subset of presets into POITypes.json for the POI Scanner app.
+ * Downloads the latest @openstreetmap/id-tagging-schema and generates:
+ *   • POITypes.json  — curated list of POI types (amenity/shop/craft/…)
+ *   • POIFields.json — field definitions with Russian labels + value options
+ *                      for all preset keys used by the above types
  *
  * Usage:
  *   node Scripts/import_presets.js
  *
  * Output:
  *   POI Scanner/Resources/POITypes.json
+ *   POI Scanner/Resources/POIFields.json
  *
  * Requirements:
  *   node >= 18  (uses built-in fetch)
@@ -237,12 +240,15 @@ async function main() {
 
   // 1. Download raw data
   console.log('1. Downloading schema...');
-  const [presetsRaw, fieldsRaw] = await Promise.all([
+  const [presetsRaw, fieldsRaw, ruTranslation] = await Promise.all([
     fetchJSON(`${SCHEMA_BASE}/presets.min.json`),
     fetchJSON(`${SCHEMA_BASE}/fields.min.json`),
+    fetchJSON(`${SCHEMA_BASE}/translations/ru.min.json`),
   ]);
+  const ruFields = ruTranslation?.ru?.presets?.fields ?? {};
   console.log(`   Presets: ${Object.keys(presetsRaw).length}`);
-  console.log(`   Fields:  ${Object.keys(fieldsRaw).length}\n`);
+  console.log(`   Fields:  ${Object.keys(fieldsRaw).length}`);
+  console.log(`   RU field translations: ${Object.keys(ruFields).length}\n`);
 
   // 2. Filter
   console.log('2. Filtering to allowed base keys:', [...ALLOWED_BASE_KEYS].join(', '));
@@ -305,23 +311,111 @@ async function main() {
     return a.name.localeCompare(b.name, 'ru');
   });
 
-  // 4. Write output
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const outDir  = path.join(__dirname, '..', 'POI Scanner', 'Resources');
-  const outFile = path.join(outDir, 'POITypes.json');
+  // 4. Build POIFields.json
+  // Collect all unique preset keys referenced by our types
+  console.log('4. Building POIFields.json...');
 
+  // Field input type → app-level inputType string
+  // check / defaultCheck  → "check"   (boolean yes/no)
+  // combo / radio         → "select"  (fixed single value)
+  // semiCombo             → "semiCombo" (free text + suggestions, semicolon-separated)
+  // multiCombo            → "multiCombo" (boolean sub-keys e.g. fuel:diesel)
+  // text / localized      → "text"
+  // number                → "number"
+  // url                   → "url"
+  // tel                   → "tel"
+  // opening_hours         → "openingHours"
+  // everything else       → "text"
+  const TYPE_MAP = {
+    check: 'check', defaultCheck: 'check',
+    combo: 'select', radio: 'select',
+    semiCombo: 'semiCombo',
+    multiCombo: 'multiCombo',
+    manyCombo: 'multiCombo',
+    text: 'text', localized: 'text', textarea: 'text',
+    number: 'number',
+    url: 'url',
+    tel: 'tel',
+    email: 'email',
+  };
+
+  const allPresetKeys = new Set(types.flatMap(t => t.presets));
+  const fields = [];
+
+  for (const fieldID of [...allPresetKeys].sort()) {
+    const raw = fieldsRaw[fieldID];
+    if (!raw) continue; // no schema entry — skip (will fall back to free text)
+
+    const ru = ruFields[fieldID] ?? {};
+
+    // Determine OSM tag key(s) this field controls
+    const osmKey = raw.key ?? (raw.keys ? raw.keys[0] : null) ?? fieldID;
+
+    // inputType
+    let inputType = TYPE_MAP[raw.type] ?? 'text';
+    // Special-case opening_hours field
+    if (fieldID === 'opening_hours' || osmKey === 'opening_hours') inputType = 'openingHours';
+
+    // Label (Russian preferred, fall back to English field label or fieldID)
+    const label = ru.label ?? raw.label ?? fieldID;
+
+    // Options: array of { value, label } — only for select / semiCombo / multiCombo
+    let options = [];
+    if (['select', 'semiCombo', 'multiCombo'].includes(inputType)) {
+      // raw.options is an array of value strings
+      const rawOpts = raw.options ?? [];
+      // ru.options is { value: "RU label" }
+      const ruOpts = ru.options ?? {};
+      options = rawOpts.map(v => ({
+        value: v,
+        label: ruOpts[v] ?? v,
+      }));
+    }
+
+    // For multiCombo, record the key prefix (e.g. "fuel:" for fuel:diesel)
+    const keyPrefix = (raw.type === 'multiCombo' || raw.type === 'manyCombo')
+      ? (raw.key ?? fieldID)
+      : null;
+
+    const entry = {
+      id: fieldID,
+      osmKey,
+      inputType,
+      label,
+      ...(options.length > 0 && { options }),
+      ...(keyPrefix && { keyPrefix }),
+    };
+    fields.push(entry);
+  }
+
+  console.log(`   Built ${fields.length} field definitions\n`);
+
+  // 5. Write outputs
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const outDir = path.join(__dirname, '..', 'POI Scanner', 'Resources');
   fs.mkdirSync(outDir, { recursive: true });
 
-  const output = {
+  // POITypes.json
+  const typesOut = path.join(outDir, 'POITypes.json');
+  const typesOutput = {
     _generated: new Date().toISOString(),
     _source: 'https://github.com/openstreetmap/id-tagging-schema',
     types,
   };
-  fs.writeFileSync(outFile, JSON.stringify(output, null, 2), 'utf8');
+  fs.writeFileSync(typesOut, JSON.stringify(typesOutput, null, 2), 'utf8');
+  console.log(`✅  Written ${types.length} types to:\n   ${typesOut}\n`);
 
-  console.log(`\n✅  Written ${types.length} types to:\n   ${outFile}\n`);
+  // POIFields.json
+  const fieldsOut = path.join(outDir, 'POIFields.json');
+  const fieldsOutput = {
+    _generated: new Date().toISOString(),
+    _source: 'https://github.com/openstreetmap/id-tagging-schema',
+    fields,
+  };
+  fs.writeFileSync(fieldsOut, JSON.stringify(fieldsOutput, null, 2), 'utf8');
+  console.log(`✅  Written ${fields.length} fields to:\n   ${fieldsOut}\n`);
 
-  // 5. Summary by base key
+  // 6. Summary by base key
   const counts = {};
   for (const t of types) counts[t.key] = (counts[t.key] ?? 0) + 1;
   console.log('Summary by base key:');
