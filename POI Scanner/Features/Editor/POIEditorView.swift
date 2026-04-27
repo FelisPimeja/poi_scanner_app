@@ -86,6 +86,9 @@ struct POIEditorView: View {
 
     @State private var showTypePicker = false
     @State private var pendingConflictType: POIType? = nil
+    /// Пресеты, добавленные автоматически при выборе типа: [baseKey: Set<presetKey>].
+    /// Используются для очистки пустых плейсхолдеров при смене типа.
+    @State private var appliedPresets: [String: Set<String>] = [:]
 
     // MARK: - Image preview
 
@@ -696,13 +699,28 @@ struct POIEditorView: View {
         poi.tags[type.key] = type.value
         poi.fieldStatus[type.key] = .manual
 
-        // Добавляем пустые плейсхолдеры для рекомендуемых ключей,
-        // если они ещё не заданы
+        // Удаляем пустые плейсхолдеры, добавленные предыдущим типом с тем же ключом,
+        // которые пользователь не заполнил — они уже не актуальны для нового типа.
+        let oldPresets = appliedPresets[type.key] ?? []
+        let newPresets = Set(type.presets)
+        for staleKey in oldPresets.subtracting(newPresets) {
+            if poi.tags[staleKey] == "" {   // пустой плейсхолдер — удаляем
+                poi.tags.removeValue(forKey: staleKey)
+                poi.fieldStatus.removeValue(forKey: staleKey)
+            }
+        }
+
+        // Добавляем пустые плейсхолдеры для рекомендуемых ключей нового типа.
+        // Ставим "" даже если ключ уже есть как "" (идемпотентно),
+        // но не перезаписываем заполненные значения.
         for presetKey in type.presets {
-            if poi.tags[presetKey] == nil {
+            if (poi.tags[presetKey] ?? "") == "" {
                 poi.tags[presetKey] = ""
             }
         }
+
+        // Запоминаем набор пресетов для этого базового ключа
+        appliedPresets[type.key] = newPresets
 
         // Перезапускаем поиск дублей — тип изменился
         scheduleTypeBasedDuplicateSearch()
