@@ -607,6 +607,20 @@ struct POIEditorView: View {
                     }
             }
 
+            // Дополнительные ключи группы .type (cuisine и т.п.) — добавленные пресетами
+            let typeGroupExtras: [(key: String, value: String)] = poi.tags.keys
+                .sorted()
+                .compactMap { key in
+                    guard !baseTypeKeys.contains(key),
+                          resolvedGroup(for: key) == .type,
+                          let val = poi.tags[key] else { return nil }
+                    return (key: key, value: val)
+                }
+            ForEach(typeGroupExtras, id: \.key) { item in
+                tagRow(for: item.key, value: item.value)
+                    .swipeActions(edge: .trailing) { swipeDeleteAction(forKey: item.key) }
+            }
+
             // Плейсхолдер «Добавить тип» — всегда видим
             Button {
                 showTypePicker = true
@@ -1194,8 +1208,8 @@ struct POIEditorView: View {
         for key in tags.keys.sorted(by: groupSortKey) {
             guard let value = tags[key] else { continue }
             if key == "type" && value == "multipolygon" { continue }
-            // Базовые ключи типа рендерятся в typeSection — пропускаем здесь
-            if baseTypeKeys.contains(key) { continue }
+            // Вся группа .type рендерится в typeSection — пропускаем здесь
+            if resolvedGroup(for: key) == .type { continue }
             result[resolvedGroup(for: key), default: []].append((key: key, value: value))
         }
         return result
