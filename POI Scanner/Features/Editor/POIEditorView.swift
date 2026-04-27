@@ -85,6 +85,7 @@ struct POIEditorView: View {
     // MARK: - Type picker
 
     @State private var showTypePicker = false
+    @State private var pendingConflictType: POIType? = nil
 
     // MARK: - Image preview
 
@@ -164,6 +165,21 @@ struct POIEditorView: View {
                     POITypePickerView { selectedType in
                         applyPOIType(selectedType)
                     }
+                }
+            }
+            .alert("Конфликт типов", isPresented: Binding(
+                get: { pendingConflictType != nil },
+                set: { if !$0 { pendingConflictType = nil } }
+            )) {
+                Button("Заменить") {
+                    if let t = pendingConflictType { applyPOIType(t, force: true) }
+                    pendingConflictType = nil
+                }
+                Button("Отмена", role: .cancel) { pendingConflictType = nil }
+            } message: {
+                if let t = pendingConflictType,
+                   let existing = poi.tags[t.key], !existing.isEmpty {
+                    Text("\(t.key)=\(existing) будет заменено на \(t.key)=\(t.value). Для двух разных типов создайте отдельные точки.")
                 }
             }
             .task { await onAppearTask() }
@@ -665,7 +681,17 @@ struct POIEditorView: View {
     // MARK: - Apply type
 
     /// Применяет выбранный тип: ставит тег и добавляет пустые плейсхолдеры пресетов.
-    private func applyPOIType(_ type: POIType) {
+    /// Если ключ уже занят другим значением и `force == false` — показывает алерт.
+    private func applyPOIType(_ type: POIType, force: Bool = false) {
+        // Если ключ уже занят другим непустым значением — предупреждаем
+        if !force,
+           let existing = poi.tags[type.key],
+           !existing.isEmpty,
+           existing != type.value {
+            pendingConflictType = type
+            return
+        }
+
         // Устанавливаем базовый тег
         poi.tags[type.key] = type.value
         poi.fieldStatus[type.key] = .manual
