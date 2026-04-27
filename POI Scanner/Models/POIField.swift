@@ -77,7 +77,6 @@ final class POIFieldRegistry {
     private var byID: [String: POIField] = [:]
 
     /// Быстрый поиск по `osmKey` (например "cuisine" → field).
-    /// Если несколько полей на один ключ — хранится первое встреченное.
     private var byOSMKey: [String: POIField] = [:]
 
     private init() { load() }
@@ -88,7 +87,6 @@ final class POIFieldRegistry {
         byID[fieldID]
     }
 
-    /// Возвращает определение поля для данного OSM-ключа тега (если есть).
     func field(forOSMKey key: String) -> POIField? {
         byOSMKey[key]
     }
@@ -97,7 +95,7 @@ final class POIFieldRegistry {
 
     private func load() {
         guard let url = Bundle.main.url(forResource: "POIFields", withExtension: "json") else {
-            assertionFailure("POIFields.json not found in bundle")
+            print("⚠️ POIFieldRegistry: POIFields.json not found in bundle — field hints unavailable")
             return
         }
         do {
@@ -108,8 +106,9 @@ final class POIFieldRegistry {
                 byID[f.id] = f
                 if byOSMKey[f.osmKey] == nil { byOSMKey[f.osmKey] = f }
             }
+            print("✅ POIFieldRegistry: loaded \(self.fields.count) fields")
         } catch {
-            assertionFailure("Failed to decode POIFields.json: \(error)")
+            print("⚠️ POIFieldRegistry: failed to decode POIFields.json: \(error)")
         }
     }
 

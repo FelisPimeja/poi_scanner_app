@@ -43,15 +43,16 @@ final class POITypeRegistry {
 
     private func load() {
         guard let url = Bundle.main.url(forResource: "POITypes", withExtension: "json") else {
-            assertionFailure("POITypes.json not found in bundle")
+            print("⚠️ POITypeRegistry: POITypes.json not found in bundle — type picker unavailable")
             return
         }
         do {
             let data = try Data(contentsOf: url)
             let container = try JSONDecoder().decode(POITypesFile.self, from: data)
             self.types = container.types
+            print("✅ POITypeRegistry: loaded \(self.types.count) types")
         } catch {
-            assertionFailure("Failed to decode POITypes.json: \(error)")
+            print("⚠️ POITypeRegistry: failed to decode POITypes.json: \(error)")
         }
     }
 
