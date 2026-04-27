@@ -82,6 +82,10 @@ struct POIEditorView: View {
     @State private var originalExtractedTags: [String: String] = [:]
     @State private var originalCoordinate: POI.Coordinate? = nil
 
+    // MARK: - Type picker
+
+    @State private var showTypePicker = false
+
     // MARK: - Image preview
 
     @State private var showImagePreview = false
@@ -155,8 +159,16 @@ struct POIEditorView: View {
                 if let img = sourceImage { ImagePreviewView(image: img) }
             }
             .sheet(isPresented: $showCoordinatePicker) { coordinatePickerSheet }
+            .sheet(isPresented: $showTypePicker) {
+                NavigationStack {
+                    POITypePickerView { selectedType in
+                        applyPOIType(selectedType)
+                    }
+                }
+            }
             .task { await onAppearTask() }
             .onChange(of: poi.coordinate) { _, _ in onCoordinateChange() }
+            .onChange(of: activeTypeKeys) { _, _ in scheduleTypeBasedDuplicateSearch() }
             .onChange(of: diffEntries) { _, v in onDiffEntriesChange(v) }
             .onChange(of: mergePlaceholderTags) { _, v in onPlaceholdersChange(v) }
             .alert("Ошибка загрузки", isPresented: $showUploadError) {
@@ -288,6 +300,7 @@ struct POIEditorView: View {
         if isMergeMode {
             mergeDiffSection
         } else {
+            typeSection
             tagGroupSections
             addTagSection
         }
@@ -554,6 +567,113 @@ struct POIEditorView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Type section
+
+    /// Базовые ключи типа в порядке приоритета отображения.
+    private let baseTypeKeys = ["amenity", "shop", "craft", "public_transport", "healthcare"]
+
+    /// Снапшот текущих значений базовых ключей — используется в onChange для детектирования смены типа.
+    private var activeTypeKeys: [String: String] {
+        Dictionary(uniqueKeysWithValues: baseTypeKeys.compactMap { key in
+            guard let val = poi.tags[key], !val.isEmpty else { return nil }
+            return (key, val)
+        })
+    }
+
+    /// Возвращает список заданных «типовых» ключей из текущих тегов.
+    private var activeTypeEntries: [(key: String, value: String)] {
+        baseTypeKeys.compactMap { key in
+            guard let val = poi.tags[key], !val.isEmpty else { return nil }
+            return (key: key, value: val)
+        }
+    }
+
+    @ViewBuilder
+    private var typeSection: some View {
+        Section(header: Text("Тип")) {
+            // Строки для каждого уже заданного базового ключа
+            ForEach(activeTypeEntries, id: \.key) { entry in
+                typeRow(key: entry.key, value: entry.value)
+                    .swipeActions(edge: .trailing) {
+                        Button {
+                            poi.tags[entry.key] = ""
+                            poi.fieldStatus[entry.key] = .manual
+                        } label: {
+                            Label("Сбросить", systemImage: "xmark.circle")
+                        }
+                        .tint(.orange)
+                    }
+            }
+
+            // Плейсхолдер «Добавить тип» — всегда видим
+            Button {
+                showTypePicker = true
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "tag")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24, alignment: .center)
+
+                    Text(activeTypeEntries.isEmpty ? "Выбрать тип места" : "Добавить ещё тип")
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    /// Строка для уже выбранного базового ключа — позволяет менять значение через стандартный tagRow.
+    @ViewBuilder
+    private func typeRow(key: String, value: String) -> some View {
+        let icon: String = {
+            switch key {
+            case "amenity":          return "fork.knife"
+            case "shop":             return "cart"
+            case "craft":            return "wrench.and.screwdriver"
+            case "public_transport": return "bus"
+            case "healthcare":       return "cross.case"
+            default:                 return "tag"
+            }
+        }()
+        tagRow(for: key, value: value, forceIcon: icon)
+    }
+
+    // MARK: - Apply type
+
+    /// Применяет выбранный тип: ставит тег и добавляет пустые плейсхолдеры пресетов.
+    private func applyPOIType(_ type: POIType) {
+        // Устанавливаем базовый тег
+        poi.tags[type.key] = type.value
+        poi.fieldStatus[type.key] = .manual
+
+        // Добавляем пустые плейсхолдеры для рекомендуемых ключей,
+        // если они ещё не заданы
+        for presetKey in type.presets {
+            if poi.tags[presetKey] == nil {
+                poi.tags[presetKey] = ""
+            }
+        }
+
+        // Перезапускаем поиск дублей — тип изменился
+        scheduleTypeBasedDuplicateSearch()
+    }
+
+    /// Перезапускает поиск дублей при смене базового ключа типа (только new mode, не merge).
+    private func scheduleTypeBasedDuplicateSearch() {
+        guard isNewMode, poi.osmNodeId == nil, !isMergeMode else { return }
+        cancelMergeIfActive()
+        duplicates = []
+        Task { await runDuplicateSearch() }
     }
 
     // MARK: - Tag group sections (simplified mode, non-merge)
@@ -1074,6 +1194,8 @@ struct POIEditorView: View {
         for key in tags.keys.sorted(by: groupSortKey) {
             guard let value = tags[key] else { continue }
             if key == "type" && value == "multipolygon" { continue }
+            // Базовые ключи типа рендерятся в typeSection — пропускаем здесь
+            if baseTypeKeys.contains(key) { continue }
             result[resolvedGroup(for: key), default: []].append((key: key, value: value))
         }
         return result

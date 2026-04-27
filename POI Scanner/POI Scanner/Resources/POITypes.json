@@ -1,0 +1,5699 @@
+{
+  "_generated": "2026-04-27T12:57:57.647Z",
+  "_source": "https://github.com/openstreetmap/id-tagging-schema",
+  "types": [
+    {
+      "id": "amenity/post_box",
+      "key": "amenity",
+      "value": "post_box",
+      "name": "{amenity/post_box}",
+      "terms": [],
+      "presets": [
+        "drive_through",
+        "gnis:feature_id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/car_wash",
+      "key": "amenity",
+      "value": "car_wash",
+      "name": "Автомойка",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "payment:",
+        "self_service",
+        "automated",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/fuel",
+      "key": "amenity",
+      "value": "fuel",
+      "name": "АЗС",
+      "terms": [],
+      "presets": [
+        "brand",
+        "operator",
+        "addr",
+        "fuel:",
+        "self_service",
+        "building",
+        "branch",
+        "toilets",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/pharmacy",
+      "key": "amenity",
+      "value": "pharmacy",
+      "name": "Аптека",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "dispensing",
+        "drive_through",
+        "opening_hours:drive_through",
+        "branch",
+        "brand",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/arts_centre",
+      "key": "amenity",
+      "value": "arts_centre",
+      "name": "Арт-центр",
+      "terms": [],
+      "presets": [
+        "addr",
+        "building",
+        "opening_hours",
+        "website",
+        "charge",
+        "fee",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/bank",
+      "key": "amenity",
+      "value": "bank",
+      "name": "Банк",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "atm",
+        "drive_through",
+        "opening_hours:drive_through",
+        "air_conditioning",
+        "branch",
+        "brand",
+        "currency:",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/atm",
+      "key": "amenity",
+      "value": "atm",
+      "name": "Банкомат",
+      "terms": [],
+      "presets": [
+        "operator",
+        "network",
+        "cash_in",
+        "currency:",
+        "drive_through",
+        "branch",
+        "ref",
+        "brand",
+        "covered",
+        "height",
+        "indoor",
+        "level",
+        "lit",
+        "manufacturer",
+        "opening_hours",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bar",
+      "key": "amenity",
+      "value": "bar",
+      "name": "Бар",
+      "terms": [],
+      "presets": [
+        "addr",
+        "building",
+        "opening_hours",
+        "min_age",
+        "brewery",
+        "air_conditioning",
+        "microbrewery",
+        "operator",
+        "outdoor_seating",
+        "smoking",
+        "fhrs:id",
+        "sport",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/library",
+      "key": "amenity",
+      "value": "library",
+      "name": "Библиотека",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "building",
+        "opening_hours",
+        "addr",
+        "ref:isil",
+        "access",
+        "air_conditioning",
+        "baby_feeding",
+        "books",
+        "changing_table",
+        "polling_station",
+        "toilets",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/hospital",
+      "key": "amenity",
+      "value": "hospital",
+      "name": "Больница",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "healthcare:speciality",
+        "addr",
+        "emergency",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bicycle_parking",
+      "key": "amenity",
+      "value": "bicycle_parking",
+      "name": "Велопарковка",
+      "terms": [],
+      "presets": [
+        "bicycle_parking",
+        "capacity",
+        "operator",
+        "operator:type",
+        "covered",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "bike_ride",
+        "colour",
+        "indoor",
+        "level",
+        "lit",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/veterinary",
+      "key": "amenity",
+      "value": "veterinary",
+      "name": "Ветеринария",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "charge",
+        "fee",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/doctors",
+      "key": "amenity",
+      "value": "doctors",
+      "name": "Врач",
+      "terms": [],
+      "presets": [
+        "operator",
+        "healthcare:speciality",
+        "addr",
+        "building",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/charging_station",
+      "key": "amenity",
+      "value": "charging_station",
+      "name": "Зарядная станция",
+      "terms": [],
+      "presets": [
+        "brand",
+        "operator",
+        "capacity",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "ref",
+        "ref:EU:EVSE",
+        "covered",
+        "level",
+        "manufacturer",
+        "maxstay",
+        "network",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/casino",
+      "key": "amenity",
+      "value": "casino",
+      "name": "Казино",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "gambling",
+        "smoking",
+        "air_conditioning",
+        "level",
+        "min_age",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/cafe",
+      "key": "amenity",
+      "value": "cafe",
+      "name": "Кафе",
+      "terms": [],
+      "presets": [
+        "cuisine",
+        "addr",
+        "building",
+        "opening_hours",
+        "outdoor_seating",
+        "phone",
+        "website",
+        "opening_hours:drive_through",
+        "air_conditioning",
+        "bar",
+        "branch",
+        "brand",
+        "capacity",
+        "changing_table",
+        "delivery",
+        "diet:",
+        "drive_through",
+        "highchair",
+        "min_age",
+        "organic",
+        "reservation",
+        "smoking",
+        "stroller",
+        "takeaway",
+        "toilets",
+        "toilets:wheelchair",
+        "toilets:menstrual_products",
+        "fhrs:id",
+        "website:menu"
+      ]
+    },
+    {
+      "id": "amenity/cinema",
+      "key": "amenity",
+      "value": "cinema",
+      "name": "Кинотеатр",
+      "terms": [],
+      "presets": [
+        "addr",
+        "screen",
+        "building",
+        "opening_hours",
+        "payment:",
+        "air_conditioning",
+        "branch",
+        "brand",
+        "fhrs:id",
+        "min_age",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/grave_yard",
+      "key": "amenity",
+      "value": "grave_yard",
+      "name": "Кладбище",
+      "terms": [],
+      "presets": [
+        "religion",
+        "addr",
+        "gnis:feature_id",
+        "operator",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/clinic",
+      "key": "amenity",
+      "value": "clinic",
+      "name": "Клиника",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "healthcare:speciality",
+        "addr",
+        "building",
+        "opening_hours",
+        "air_conditioning",
+        "branch",
+        "brand",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/place_of_worship",
+      "key": "amenity",
+      "value": "place_of_worship",
+      "name": "Место отправления культа",
+      "terms": [],
+      "presets": [
+        "religion",
+        "denomination",
+        "addr",
+        "building",
+        "service_times",
+        "air_conditioning",
+        "baby_feeding",
+        "gnis:feature_id",
+        "internet_access",
+        "internet_access:ssid",
+        "level",
+        "opening_hours",
+        "polling_station",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/ice_cream",
+      "key": "amenity",
+      "value": "ice_cream",
+      "name": "Мороженое",
+      "terms": [],
+      "presets": [
+        "addr",
+        "building",
+        "opening_hours",
+        "outdoor_seating",
+        "delivery",
+        "diet:",
+        "drive_through",
+        "opening_hours:drive_through",
+        "organic",
+        "stroller",
+        "takeaway",
+        "toilets",
+        "fhrs:id",
+        "website:menu",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/townhall",
+      "key": "amenity",
+      "value": "townhall",
+      "name": "Мэрия / Ратуша",
+      "terms": [],
+      "presets": [
+        "operator",
+        "townhall:type",
+        "addr",
+        "building",
+        "baby_feeding",
+        "gnis:feature_id",
+        "polling_station",
+        "smoking",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/nightclub",
+      "key": "amenity",
+      "value": "nightclub",
+      "name": "Ночной клуб",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "min_age",
+        "smoking",
+        "air_conditioning",
+        "fhrs:id",
+        "fee",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bureau_de_change",
+      "key": "amenity",
+      "value": "bureau_de_change",
+      "name": "Обмен валюты",
+      "terms": [],
+      "presets": [
+        "operator",
+        "payment:",
+        "currency:",
+        "addr",
+        "building",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/community_centre",
+      "key": "amenity",
+      "value": "community_centre",
+      "name": "Общественный центр",
+      "terms": [],
+      "presets": [
+        "community_centre",
+        "operator",
+        "operator:type",
+        "addr",
+        "building",
+        "opening_hours",
+        "website",
+        "air_conditioning",
+        "baby_feeding",
+        "polling_station",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/pub",
+      "key": "amenity",
+      "value": "pub",
+      "name": "Паб",
+      "terms": [],
+      "presets": [
+        "addr",
+        "building",
+        "opening_hours",
+        "smoking",
+        "brewery",
+        "air_conditioning",
+        "cuisine",
+        "diet:",
+        "microbrewery",
+        "fhrs:id",
+        "min_age",
+        "outdoor_seating",
+        "real_fire",
+        "sport",
+        "toilets",
+        "toilets:wheelchair",
+        "toilets:menstrual_products",
+        "website:menu",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/parking",
+      "key": "amenity",
+      "value": "parking",
+      "name": "Парковка",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "parking",
+        "capacity",
+        "capacity:disabled",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "surface",
+        "addr",
+        "covered",
+        "maxstay",
+        "opening_hours",
+        "park_ride",
+        "ref",
+        "supervised",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/drinking_water",
+      "key": "amenity",
+      "value": "drinking_water",
+      "name": "Питьевая вода",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "seasonal",
+        "wheelchair",
+        "bottle",
+        "covered",
+        "dog",
+        "indoor",
+        "level",
+        "lit",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/fire_station",
+      "key": "amenity",
+      "value": "fire_station",
+      "name": "Пожарная часть",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "gnis:feature_id",
+        "polling_station",
+        "smoking",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/police",
+      "key": "amenity",
+      "value": "police",
+      "name": "Полиция",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "gnis:feature_id",
+        "level",
+        "polling_station",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/post_office",
+      "key": "amenity",
+      "value": "post_office",
+      "name": "Почта",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "branch",
+        "brand",
+        "gnis:feature_id",
+        "level",
+        "ref:FR:SIRET",
+        "payment:",
+        "polling_station",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/animal_shelter",
+      "key": "amenity",
+      "value": "animal_shelter",
+      "name": "Приют для животных",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "animal_shelter",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/car_rental",
+      "key": "amenity",
+      "value": "car_rental",
+      "name": "Прокат автомобилей",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "opening_hours",
+        "payment:",
+        "branch",
+        "brand",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bicycle_rental",
+      "key": "amenity",
+      "value": "bicycle_rental",
+      "name": "Прокат велосипедов",
+      "terms": [],
+      "presets": [
+        "capacity",
+        "network",
+        "operator",
+        "operator:type",
+        "fee",
+        "payment:",
+        "addr",
+        "covered",
+        "ref",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/restaurant",
+      "key": "amenity",
+      "value": "restaurant",
+      "name": "Ресторан",
+      "terms": [],
+      "presets": [
+        "cuisine",
+        "diet:",
+        "addr",
+        "building",
+        "opening_hours",
+        "phone",
+        "website",
+        "air_conditioning",
+        "bar",
+        "branch",
+        "brand",
+        "brewery",
+        "capacity",
+        "changing_table",
+        "delivery",
+        "fhrs:id",
+        "highchair",
+        "microbrewery",
+        "min_age",
+        "operator",
+        "organic",
+        "outdoor_seating",
+        "reservation",
+        "smoking",
+        "sport",
+        "stroller",
+        "stars",
+        "takeaway",
+        "toilets",
+        "toilets:wheelchair",
+        "toilets:menstrual_products",
+        "website:menu"
+      ]
+    },
+    {
+      "id": "amenity/marketplace",
+      "key": "amenity",
+      "value": "marketplace",
+      "name": "Рынок",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "gnis:feature_id",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bench",
+      "key": "amenity",
+      "value": "bench",
+      "name": "Скамейка",
+      "terms": [],
+      "presets": [
+        "backrest",
+        "armrest",
+        "material",
+        "seats",
+        "colour",
+        "access",
+        "direction",
+        "height",
+        "inscription",
+        "level",
+        "lit",
+        "manufacturer",
+        "operator",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/social_facility",
+      "key": "amenity",
+      "value": "social_facility",
+      "name": "Социальный объект",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "social_facility",
+        "social_facility:for",
+        "baby_feeding",
+        "fhrs:id",
+        "building",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/dentist",
+      "key": "amenity",
+      "value": "dentist",
+      "name": "Стоматология",
+      "terms": [],
+      "presets": [
+        "operator",
+        "healthcare:speciality",
+        "addr",
+        "building",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/courthouse",
+      "key": "amenity",
+      "value": "courthouse",
+      "name": "Суд",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "gnis:feature_id",
+        "level",
+        "polling_station",
+        "smoking",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/taxi",
+      "key": "amenity",
+      "value": "taxi",
+      "name": "Такси",
+      "terms": [],
+      "presets": [
+        "operator",
+        "capacity",
+        "addr",
+        "access",
+        "branch",
+        "brand",
+        "opening_hours",
+        "taxi_vehicle",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/theatre",
+      "key": "amenity",
+      "value": "theatre",
+      "name": "Театр",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "website",
+        "air_conditioning",
+        "min_age",
+        "opening_hours",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/telephone",
+      "key": "amenity",
+      "value": "telephone",
+      "name": "Телефон",
+      "terms": [],
+      "presets": [
+        "operator",
+        "phone",
+        "payment:",
+        "covered",
+        "booth",
+        "fee",
+        "indoor",
+        "level",
+        "lit",
+        "model",
+        "ref",
+        "sms",
+        "video",
+        "wheelchair",
+        "opening_hours",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/toilets",
+      "key": "amenity",
+      "value": "toilets",
+      "name": "Туалет",
+      "terms": [],
+      "presets": [
+        "toilets:disposal",
+        "access",
+        "male",
+        "changing_table",
+        "wheelchair",
+        "building",
+        "charge",
+        "fee",
+        "level",
+        "opening_hours",
+        "operator",
+        "payment:",
+        "portable",
+        "toilets:handwashing",
+        "toilets:menstrual_products",
+        "toilets:position",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/shelter",
+      "key": "amenity",
+      "value": "shelter",
+      "name": "Укрытие / Навес",
+      "terms": [],
+      "presets": [
+        "operator",
+        "shelter_type",
+        "building",
+        "bench",
+        "bin",
+        "access",
+        "gnis:feature_id",
+        "lit",
+        "lockable",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/waste_basket",
+      "key": "amenity",
+      "value": "waste_basket",
+      "name": "Урна",
+      "terms": [],
+      "presets": [
+        "operator",
+        "waste",
+        "collection_times",
+        "material",
+        "colour",
+        "covered",
+        "indoor",
+        "manufacturer",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/fast_food",
+      "key": "amenity",
+      "value": "fast_food",
+      "name": "Фастфуд",
+      "terms": [],
+      "presets": [
+        "cuisine",
+        "diet:",
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "drive_through",
+        "opening_hours:drive_through",
+        "phone",
+        "website",
+        "air_conditioning",
+        "branch",
+        "brand",
+        "capacity",
+        "changing_table",
+        "delivery",
+        "highchair",
+        "organic",
+        "outdoor_seating",
+        "smoking",
+        "stroller",
+        "takeaway",
+        "toilets",
+        "toilets:wheelchair",
+        "toilets:menstrual_products",
+        "fhrs:id",
+        "website:menu"
+      ]
+    },
+    {
+      "id": "amenity/fountain",
+      "key": "amenity",
+      "value": "fountain",
+      "name": "Фонтан",
+      "terms": [],
+      "presets": [
+        "operator",
+        "fountain",
+        "drinking_water",
+        "height",
+        "lit",
+        "covered",
+        "indoor",
+        "level",
+        "manufacturer",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/food_court",
+      "key": "amenity",
+      "value": "food_court",
+      "name": "Фудкорт",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "capacity",
+        "diet:",
+        "outdoor_seating",
+        "smoking",
+        "website:menu",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/animal_boarding",
+      "key": "amenity",
+      "value": "animal_boarding",
+      "name": "amenity/animal_boarding",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "animal_boarding",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/animal_breeding",
+      "key": "amenity",
+      "value": "animal_breeding",
+      "name": "amenity/animal_breeding",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "animal_breeding",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/baking_oven",
+      "key": "amenity",
+      "value": "baking_oven",
+      "name": "amenity/baking_oven",
+      "terms": [],
+      "presets": [
+        "covered",
+        "access",
+        "lit",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bbq",
+      "key": "amenity",
+      "value": "bbq",
+      "name": "amenity/bbq",
+      "terms": [],
+      "presets": [
+        "covered",
+        "fuel",
+        "access",
+        "lit",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bicycle_repair_station",
+      "key": "amenity",
+      "value": "bicycle_repair_station",
+      "name": "amenity/bicycle_repair_station",
+      "terms": [],
+      "presets": [
+        "operator",
+        "brand",
+        "opening_hours",
+        "fee",
+        "payment:",
+        "charge",
+        "service:bicycle:",
+        "branch",
+        "colour",
+        "covered",
+        "indoor",
+        "level",
+        "manufacturer",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/bicycle_wash",
+      "key": "amenity",
+      "value": "bicycle_wash",
+      "name": "amenity/bicycle_wash",
+      "terms": [],
+      "presets": [
+        "fee",
+        "payment:",
+        "capacity",
+        "access",
+        "operator",
+        "self_service",
+        "covered",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/biergarten",
+      "key": "amenity",
+      "value": "biergarten",
+      "name": "amenity/biergarten",
+      "terms": [],
+      "presets": [
+        "addr",
+        "opening_hours",
+        "outdoor_seating",
+        "brewery",
+        "cuisine",
+        "website:menu",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/binoculars",
+      "key": "amenity",
+      "value": "binoculars",
+      "name": "amenity/binoculars",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "direction",
+        "height",
+        "ele",
+        "colour",
+        "covered",
+        "indoor",
+        "lit",
+        "manufacturer",
+        "ref",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/boat_rental",
+      "key": "amenity",
+      "value": "boat_rental",
+      "name": "amenity/boat_rental",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "opening_hours",
+        "fee",
+        "payment:",
+        "charge",
+        "access",
+        "addr",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/boat_storage",
+      "key": "amenity",
+      "value": "boat_storage",
+      "name": "amenity/boat_storage",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "capacity",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/car_pooling",
+      "key": "amenity",
+      "value": "car_pooling",
+      "name": "amenity/car_pooling",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "capacity",
+        "addr",
+        "opening_hours",
+        "lit",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/car_sharing",
+      "key": "amenity",
+      "value": "car_sharing",
+      "name": "amenity/car_sharing",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "capacity",
+        "addr",
+        "payment:",
+        "supervised",
+        "branch",
+        "brand",
+        "lit",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/childcare",
+      "key": "amenity",
+      "value": "childcare",
+      "name": "amenity/childcare",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "building",
+        "opening_hours",
+        "website",
+        "baby_feeding",
+        "capacity",
+        "fhrs:id",
+        "gnis:feature_id",
+        "level",
+        "max_age",
+        "min_age",
+        "not:name",
+        "payment:",
+        "wheelchair",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/clock",
+      "key": "amenity",
+      "value": "clock",
+      "name": "amenity/clock",
+      "terms": [],
+      "presets": [
+        "support",
+        "display",
+        "visibility",
+        "date",
+        "faces",
+        "covered",
+        "height",
+        "indoor",
+        "level",
+        "lit",
+        "manufacturer",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/compressed_air",
+      "key": "amenity",
+      "value": "compressed_air",
+      "name": "amenity/compressed_air",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "covered",
+        "lit",
+        "branch",
+        "brand",
+        "manufacturer",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/conference_centre",
+      "key": "amenity",
+      "value": "conference_centre",
+      "name": "amenity/conference_centre",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "building",
+        "addr",
+        "website",
+        "air_conditioning",
+        "smoking",
+        "opening_hours",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/crematorium",
+      "key": "amenity",
+      "value": "crematorium",
+      "name": "amenity/crematorium",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "wheelchair",
+        "phone",
+        "website",
+        "addr",
+        "gnis:feature_id",
+        "level",
+        "ref:FR:SIRET"
+      ]
+    },
+    {
+      "id": "amenity/device_charging_station",
+      "key": "amenity",
+      "value": "device_charging_station",
+      "name": "amenity/device_charging_station",
+      "terms": [],
+      "presets": [
+        "access",
+        "capacity",
+        "fee",
+        "payment:",
+        "level",
+        "lockable",
+        "opening_hours",
+        "wheelchair",
+        "operator",
+        "indoor",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/dive_centre",
+      "key": "amenity",
+      "value": "dive_centre",
+      "name": "amenity/dive_centre",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "scuba_diving:",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/dog_toilet",
+      "key": "amenity",
+      "value": "dog_toilet",
+      "name": "amenity/dog_toilet",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "access",
+        "website",
+        "dog",
+        "gnis:feature_id",
+        "ref",
+        "opening_hours",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/dojo",
+      "key": "amenity",
+      "value": "dojo",
+      "name": "amenity/dojo",
+      "terms": [],
+      "presets": [
+        "sport",
+        "addr",
+        "building",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/dressing_room",
+      "key": "amenity",
+      "value": "dressing_room",
+      "name": "amenity/dressing_room",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "male",
+        "wheelchair",
+        "building",
+        "charge",
+        "fee",
+        "level",
+        "opening_hours",
+        "payment:",
+        "ref",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/driver_training",
+      "key": "amenity",
+      "value": "driver_training",
+      "name": "amenity/driver_training",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "opening_hours",
+        "license_classes",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/events_venue",
+      "key": "amenity",
+      "value": "events_venue",
+      "name": "amenity/events_venue",
+      "terms": [],
+      "presets": [
+        "operator",
+        "building",
+        "addr",
+        "website",
+        "air_conditioning",
+        "fhrs:id",
+        "min_age",
+        "smoking",
+        "opening_hours",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/exhibition_centre",
+      "key": "amenity",
+      "value": "exhibition_centre",
+      "name": "amenity/exhibition_centre",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "building",
+        "addr",
+        "website",
+        "air_conditioning",
+        "smoking",
+        "opening_hours",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/funeral_hall",
+      "key": "amenity",
+      "value": "funeral_hall",
+      "name": "amenity/funeral_hall",
+      "terms": [],
+      "presets": [
+        "operator",
+        "building",
+        "addr",
+        "religion",
+        "denomination",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/gambling",
+      "key": "amenity",
+      "value": "gambling",
+      "name": "amenity/gambling",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/give_box",
+      "key": "amenity",
+      "value": "give_box",
+      "name": "amenity/give_box",
+      "terms": [],
+      "presets": [
+        "operator",
+        "opening_hours",
+        "access",
+        "addr",
+        "branch",
+        "brand",
+        "capacity",
+        "covered",
+        "email",
+        "indoor",
+        "level",
+        "lit",
+        "location",
+        "phone",
+        "ref",
+        "wheelchair",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/grit_bin",
+      "key": "amenity",
+      "value": "grit_bin",
+      "name": "amenity/grit_bin",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "material",
+        "collection_times",
+        "colour",
+        "height",
+        "lit",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/hookah_lounge",
+      "key": "amenity",
+      "value": "hookah_lounge",
+      "name": "amenity/hookah_lounge",
+      "terms": [],
+      "presets": [
+        "addr",
+        "building",
+        "opening_hours",
+        "min_age",
+        "air_conditioning",
+        "operator",
+        "outdoor_seating",
+        "smoking",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/hunting_stand",
+      "key": "amenity",
+      "value": "hunting_stand",
+      "name": "amenity/hunting_stand",
+      "terms": [],
+      "presets": [
+        "access",
+        "lockable",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/internet_cafe",
+      "key": "amenity",
+      "value": "internet_cafe",
+      "name": "amenity/internet_cafe",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "building",
+        "phone",
+        "website",
+        "air_conditioning",
+        "min_age",
+        "outdoor_seating",
+        "smoking",
+        "opening_hours"
+      ]
+    },
+    {
+      "id": "amenity/karaoke_box",
+      "key": "amenity",
+      "value": "karaoke_box",
+      "name": "amenity/karaoke_box",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "website",
+        "air_conditioning",
+        "min_age",
+        "smoking",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/kitchen",
+      "key": "amenity",
+      "value": "kitchen",
+      "name": "amenity/kitchen",
+      "terms": [],
+      "presets": [
+        "access",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/kneipp_water_cure",
+      "key": "amenity",
+      "value": "kneipp_water_cure",
+      "name": "amenity/kneipp_water_cure",
+      "terms": [],
+      "presets": [
+        "kneipp_water_cure:",
+        "access",
+        "opening_hours",
+        "fee",
+        "addr",
+        "level",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/lavoir",
+      "key": "amenity",
+      "value": "lavoir",
+      "name": "amenity/lavoir",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "access",
+        "building",
+        "gnis:feature_id",
+        "smoking",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/letter_box",
+      "key": "amenity",
+      "value": "letter_box",
+      "name": "amenity/letter_box",
+      "terms": [],
+      "presets": [
+        "post",
+        "access",
+        "height",
+        "colour",
+        "covered",
+        "indoor",
+        "level",
+        "lit",
+        "lockable",
+        "manufacturer",
+        "material",
+        "operator",
+        "support",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/library_dropoff",
+      "key": "amenity",
+      "value": "library_dropoff",
+      "name": "amenity/library_dropoff",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "collection_times",
+        "colour",
+        "ref:isil",
+        "lit",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/loading_dock",
+      "key": "amenity",
+      "value": "loading_dock",
+      "name": "amenity/loading_dock",
+      "terms": [],
+      "presets": [
+        "ref",
+        "operator",
+        "access",
+        "door",
+        "addr",
+        "dock:height",
+        "dock:width",
+        "door:height",
+        "door:width",
+        "colour",
+        "level",
+        "lit",
+        "maxheight",
+        "maxlength",
+        "maxwidth",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/lounger",
+      "key": "amenity",
+      "value": "lounger",
+      "name": "amenity/lounger",
+      "terms": [],
+      "presets": [
+        "material",
+        "colour",
+        "access",
+        "lit",
+        "height",
+        "inscription",
+        "level",
+        "manufacturer",
+        "operator",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/love_hotel",
+      "key": "amenity",
+      "value": "love_hotel",
+      "name": "amenity/love_hotel",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "rooms",
+        "min_age",
+        "smoking",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/luggage_locker",
+      "key": "amenity",
+      "value": "luggage_locker",
+      "name": "amenity/luggage_locker",
+      "terms": [],
+      "presets": [
+        "operator",
+        "indoor",
+        "covered",
+        "fee",
+        "payment:",
+        "charge",
+        "opening_hours",
+        "ref",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/monastery",
+      "key": "amenity",
+      "value": "monastery",
+      "name": "amenity/monastery",
+      "terms": [],
+      "presets": [
+        "religion",
+        "denomination",
+        "addr",
+        "gnis:feature_id",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/money_transfer",
+      "key": "amenity",
+      "value": "money_transfer",
+      "name": "amenity/money_transfer",
+      "terms": [],
+      "presets": [
+        "brand",
+        "addr",
+        "building",
+        "opening_hours",
+        "payment:",
+        "currency:",
+        "branch",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/mortuary",
+      "key": "amenity",
+      "value": "mortuary",
+      "name": "amenity/mortuary",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "religion",
+        "denomination",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/motorcycle_parking",
+      "key": "amenity",
+      "value": "motorcycle_parking",
+      "name": "amenity/motorcycle_parking",
+      "terms": [],
+      "presets": [
+        "capacity",
+        "operator",
+        "covered",
+        "access",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/motorcycle_rental",
+      "key": "amenity",
+      "value": "motorcycle_rental",
+      "name": "amenity/motorcycle_rental",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "opening_hours",
+        "payment:",
+        "branch",
+        "brand",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/parcel_locker",
+      "key": "amenity",
+      "value": "parcel_locker",
+      "name": "amenity/parcel_locker",
+      "terms": [],
+      "presets": [
+        "operator",
+        "parcel_pickup",
+        "parcel_mail_in",
+        "opening_hours",
+        "payment:",
+        "ref",
+        "wheelchair",
+        "brand",
+        "collection_times",
+        "colour",
+        "indoor",
+        "surveillance",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/parking_entrance",
+      "key": "amenity",
+      "value": "parking_entrance",
+      "name": "amenity/parking_entrance",
+      "terms": [],
+      "presets": [
+        "parking",
+        "ref",
+        "access",
+        "addr",
+        "level",
+        "maxheight",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/parking_space",
+      "key": "amenity",
+      "value": "parking_space",
+      "name": "amenity/parking_space",
+      "terms": [],
+      "presets": [
+        "parking_space",
+        "capacity",
+        "access",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/payment_centre",
+      "key": "amenity",
+      "value": "payment_centre",
+      "name": "amenity/payment_centre",
+      "terms": [],
+      "presets": [
+        "brand",
+        "addr",
+        "building",
+        "opening_hours",
+        "payment:",
+        "branch",
+        "currency:",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/payment_terminal",
+      "key": "amenity",
+      "value": "payment_terminal",
+      "name": "amenity/payment_terminal",
+      "terms": [],
+      "presets": [
+        "brand",
+        "addr",
+        "opening_hours",
+        "payment:",
+        "branch",
+        "ref",
+        "covered",
+        "currency:",
+        "indoor",
+        "level",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/photo_booth",
+      "key": "amenity",
+      "value": "photo_booth",
+      "name": "amenity/photo_booth",
+      "terms": [],
+      "presets": [
+        "operator",
+        "payment:",
+        "wheelchair",
+        "branch",
+        "brand",
+        "indoor",
+        "level",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/planetarium",
+      "key": "amenity",
+      "value": "planetarium",
+      "name": "amenity/planetarium",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "air_conditioning",
+        "charge",
+        "fee",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/polling_station",
+      "key": "amenity",
+      "value": "polling_station",
+      "name": "amenity/polling_station",
+      "terms": [],
+      "presets": [
+        "ref",
+        "operator",
+        "addr",
+        "opening_hours",
+        "building",
+        "air_conditioning",
+        "gnis:feature_id",
+        "level",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/post_box",
+      "key": "amenity",
+      "value": "post_box",
+      "name": "amenity/post_box",
+      "terms": [],
+      "presets": [
+        "operator",
+        "collection_times",
+        "ref",
+        "post_box:type",
+        "royal_cypher",
+        "access",
+        "branch",
+        "brand",
+        "colour",
+        "covered",
+        "drive_through",
+        "height",
+        "indoor",
+        "level",
+        "manufacturer",
+        "material",
+        "support",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/post_depot",
+      "key": "amenity",
+      "value": "post_depot",
+      "name": "amenity/post_depot",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "phone",
+        "gnis:feature_id",
+        "opening_hours",
+        "wheelchair",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/prison",
+      "key": "amenity",
+      "value": "prison",
+      "name": "amenity/prison",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "gnis:feature_id",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/public_bath",
+      "key": "amenity",
+      "value": "public_bath",
+      "name": "amenity/public_bath",
+      "terms": [],
+      "presets": [
+        "bath:type",
+        "bath:open_air",
+        "addr",
+        "building",
+        "fee",
+        "charge",
+        "bath:sand_bath",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/public_bookcase",
+      "key": "amenity",
+      "value": "public_bookcase",
+      "name": "amenity/public_bookcase",
+      "terms": [],
+      "presets": [
+        "public_bookcase:type",
+        "operator",
+        "capacity",
+        "lit",
+        "access",
+        "addr",
+        "branch",
+        "books",
+        "brand",
+        "colour",
+        "covered",
+        "direction",
+        "email",
+        "height",
+        "indoor",
+        "level",
+        "location",
+        "opening_hours",
+        "phone",
+        "ref",
+        "support",
+        "wheelchair",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/ranger_station",
+      "key": "amenity",
+      "value": "ranger_station",
+      "name": "amenity/ranger_station",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "gnis:feature_id",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/refugee_site",
+      "key": "amenity",
+      "value": "refugee_site",
+      "name": "amenity/refugee_site",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "informal",
+        "start_date",
+        "capacity",
+        "population",
+        "population:date",
+        "source:population",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/research_institute",
+      "key": "amenity",
+      "value": "research_institute",
+      "name": "amenity/research_institute",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "addr",
+        "website",
+        "gnis:feature_id",
+        "toilets",
+        "toilets:wheelchair",
+        "toilets:menstrual_products",
+        "wheelchair",
+        "opening_hours",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/sanitary_dump_station",
+      "key": "amenity",
+      "value": "sanitary_dump_station",
+      "name": "amenity/sanitary_dump_station",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "water_point",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/shower",
+      "key": "amenity",
+      "value": "shower",
+      "name": "amenity/shower",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "supervised",
+        "building",
+        "hot_water",
+        "wheelchair",
+        "addr",
+        "male",
+        "level",
+        "operator",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/smoking_area",
+      "key": "amenity",
+      "value": "smoking_area",
+      "name": "amenity/smoking_area",
+      "terms": [],
+      "presets": [
+        "shelter",
+        "bin",
+        "bench",
+        "opening_hours",
+        "covered",
+        "level",
+        "lit",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/social_centre",
+      "key": "amenity",
+      "value": "social_centre",
+      "name": "amenity/social_centre",
+      "terms": [],
+      "presets": [
+        "brand",
+        "operator",
+        "operator:type",
+        "addr",
+        "building",
+        "air_conditioning",
+        "baby_feeding",
+        "branch",
+        "polling_station",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/stripclub",
+      "key": "amenity",
+      "value": "stripclub",
+      "name": "amenity/stripclub",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "min_age",
+        "smoking",
+        "air_conditioning",
+        "fee",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/studio",
+      "key": "amenity",
+      "value": "studio",
+      "name": "amenity/studio",
+      "terms": [],
+      "presets": [
+        "studio",
+        "addr",
+        "building",
+        "website",
+        "gnis:feature_id",
+        "level",
+        "wheelchair",
+        "opening_hours",
+        "phone"
+      ]
+    },
+    {
+      "id": "amenity/swingerclub",
+      "key": "amenity",
+      "value": "swingerclub",
+      "name": "amenity/swingerclub",
+      "terms": [],
+      "presets": [
+        "smoking",
+        "air_conditioning",
+        "fee",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/ticket_validator",
+      "key": "amenity",
+      "value": "ticket_validator",
+      "name": "amenity/ticket_validator",
+      "terms": [],
+      "presets": [
+        "ref",
+        "operator",
+        "colour",
+        "covered",
+        "indoor",
+        "level",
+        "model",
+        "support",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/toy_library",
+      "key": "amenity",
+      "value": "toy_library",
+      "name": "amenity/toy_library",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "level",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/trolley_bay",
+      "key": "amenity",
+      "value": "trolley_bay",
+      "name": "amenity/trolley_bay",
+      "terms": [],
+      "presets": [
+        "capacity",
+        "trolley:deposit",
+        "payment:",
+        "brand",
+        "covered",
+        "fee",
+        "indoor",
+        "opening_hours",
+        "operator",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/vacuum_cleaner",
+      "key": "amenity",
+      "value": "vacuum_cleaner",
+      "name": "amenity/vacuum_cleaner",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "covered",
+        "lit",
+        "branch",
+        "brand",
+        "manufacturer",
+        "opening_hours",
+        "ref:FR:SIRET",
+        "ref",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/vehicle_inspection",
+      "key": "amenity",
+      "value": "vehicle_inspection",
+      "name": "amenity/vehicle_inspection",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/vending_machine",
+      "key": "amenity",
+      "value": "vending_machine",
+      "name": "amenity/vending_machine",
+      "terms": [],
+      "presets": [
+        "vending",
+        "ref",
+        "operator",
+        "payment:",
+        "currency:",
+        "blind",
+        "branch",
+        "brand",
+        "covered",
+        "height",
+        "indoor",
+        "level",
+        "manufacturer",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/veterinary_pharmacy",
+      "key": "amenity",
+      "value": "veterinary_pharmacy",
+      "name": "amenity/veterinary_pharmacy",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/waste_disposal",
+      "key": "amenity",
+      "value": "waste_disposal",
+      "name": "amenity/waste_disposal",
+      "terms": [],
+      "presets": [
+        "operator",
+        "waste",
+        "collection_times",
+        "access",
+        "branch",
+        "brand",
+        "colour",
+        "height",
+        "manufacturer",
+        "material",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/waste_transfer_station",
+      "key": "amenity",
+      "value": "waste_transfer_station",
+      "name": "amenity/waste_transfer_station",
+      "terms": [],
+      "presets": [
+        "operator",
+        "operator:type",
+        "waste",
+        "addr",
+        "opening_hours",
+        "fee",
+        "payment:",
+        "charge",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/water_point",
+      "key": "amenity",
+      "value": "water_point",
+      "name": "amenity/water_point",
+      "terms": [],
+      "presets": [
+        "operator",
+        "access",
+        "fee",
+        "payment:",
+        "charge",
+        "opening_hours",
+        "covered",
+        "drinking_water",
+        "lit",
+        "ref",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/watering_place",
+      "key": "amenity",
+      "value": "watering_place",
+      "name": "amenity/watering_place",
+      "terms": [],
+      "presets": [
+        "operator",
+        "fee",
+        "payment:",
+        "charge",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "amenity/weighbridge",
+      "key": "amenity",
+      "value": "weighbridge",
+      "name": "amenity/weighbridge",
+      "terms": [],
+      "presets": [
+        "ref",
+        "operator",
+        "access",
+        "maxweight",
+        "addr",
+        "colour",
+        "lit",
+        "manufacturer",
+        "material",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/shoemaker",
+      "key": "craft",
+      "value": "shoemaker",
+      "name": "Мастерская по ремонту обуви",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/brewery",
+      "key": "craft",
+      "value": "brewery",
+      "name": "Пивоварня",
+      "terms": [],
+      "presets": [
+        "product",
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/plumber",
+      "key": "craft",
+      "value": "plumber",
+      "name": "Сантехник",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/carpenter",
+      "key": "craft",
+      "value": "carpenter",
+      "name": "Столярная мастерская",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/photographer",
+      "key": "craft",
+      "value": "photographer",
+      "name": "Фотостудия",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/watchmaker",
+      "key": "craft",
+      "value": "watchmaker",
+      "name": "Часовая мастерская",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/electrician",
+      "key": "craft",
+      "value": "electrician",
+      "name": "Электрик",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/agricultural_engines",
+      "key": "craft",
+      "value": "agricultural_engines",
+      "name": "craft/agricultural_engines",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/basket_maker",
+      "key": "craft",
+      "value": "basket_maker",
+      "name": "craft/basket_maker",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/beekeeper",
+      "key": "craft",
+      "value": "beekeeper",
+      "name": "craft/beekeeper",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/blacksmith",
+      "key": "craft",
+      "value": "blacksmith",
+      "name": "craft/blacksmith",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/boatbuilder",
+      "key": "craft",
+      "value": "boatbuilder",
+      "name": "craft/boatbuilder",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/bookbinder",
+      "key": "craft",
+      "value": "bookbinder",
+      "name": "craft/bookbinder",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/carpet_layer",
+      "key": "craft",
+      "value": "carpet_layer",
+      "name": "craft/carpet_layer",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/caterer",
+      "key": "craft",
+      "value": "caterer",
+      "name": "craft/caterer",
+      "terms": [],
+      "presets": [
+        "cuisine",
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/chimney_sweeper",
+      "key": "craft",
+      "value": "chimney_sweeper",
+      "name": "craft/chimney_sweeper",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/cleaning",
+      "key": "craft",
+      "value": "cleaning",
+      "name": "craft/cleaning",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/clockmaker",
+      "key": "craft",
+      "value": "clockmaker",
+      "name": "craft/clockmaker",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/confectionery",
+      "key": "craft",
+      "value": "confectionery",
+      "name": "craft/confectionery",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/distillery",
+      "key": "craft",
+      "value": "distillery",
+      "name": "craft/distillery",
+      "terms": [],
+      "presets": [
+        "product",
+        "fhrs:id",
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/dressmaker",
+      "key": "craft",
+      "value": "dressmaker",
+      "name": "craft/dressmaker",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/electronics_repair",
+      "key": "craft",
+      "value": "electronics_repair",
+      "name": "craft/electronics_repair",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/floorer",
+      "key": "craft",
+      "value": "floorer",
+      "name": "craft/floorer",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/gardener",
+      "key": "craft",
+      "value": "gardener",
+      "name": "craft/gardener",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/glaziery",
+      "key": "craft",
+      "value": "glaziery",
+      "name": "craft/glaziery",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/handicraft",
+      "key": "craft",
+      "value": "handicraft",
+      "name": "craft/handicraft",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/hvac",
+      "key": "craft",
+      "value": "hvac",
+      "name": "craft/hvac",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/insulation",
+      "key": "craft",
+      "value": "insulation",
+      "name": "craft/insulation",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/joiner",
+      "key": "craft",
+      "value": "joiner",
+      "name": "craft/joiner",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/key_cutter",
+      "key": "craft",
+      "value": "key_cutter",
+      "name": "craft/key_cutter",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/metal_construction",
+      "key": "craft",
+      "value": "metal_construction",
+      "name": "craft/metal_construction",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/painter",
+      "key": "craft",
+      "value": "painter",
+      "name": "craft/painter",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/parquet_layer",
+      "key": "craft",
+      "value": "parquet_layer",
+      "name": "craft/parquet_layer",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/photographic_laboratory",
+      "key": "craft",
+      "value": "photographic_laboratory",
+      "name": "craft/photographic_laboratory",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/plasterer",
+      "key": "craft",
+      "value": "plasterer",
+      "name": "craft/plasterer",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/pottery",
+      "key": "craft",
+      "value": "pottery",
+      "name": "craft/pottery",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/rigger",
+      "key": "craft",
+      "value": "rigger",
+      "name": "craft/rigger",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/roofer",
+      "key": "craft",
+      "value": "roofer",
+      "name": "craft/roofer",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/saddler",
+      "key": "craft",
+      "value": "saddler",
+      "name": "craft/saddler",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/sailmaker",
+      "key": "craft",
+      "value": "sailmaker",
+      "name": "craft/sailmaker",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/sawmill",
+      "key": "craft",
+      "value": "sawmill",
+      "name": "craft/sawmill",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/scaffolder",
+      "key": "craft",
+      "value": "scaffolder",
+      "name": "craft/scaffolder",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/sculptor",
+      "key": "craft",
+      "value": "sculptor",
+      "name": "craft/sculptor",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/signmaker",
+      "key": "craft",
+      "value": "signmaker",
+      "name": "craft/signmaker",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/stonemason",
+      "key": "craft",
+      "value": "stonemason",
+      "name": "craft/stonemason",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/tiler",
+      "key": "craft",
+      "value": "tiler",
+      "name": "craft/tiler",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/tinsmith",
+      "key": "craft",
+      "value": "tinsmith",
+      "name": "craft/tinsmith",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/upholsterer",
+      "key": "craft",
+      "value": "upholsterer",
+      "name": "craft/upholsterer",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/window_construction",
+      "key": "craft",
+      "value": "window_construction",
+      "name": "craft/window_construction",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "craft/winery",
+      "key": "craft",
+      "value": "winery",
+      "name": "craft/winery",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/midwife",
+      "key": "healthcare",
+      "value": "midwife",
+      "name": "Акушерка",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/alternative",
+      "key": "healthcare",
+      "value": "alternative",
+      "name": "Альтернативная медицина",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/audiologist",
+      "key": "healthcare",
+      "value": "audiologist",
+      "name": "Аудиолог",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/dialysis",
+      "key": "healthcare",
+      "value": "dialysis",
+      "name": "Диализный центр",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/speech_therapist",
+      "key": "healthcare",
+      "value": "speech_therapist",
+      "name": "Логопед",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/laboratory",
+      "key": "healthcare",
+      "value": "laboratory",
+      "name": "Медицинская лаборатория",
+      "terms": [],
+      "presets": [
+        "operator",
+        "healthcare:speciality",
+        "website",
+        "phone",
+        "ref",
+        "addr",
+        "opening_hours"
+      ]
+    },
+    {
+      "id": "healthcare/optometrist",
+      "key": "healthcare",
+      "value": "optometrist",
+      "name": "Оптометрист",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/podiatrist",
+      "key": "healthcare",
+      "value": "podiatrist",
+      "name": "Подолог",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/counselling",
+      "key": "healthcare",
+      "value": "counselling",
+      "name": "Психологическое консультирование",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/psychotherapist",
+      "key": "healthcare",
+      "value": "psychotherapist",
+      "name": "Психотерапевт",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/sample_collection",
+      "key": "healthcare",
+      "value": "sample_collection",
+      "name": "Пункт забора анализов",
+      "terms": [],
+      "presets": [
+        "sample_collection",
+        "operator",
+        "website",
+        "phone",
+        "addr",
+        "opening_hours"
+      ]
+    },
+    {
+      "id": "healthcare/blood_donation",
+      "key": "healthcare",
+      "value": "blood_donation",
+      "name": "Пункт сдачи крови",
+      "terms": [],
+      "presets": [
+        "blood:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/rehabilitation",
+      "key": "healthcare",
+      "value": "rehabilitation",
+      "name": "Реабилитационный центр",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/birthing_centre",
+      "key": "healthcare",
+      "value": "birthing_centre",
+      "name": "Родильный центр",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/physiotherapist",
+      "key": "healthcare",
+      "value": "physiotherapist",
+      "name": "Физиотерапия",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/hospice",
+      "key": "healthcare",
+      "value": "hospice",
+      "name": "Хоспис",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "healthcare/occupational_therapist",
+      "key": "healthcare",
+      "value": "occupational_therapist",
+      "name": "Эрготерапевт",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "public_transport/stop_position",
+      "key": "public_transport",
+      "value": "stop_position",
+      "name": "Остановка (узел)",
+      "terms": [],
+      "presets": [
+        "ref",
+        "network",
+        "operator",
+        "bus",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "public_transport/platform",
+      "key": "public_transport",
+      "value": "platform",
+      "name": "Платформа / Остановка",
+      "terms": [],
+      "presets": [
+        "ref",
+        "network",
+        "operator",
+        "bus",
+        "departures_board",
+        "shelter",
+        "bench",
+        "bin",
+        "gnis:feature_id",
+        "level",
+        "lit",
+        "tactile_paving",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "public_transport/platform",
+      "key": "public_transport",
+      "value": "platform",
+      "name": "Платформа / Остановка",
+      "terms": [],
+      "presets": [
+        "ref",
+        "network",
+        "operator",
+        "bus",
+        "departures_board",
+        "surface",
+        "access",
+        "covered",
+        "indoor",
+        "layer",
+        "level",
+        "lit",
+        "wheelchair",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "public_transport/station",
+      "key": "public_transport",
+      "value": "station",
+      "name": "Станция",
+      "terms": [],
+      "presets": [
+        "network",
+        "operator",
+        "bus",
+        "addr",
+        "building",
+        "opening_hours",
+        "air_conditioning",
+        "baby_feeding",
+        "changing_table",
+        "gnis:feature_id",
+        "level",
+        "toilets",
+        "toilets:wheelchair",
+        "toilets:menstrual_products",
+        "wheelchair",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/car_parts",
+      "key": "shop",
+      "value": "car_parts",
+      "name": "Автозапчасти",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/car",
+      "key": "shop",
+      "value": "car",
+      "name": "Автосалон",
+      "terms": [],
+      "presets": [
+        "brand",
+        "second_hand",
+        "service:vehicle:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/alcohol",
+      "key": "shop",
+      "value": "alcohol",
+      "name": "Алкомаркет",
+      "terms": [],
+      "presets": [
+        "drive_through",
+        "opening_hours:drive_through",
+        "fhrs:id",
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/bicycle",
+      "key": "shop",
+      "value": "bicycle",
+      "name": "Велосипедный магазин",
+      "terms": [],
+      "presets": [
+        "service:bicycle:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/pet",
+      "key": "shop",
+      "value": "pet",
+      "name": "Зоомагазин",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/toys",
+      "key": "shop",
+      "value": "toys",
+      "name": "Игрушки",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/kiosk",
+      "key": "shop",
+      "value": "kiosk",
+      "name": "Киоск",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/books",
+      "key": "shop",
+      "value": "books",
+      "name": "Книги",
+      "terms": [],
+      "presets": [
+        "books",
+        "internet_access",
+        "internet_access:fee",
+        "internet_access:ssid",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/computer",
+      "key": "shop",
+      "value": "computer",
+      "name": "Компьютеры",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/furniture",
+      "key": "shop",
+      "value": "furniture",
+      "name": "Мебель",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/mobile_phone",
+      "key": "shop",
+      "value": "mobile_phone",
+      "name": "Мобильные телефоны",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/butcher",
+      "key": "shop",
+      "value": "butcher",
+      "name": "Мясная лавка",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/shoes",
+      "key": "shop",
+      "value": "shoes",
+      "name": "Обувь",
+      "terms": [],
+      "presets": [
+        "shoes",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/greengrocer",
+      "key": "shop",
+      "value": "greengrocer",
+      "name": "Овощная лавка",
+      "terms": [],
+      "presets": [
+        "organic",
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/clothes",
+      "key": "shop",
+      "value": "clothes",
+      "name": "Одежда",
+      "terms": [],
+      "presets": [
+        "clothes",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/optician",
+      "key": "shop",
+      "value": "optician",
+      "name": "Оптика",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/hairdresser",
+      "key": "shop",
+      "value": "hairdresser",
+      "name": "Парикмахерская",
+      "terms": [],
+      "presets": [
+        "operator",
+        "addr",
+        "building",
+        "opening_hours",
+        "payment:",
+        "phone",
+        "female",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/bakery",
+      "key": "shop",
+      "value": "bakery",
+      "name": "Пекарня",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/gift",
+      "key": "shop",
+      "value": "gift",
+      "name": "Подарки / Сувениры",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/laundry",
+      "key": "shop",
+      "value": "laundry",
+      "name": "Прачечная",
+      "terms": [],
+      "presets": [
+        "self_service",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/convenience",
+      "key": "shop",
+      "value": "convenience",
+      "name": "Продуктовый магазин",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "organic",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/beauty",
+      "key": "shop",
+      "value": "beauty",
+      "name": "Салон красоты",
+      "terms": [],
+      "presets": [
+        "beauty",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/sports",
+      "key": "shop",
+      "value": "sports",
+      "name": "Спортивные товары",
+      "terms": [],
+      "presets": [
+        "operator",
+        "sport",
+        "service:bicycle:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/supermarket",
+      "key": "shop",
+      "value": "supermarket",
+      "name": "Супермаркет",
+      "terms": [],
+      "presets": [
+        "self_checkout",
+        "diet:",
+        "fhrs:id",
+        "organic",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/tobacco",
+      "key": "shop",
+      "value": "tobacco",
+      "name": "Табак",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/mall",
+      "key": "shop",
+      "value": "mall",
+      "name": "Торговый центр",
+      "terms": [],
+      "presets": [
+        "baby_feeding",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/travel_agency",
+      "key": "shop",
+      "value": "travel_agency",
+      "name": "Турагентство",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/dry_cleaning",
+      "key": "shop",
+      "value": "dry_cleaning",
+      "name": "Химчистка",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/hardware",
+      "key": "shop",
+      "value": "hardware",
+      "name": "Хозяйственный магазин",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/florist",
+      "key": "shop",
+      "value": "florist",
+      "name": "Цветы",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/electronics",
+      "key": "shop",
+      "value": "electronics",
+      "name": "Электроника",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/jewelry",
+      "key": "shop",
+      "value": "jewelry",
+      "name": "Ювелирный магазин",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/agrarian",
+      "key": "shop",
+      "value": "agrarian",
+      "name": "shop/agrarian",
+      "terms": [],
+      "presets": [
+        "agrarian",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/anime",
+      "key": "shop",
+      "value": "anime",
+      "name": "shop/anime",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/antiques",
+      "key": "shop",
+      "value": "antiques",
+      "name": "shop/antiques",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/appliance",
+      "key": "shop",
+      "value": "appliance",
+      "name": "shop/appliance",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/art",
+      "key": "shop",
+      "value": "art",
+      "name": "shop/art",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/baby_goods",
+      "key": "shop",
+      "value": "baby_goods",
+      "name": "shop/baby_goods",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/bag",
+      "key": "shop",
+      "value": "bag",
+      "name": "shop/bag",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/bathroom_furnishing",
+      "key": "shop",
+      "value": "bathroom_furnishing",
+      "name": "shop/bathroom_furnishing",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/bbq",
+      "key": "shop",
+      "value": "bbq",
+      "name": "shop/bbq",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/bed",
+      "key": "shop",
+      "value": "bed",
+      "name": "shop/bed",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/beverages",
+      "key": "shop",
+      "value": "beverages",
+      "name": "shop/beverages",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/boat",
+      "key": "shop",
+      "value": "boat",
+      "name": "shop/boat",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/bookmaker",
+      "key": "shop",
+      "value": "bookmaker",
+      "name": "shop/bookmaker",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/brewing_supplies",
+      "key": "shop",
+      "value": "brewing_supplies",
+      "name": "shop/brewing_supplies",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/camera",
+      "key": "shop",
+      "value": "camera",
+      "name": "shop/camera",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/candles",
+      "key": "shop",
+      "value": "candles",
+      "name": "shop/candles",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/cannabis",
+      "key": "shop",
+      "value": "cannabis",
+      "name": "shop/cannabis",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/car_repair",
+      "key": "shop",
+      "value": "car_repair",
+      "name": "shop/car_repair",
+      "terms": [],
+      "presets": [
+        "service:vehicle:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/caravan",
+      "key": "shop",
+      "value": "caravan",
+      "name": "shop/caravan",
+      "terms": [],
+      "presets": [
+        "brand",
+        "second_hand",
+        "service:vehicle:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/carpet",
+      "key": "shop",
+      "value": "carpet",
+      "name": "shop/carpet",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/catalogue",
+      "key": "shop",
+      "value": "catalogue",
+      "name": "shop/catalogue",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/charity",
+      "key": "shop",
+      "value": "charity",
+      "name": "shop/charity",
+      "terms": [],
+      "presets": [
+        "second_hand",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/cheese",
+      "key": "shop",
+      "value": "cheese",
+      "name": "shop/cheese",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/chemist",
+      "key": "shop",
+      "value": "chemist",
+      "name": "shop/chemist",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/chocolate",
+      "key": "shop",
+      "value": "chocolate",
+      "name": "shop/chocolate",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/coffee",
+      "key": "shop",
+      "value": "coffee",
+      "name": "shop/coffee",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/collector",
+      "key": "shop",
+      "value": "collector",
+      "name": "shop/collector",
+      "terms": [],
+      "presets": [
+        "collector",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/confectionery",
+      "key": "shop",
+      "value": "confectionery",
+      "name": "shop/confectionery",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/copyshop",
+      "key": "shop",
+      "value": "copyshop",
+      "name": "shop/copyshop",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/cosmetics",
+      "key": "shop",
+      "value": "cosmetics",
+      "name": "shop/cosmetics",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/country_store",
+      "key": "shop",
+      "value": "country_store",
+      "name": "shop/country_store",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/craft",
+      "key": "shop",
+      "value": "craft",
+      "name": "shop/craft",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/curtain",
+      "key": "shop",
+      "value": "curtain",
+      "name": "shop/curtain",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/dairy",
+      "key": "shop",
+      "value": "dairy",
+      "name": "shop/dairy",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/deli",
+      "key": "shop",
+      "value": "deli",
+      "name": "shop/deli",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/department_store",
+      "key": "shop",
+      "value": "department_store",
+      "name": "shop/department_store",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/doityourself",
+      "key": "shop",
+      "value": "doityourself",
+      "name": "shop/doityourself",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/doors",
+      "key": "shop",
+      "value": "doors",
+      "name": "shop/doors",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/e-cigarette",
+      "key": "shop",
+      "value": "e-cigarette",
+      "name": "shop/e-cigarette",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/electrical",
+      "key": "shop",
+      "value": "electrical",
+      "name": "shop/electrical",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/erotic",
+      "key": "shop",
+      "value": "erotic",
+      "name": "shop/erotic",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/esoteric",
+      "key": "shop",
+      "value": "esoteric",
+      "name": "shop/esoteric",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/fabric",
+      "key": "shop",
+      "value": "fabric",
+      "name": "shop/fabric",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/farm",
+      "key": "shop",
+      "value": "farm",
+      "name": "shop/farm",
+      "terms": [],
+      "presets": [
+        "organic",
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/fashion_accessories",
+      "key": "shop",
+      "value": "fashion_accessories",
+      "name": "shop/fashion_accessories",
+      "terms": [],
+      "presets": [
+        "clothes",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/fireplace",
+      "key": "shop",
+      "value": "fireplace",
+      "name": "shop/fireplace",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/fishing",
+      "key": "shop",
+      "value": "fishing",
+      "name": "shop/fishing",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/flooring",
+      "key": "shop",
+      "value": "flooring",
+      "name": "shop/flooring",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/frame",
+      "key": "shop",
+      "value": "frame",
+      "name": "shop/frame",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/frozen_food",
+      "key": "shop",
+      "value": "frozen_food",
+      "name": "shop/frozen_food",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/fuel",
+      "key": "shop",
+      "value": "fuel",
+      "name": "shop/fuel",
+      "terms": [],
+      "presets": [
+        "fuel:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/funeral_directors",
+      "key": "shop",
+      "value": "funeral_directors",
+      "name": "shop/funeral_directors",
+      "terms": [],
+      "presets": [
+        "religion",
+        "denomination",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/games",
+      "key": "shop",
+      "value": "games",
+      "name": "shop/games",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/garden_centre",
+      "key": "shop",
+      "value": "garden_centre",
+      "name": "shop/garden_centre",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/gas",
+      "key": "shop",
+      "value": "gas",
+      "name": "shop/gas",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/general",
+      "key": "shop",
+      "value": "general",
+      "name": "shop/general",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/gold_buyer",
+      "key": "shop",
+      "value": "gold_buyer",
+      "name": "shop/gold_buyer",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/groundskeeping",
+      "key": "shop",
+      "value": "groundskeeping",
+      "name": "shop/groundskeeping",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/hairdresser_supply",
+      "key": "shop",
+      "value": "hairdresser_supply",
+      "name": "shop/hairdresser_supply",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/health_food",
+      "key": "shop",
+      "value": "health_food",
+      "name": "shop/health_food",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/hearing_aids",
+      "key": "shop",
+      "value": "hearing_aids",
+      "name": "shop/hearing_aids",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/herbalist",
+      "key": "shop",
+      "value": "herbalist",
+      "name": "shop/herbalist",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/hifi",
+      "key": "shop",
+      "value": "hifi",
+      "name": "shop/hifi",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/honey",
+      "key": "shop",
+      "value": "honey",
+      "name": "shop/honey",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/household_linen",
+      "key": "shop",
+      "value": "household_linen",
+      "name": "shop/household_linen",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/houseware",
+      "key": "shop",
+      "value": "houseware",
+      "name": "shop/houseware",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/hunting",
+      "key": "shop",
+      "value": "hunting",
+      "name": "shop/hunting",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/interior_decoration",
+      "key": "shop",
+      "value": "interior_decoration",
+      "name": "shop/interior_decoration",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/kitchen",
+      "key": "shop",
+      "value": "kitchen",
+      "name": "shop/kitchen",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/leather",
+      "key": "shop",
+      "value": "leather",
+      "name": "shop/leather",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/lighting",
+      "key": "shop",
+      "value": "lighting",
+      "name": "shop/lighting",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/locksmith",
+      "key": "shop",
+      "value": "locksmith",
+      "name": "shop/locksmith",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/lottery",
+      "key": "shop",
+      "value": "lottery",
+      "name": "shop/lottery",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/massage",
+      "key": "shop",
+      "value": "massage",
+      "name": "shop/massage",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/medical_supply",
+      "key": "shop",
+      "value": "medical_supply",
+      "name": "shop/medical_supply",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/military_surplus",
+      "key": "shop",
+      "value": "military_surplus",
+      "name": "shop/military_surplus",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/mobile_phone_accessories",
+      "key": "shop",
+      "value": "mobile_phone_accessories",
+      "name": "shop/mobile_phone_accessories",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/model",
+      "key": "shop",
+      "value": "model",
+      "name": "shop/model",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/money_lender",
+      "key": "shop",
+      "value": "money_lender",
+      "name": "shop/money_lender",
+      "terms": [],
+      "presets": [
+        "currency:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/motorcycle",
+      "key": "shop",
+      "value": "motorcycle",
+      "name": "shop/motorcycle",
+      "terms": [],
+      "presets": [
+        "brand",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/motorcycle_repair",
+      "key": "shop",
+      "value": "motorcycle_repair",
+      "name": "shop/motorcycle_repair",
+      "terms": [],
+      "presets": [
+        "service:vehicle:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/music",
+      "key": "shop",
+      "value": "music",
+      "name": "shop/music",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/musical_instrument",
+      "key": "shop",
+      "value": "musical_instrument",
+      "name": "shop/musical_instrument",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/newsagent",
+      "key": "shop",
+      "value": "newsagent",
+      "name": "shop/newsagent",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/nutrition_supplements",
+      "key": "shop",
+      "value": "nutrition_supplements",
+      "name": "shop/nutrition_supplements",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/nuts",
+      "key": "shop",
+      "value": "nuts",
+      "name": "shop/nuts",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/outdoor",
+      "key": "shop",
+      "value": "outdoor",
+      "name": "shop/outdoor",
+      "terms": [],
+      "presets": [
+        "clothes",
+        "service:bicycle:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/outpost",
+      "key": "shop",
+      "value": "outpost",
+      "name": "shop/outpost",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/paint",
+      "key": "shop",
+      "value": "paint",
+      "name": "shop/paint",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/party",
+      "key": "shop",
+      "value": "party",
+      "name": "shop/party",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/pasta",
+      "key": "shop",
+      "value": "pasta",
+      "name": "shop/pasta",
+      "terms": [],
+      "presets": [
+        "addr",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/pastry",
+      "key": "shop",
+      "value": "pastry",
+      "name": "shop/pastry",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/pawnbroker",
+      "key": "shop",
+      "value": "pawnbroker",
+      "name": "shop/pawnbroker",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/perfumery",
+      "key": "shop",
+      "value": "perfumery",
+      "name": "shop/perfumery",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/pet_grooming",
+      "key": "shop",
+      "value": "pet_grooming",
+      "name": "shop/pet_grooming",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/photo",
+      "key": "shop",
+      "value": "photo",
+      "name": "shop/photo",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/piercing",
+      "key": "shop",
+      "value": "piercing",
+      "name": "shop/piercing",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/pottery",
+      "key": "shop",
+      "value": "pottery",
+      "name": "shop/pottery",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/printer_ink",
+      "key": "shop",
+      "value": "printer_ink",
+      "name": "shop/printer_ink",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/psychic",
+      "key": "shop",
+      "value": "psychic",
+      "name": "shop/psychic",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/pyrotechnics",
+      "key": "shop",
+      "value": "pyrotechnics",
+      "name": "shop/pyrotechnics",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/radiotechnics",
+      "key": "shop",
+      "value": "radiotechnics",
+      "name": "shop/radiotechnics",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/religion",
+      "key": "shop",
+      "value": "religion",
+      "name": "shop/religion",
+      "terms": [],
+      "presets": [
+        "religion",
+        "denomination",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/rental",
+      "key": "shop",
+      "value": "rental",
+      "name": "shop/rental",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/repair",
+      "key": "shop",
+      "value": "repair",
+      "name": "shop/repair",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/rice",
+      "key": "shop",
+      "value": "rice",
+      "name": "shop/rice",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/scuba_diving",
+      "key": "shop",
+      "value": "scuba_diving",
+      "name": "shop/scuba_diving",
+      "terms": [],
+      "presets": [
+        "scuba_diving:",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/seafood",
+      "key": "shop",
+      "value": "seafood",
+      "name": "shop/seafood",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/second_hand",
+      "key": "shop",
+      "value": "second_hand",
+      "name": "shop/second_hand",
+      "terms": [],
+      "presets": [
+        "second_hand",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/sewing",
+      "key": "shop",
+      "value": "sewing",
+      "name": "shop/sewing",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/shoe_repair",
+      "key": "shop",
+      "value": "shoe_repair",
+      "name": "shop/shoe_repair",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/spices",
+      "key": "shop",
+      "value": "spices",
+      "name": "shop/spices",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/stationery",
+      "key": "shop",
+      "value": "stationery",
+      "name": "shop/stationery",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/storage_rental",
+      "key": "shop",
+      "value": "storage_rental",
+      "name": "shop/storage_rental",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/swimming_pool",
+      "key": "shop",
+      "value": "swimming_pool",
+      "name": "shop/swimming_pool",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/tailor",
+      "key": "shop",
+      "value": "tailor",
+      "name": "shop/tailor",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/tattoo",
+      "key": "shop",
+      "value": "tattoo",
+      "name": "shop/tattoo",
+      "terms": [],
+      "presets": [
+        "piercing",
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/tea",
+      "key": "shop",
+      "value": "tea",
+      "name": "shop/tea",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/telecommunication",
+      "key": "shop",
+      "value": "telecommunication",
+      "name": "shop/telecommunication",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/ticket",
+      "key": "shop",
+      "value": "ticket",
+      "name": "shop/ticket",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/tiles",
+      "key": "shop",
+      "value": "tiles",
+      "name": "shop/tiles",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/tool_hire",
+      "key": "shop",
+      "value": "tool_hire",
+      "name": "shop/tool_hire",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/trade",
+      "key": "shop",
+      "value": "trade",
+      "name": "shop/trade",
+      "terms": [],
+      "presets": [
+        "trade",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/trophy",
+      "key": "shop",
+      "value": "trophy",
+      "name": "shop/trophy",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/tyres",
+      "key": "shop",
+      "value": "tyres",
+      "name": "shop/tyres",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/vacant",
+      "key": "shop",
+      "value": "vacant",
+      "name": "shop/vacant",
+      "terms": [],
+      "presets": [
+        "addr",
+        "building",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/vacuum_cleaner",
+      "key": "shop",
+      "value": "vacuum_cleaner",
+      "name": "shop/vacuum_cleaner",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/variety_store",
+      "key": "shop",
+      "value": "variety_store",
+      "name": "shop/variety_store",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/video",
+      "key": "shop",
+      "value": "video",
+      "name": "shop/video",
+      "terms": [],
+      "presets": [
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/video_games",
+      "key": "shop",
+      "value": "video_games",
+      "name": "shop/video_games",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/watches",
+      "key": "shop",
+      "value": "watches",
+      "name": "shop/watches",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/water",
+      "key": "shop",
+      "value": "water",
+      "name": "shop/water",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/water_sports",
+      "key": "shop",
+      "value": "water_sports",
+      "name": "shop/water_sports",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/weapons",
+      "key": "shop",
+      "value": "weapons",
+      "name": "shop/weapons",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/wholesale",
+      "key": "shop",
+      "value": "wholesale",
+      "name": "shop/wholesale",
+      "terms": [],
+      "presets": [
+        "wholesale",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/wigs",
+      "key": "shop",
+      "value": "wigs",
+      "name": "shop/wigs",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/window_blind",
+      "key": "shop",
+      "value": "window_blind",
+      "name": "shop/window_blind",
+      "terms": [],
+      "presets": [
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    },
+    {
+      "id": "shop/wine",
+      "key": "shop",
+      "value": "wine",
+      "name": "shop/wine",
+      "terms": [],
+      "presets": [
+        "fhrs:id",
+        "min_age",
+        "opening_hours",
+        "phone",
+        "website"
+      ]
+    }
+  ]
+}
