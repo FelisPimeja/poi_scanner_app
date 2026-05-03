@@ -72,20 +72,8 @@ struct POIEditorView: View {
     @State private var coordUndoStack: [POI.Coordinate] = []
     @State private var coordRedoStack: [POI.Coordinate] = []
 
-    // Merge-режим: отдельные стеки для (diffEntries + placeholders)
-    private struct MergeSnapshot: Equatable {
-        var diffEntries: [TagDiffEntry]
-        var placeholders: [String: String]
-    }
-    @State private var mergeUndoStack: [MergeSnapshot] = []
-    @State private var mergeRedoStack: [MergeSnapshot] = []
-
-    private var canUndo: Bool {
-        isMergeMode ? mergeUndoStack.count >= 2 : undoStack.count >= 2
-    }
-    private var canRedo: Bool {
-        isMergeMode ? !mergeRedoStack.isEmpty : !redoStack.isEmpty
-    }
+    private var canUndo: Bool { undoStack.count >= 2 }
+    private var canRedo: Bool { !redoStack.isEmpty }
 
     // MARK: - Duplicate search (new mode only)
 
@@ -93,13 +81,10 @@ struct POIEditorView: View {
     @State private var isCheckingDuplicates = false
     @State private var selectedDuplicate: DuplicateCandidate? = nil
     @State private var isMergeMode = false
-    @State private var diffEntries: [TagDiffEntry] = []
-    @State private var mergePlaceholderTags: [String: String] = [:]
     @State private var originalExtractedTags: [String: String] = [:]
     @State private var originalCoordinate: POI.Coordinate? = nil
 
-    // MARK: - New edit ViewModel (Фаза 3)
-    // Параллельно со старым merge-режимом. Активируется когда есть кандидаты из внешних источников.
+    // MARK: - Edit ViewModel
     @State private var editVM: POIEditViewModel? = nil
 
     /// True когда editVM активен и имеет хотя бы одного кандидата.
@@ -245,8 +230,6 @@ struct POIEditorView: View {
                 updatePresetsOnTypeChange(old: old, new: new)
                 scheduleTypeBasedDuplicateSearch()
             }
-            .onChange(of: diffEntries) { _, v in onDiffEntriesChange(v) }
-            .onChange(of: mergePlaceholderTags) { _, v in onPlaceholdersChange(v) }
             .alert("Ошибка загрузки", isPresented: $showUploadError) {
                 Button("Скопировать") { UIPasteboard.general.string = uploadError }
                 Button("OK", role: .cancel) {}
@@ -458,22 +441,6 @@ struct POIEditorView: View {
         }
     }
 
-    private func onDiffEntriesChange(_ newEntries: [TagDiffEntry]) {
-        guard isMergeMode else { return }
-        let snap = MergeSnapshot(diffEntries: newEntries, placeholders: mergePlaceholderTags)
-        guard snap != mergeUndoStack.last else { return }
-        mergeUndoStack.append(snap)
-        mergeRedoStack.removeAll()
-    }
-
-    private func onPlaceholdersChange(_ newPlaceholders: [String: String]) {
-        guard isMergeMode else { return }
-        let snap = MergeSnapshot(diffEntries: diffEntries, placeholders: newPlaceholders)
-        guard snap != mergeUndoStack.last else { return }
-        mergeUndoStack.append(snap)
-        mergeRedoStack.removeAll()
-    }
-
     // MARK: - Simplified tab content
 
     @ViewBuilder
@@ -497,7 +464,9 @@ struct POIEditorView: View {
         }
 
         if isMergeMode {
-            mergeDiffSection
+            if let vm = editVM {
+                tagGroupSectionsVM(vm: vm)
+            }
         } else {
             typeSection
             if useEditVM, let vm = editVM {
@@ -668,113 +637,6 @@ struct POIEditorView: View {
             }
         }
         .padding(.bottom, 6)
-    }
-
-    // MARK: - Merge diff section
-
-    @ViewBuilder
-    private var mergeDiffSection: some View {
-        if let candidate = selectedDuplicate {
-            Section {
-                HStack(spacing: 10) {
-                    Image(systemName: "arrow.triangle.merge")
-                        .foregroundStyle(Color.accentColor)
-                        .frame(width: 24)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Обновление: \(candidate.displayName)")
-                            .font(.subheadline.weight(.medium))
-                        Text(String(format: "OSM ID: %lld · %.0f м",
-                                    candidate.node.id, candidate.distance))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        }
-
-        let conflicts = diffEntries.filter { $0.kind == .conflict }
-        let newTags   = diffEntries.filter { $0.kind == .newTag }
-        let osmOnly   = diffEntries.filter { $0.kind == .osmOnly || $0.kind == .same }
-
-        if !conflicts.isEmpty {
-            Section(header: Text("Конфликты")) {
-                ForEach($diffEntries) { $entry in
-                    if entry.kind == .conflict {
-                        MergeTagRow(entry: $entry)
-                            .listRowSeparator(.hidden)
-                            .swipeActions(edge: .trailing) {
-                                Button {
-                                    entry.resolution = .useOSM
-                                } label: {
-                                    Label("Оставить OSM", systemImage: "xmark.circle")
-                                }
-                                .tint(.orange)
-                            }
-                    }
-                }
-            }
-        }
-        if !newTags.isEmpty {
-            Section(header: Text("Новые теги")) {
-                ForEach($diffEntries) { $entry in
-                    if entry.kind == .newTag {
-                        MergeTagRow(entry: $entry)
-                            .listRowSeparator(.hidden)
-                            .swipeActions(edge: .trailing) {
-                                Button {
-                                    entry.resolution = .keepOSM
-                                } label: {
-                                    Label("Не добавлять", systemImage: "xmark.circle")
-                                }
-                                .tint(.orange)
-                            }
-                    }
-                }
-            }
-        }
-        if !osmOnly.isEmpty {
-            Section(header: Text("Теги OSM (сохраняются)")) {
-                ForEach($diffEntries) { $entry in
-                    if entry.kind == .osmOnly || entry.kind == .same {
-                        MergeTagRow(entry: $entry)
-                            .listRowSeparator(.hidden)
-                            .swipeActions(edge: .trailing) {
-                                Button {
-                                    entry.resolution = .custom("")
-                                    entry.customEditText = ""
-                                } label: {
-                                    Label("Очистить", systemImage: "xmark.circle")
-                                }
-                                .tint(.orange)
-                            }
-                    }
-                }
-            }
-        }
-
-        // Плейсхолдеры: основные теги, отсутствующие в обоих источниках
-        let placeholderKeys = mergePlaceholderTags.keys.sorted { a, b in
-            let order = ["name", "opening_hours", "phone", "website",
-                         "addr:street", "addr:housenumber", "addr:city"]
-            let ai = order.firstIndex(of: a) ?? 999
-            let bi = order.firstIndex(of: b) ?? 999
-            return ai == bi ? a < b : ai < bi
-        }
-        if !placeholderKeys.isEmpty {
-            Section(header: Text("Дополнить")) {
-                ForEach(placeholderKeys, id: \.self) { key in
-                    OSMTagRow(
-                        tagKey: key,
-                        editableValue: Binding(
-                            get: { mergePlaceholderTags[key] ?? "" },
-                            set: { mergePlaceholderTags[key] = $0 }
-                        ),
-                        status: .manual
-                    )
-                    .listRowSeparator(.hidden)
-                }
-            }
-        }
     }
 
     // MARK: - Type section
@@ -1309,7 +1171,6 @@ struct POIEditorView: View {
                     // Пустые значения убираются в stripEmptyTags() перед сохранением.
                     poi.tags[key] = newVal
                     poi.fieldStatus[key] = .confirmed
-                    if isMergeMode { syncMergedTags() }
                 }
             ),
             status: poi.fieldStatus[key] ?? .manual,
@@ -1407,13 +1268,9 @@ struct POIEditorView: View {
 
     private func saveLocally() {
         if editTab == .tags { syncTagsFromPairs() }
-        syncMergedTags()
-        // Если активна новая VM — применяем её принятые значения поверх poi.tags
         if let vm = editVM {
             let exported = vm.exportTags()
-            for (key, value) in exported {
-                poi.tags[key] = value
-            }
+            for (key, value) in exported { poi.tags[key] = value }
         }
         stripEmptyTags()
         applyCheckDate()
@@ -1428,13 +1285,9 @@ struct POIEditorView: View {
     @MainActor
     private func uploadToOSM() async {
         if editTab == .tags { syncTagsFromPairs() }
-        syncMergedTags()
-        // Если активна новая VM — применяем её принятые значения поверх poi.tags
         if let vm = editVM {
             let exported = vm.exportTags()
-            for (key, value) in exported {
-                poi.tags[key] = value
-            }
+            for (key, value) in exported { poi.tags[key] = value }
         }
         stripEmptyTags()
         applyCheckDate()
@@ -1574,44 +1427,26 @@ struct POIEditorView: View {
     }
 
     private func undo() {
-        if isMergeMode {
-            guard mergeUndoStack.count >= 2 else { return }
-            let current = mergeUndoStack.removeLast()
-            mergeRedoStack.append(current)
-            let snap = mergeUndoStack.last!
-            diffEntries = snap.diffEntries
-            mergePlaceholderTags = snap.placeholders
-            syncMergedTags()
-        } else {
-            guard undoStack.count >= 2 else { return }
-            let currentTags = undoStack.removeLast()
-            let currentCoord = coordUndoStack.count > 1 ? coordUndoStack.removeLast() : nil
-            redoStack.append(currentTags)
-            if let currentCoord { coordRedoStack.append(currentCoord) }
-            poi.tags = undoStack.last ?? [:]
-            if let prevCoord = coordUndoStack.last {
-                poi.coordinate = prevCoord
-                onCoordinateChange()
-            }
+        guard undoStack.count >= 2 else { return }
+        let currentTags = undoStack.removeLast()
+        let currentCoord = coordUndoStack.count > 1 ? coordUndoStack.removeLast() : nil
+        redoStack.append(currentTags)
+        if let currentCoord { coordRedoStack.append(currentCoord) }
+        poi.tags = undoStack.last ?? [:]
+        if let prevCoord = coordUndoStack.last {
+            poi.coordinate = prevCoord
+            onCoordinateChange()
         }
     }
 
     private func redo() {
-        if isMergeMode {
-            guard let snap = mergeRedoStack.popLast() else { return }
-            mergeUndoStack.append(snap)
-            diffEntries = snap.diffEntries
-            mergePlaceholderTags = snap.placeholders
-            syncMergedTags()
-        } else {
-            guard let next = redoStack.popLast() else { return }
-            undoStack.append(next)
-            poi.tags = next
-            if let nextCoord = coordRedoStack.popLast() {
-                coordUndoStack.append(nextCoord)
-                poi.coordinate = nextCoord
-                onCoordinateChange()
-            }
+        guard let next = redoStack.popLast() else { return }
+        undoStack.append(next)
+        poi.tags = next
+        if let nextCoord = coordRedoStack.popLast() {
+            coordUndoStack.append(nextCoord)
+            poi.coordinate = nextCoord
+            onCoordinateChange()
         }
     }
 
@@ -1649,50 +1484,22 @@ struct POIEditorView: View {
 
     private func applyMerge(with candidate: DuplicateCandidate) {
         selectedDuplicate = candidate
-        // Фильтруем пустые значения — они были добавлены pre-populate'ом
-        // и не являются реальными данными из фото/OCR.
         originalExtractedTags = poi.tags.filter { !$0.value.isEmpty }
         originalCoordinate    = poi.coordinate
 
-        // Берём идентификаторы кандидата — нужны для upload
+        // Обновляем OSM-идентификаторы — нужны для upload
         poi.osmNodeId  = candidate.node.id
         poi.osmVersion = candidate.node.version
-        poi.osmType    = candidate.node.type   // сохраняем реальный тип: node/way/relation
+        poi.osmType    = candidate.node.type
         poi.coordinate = POI.Coordinate(
             latitude: candidate.node.latitude,
             longitude: candidate.node.longitude
         )
 
-        diffEntries = TagDiffEntry.build(
-            osmTags: candidate.node.tags,
-            extractedTags: originalExtractedTags
-        )
-
-        // Плейсхолдеры: важные теги, отсутствующие в обоих источниках
-        let coveredKeys = Set(diffEntries.map(\.key))
-        let aliasExpanded: Set<String> = Set(coveredKeys.flatMap { k -> [String] in
-            var a = [k]
-            if k.hasPrefix("contact:") { a.append(String(k.dropFirst(8))) }
-            else { a.append("contact:" + k) }
-            return a
-        })
-        let essentialKeys = ["name", "opening_hours", "phone", "website",
-                             "addr:street", "addr:housenumber", "addr:city"]
-        mergePlaceholderTags = [:]
-        for key in essentialKeys where !aliasExpanded.contains(key) {
-            mergePlaceholderTags[key] = ""
-        }
-
-        syncMergedTags()
-        // Инициализируем merge undo-стек начальным состоянием
-        mergeUndoStack = [MergeSnapshot(diffEntries: diffEntries, placeholders: mergePlaceholderTags)]
-        mergeRedoStack = []
-
-        // Новая VM: накладываем OSM baseline из ноды, кандидаты из внешних источников сохраняются
+        // VM: накладываем OSM baseline, кандидаты из внешних источников сохраняются
         if let vm = editVM {
             vm.applyOSMNode(candidate.node)
         } else {
-            // Если VM не была создана (нет webResults), создаём её сейчас из OSM + extractedTags
             let vm = POIEditViewModel(poi: poi)
             vm.applyWebResults(webResults)
             editVM = vm
@@ -1706,8 +1513,6 @@ struct POIEditorView: View {
         withAnimation {
             isMergeMode = false
             selectedDuplicate = nil
-            // Восстанавливаем теги из снимка (без пустышек),
-            // затем доливаем плейсхолдеры чтобы поля остались видны.
             var restored = originalExtractedTags
             for keys in essentialPlaceholders.values {
                 for key in keys where restored[key] == nil {
@@ -1717,9 +1522,7 @@ struct POIEditorView: View {
             poi.tags = restored
             if let orig = originalCoordinate { poi.coordinate = orig }
         }
-        mergeUndoStack = []
-        mergeRedoStack = []
-        // Пересоздаём VM из восстановленного состояния POI
+        // Пересоздаём VM из восстановленного состояния
         if !webResults.isEmpty {
             let vm = POIEditViewModel(poi: poi)
             vm.applyWebResults(webResults)
@@ -1732,20 +1535,6 @@ struct POIEditorView: View {
     private func cancelMergeIfActive() {
         if isMergeMode { cancelMerge() }
         selectedDuplicate = nil
-        diffEntries = []
-        mergePlaceholderTags = [:]
-    }
-
-    private func syncMergedTags() {
-        guard isMergeMode else { return }
-        var merged: [String: String] = [:]
-        for entry in diffEntries {
-            if let val = entry.resolvedValue { merged[entry.key] = val }
-        }
-        for (key, value) in mergePlaceholderTags where !value.isEmpty {
-            merged[key] = value
-        }
-        poi.tags = merged
     }
 
     // MARK: - Accuracy / source label helpers

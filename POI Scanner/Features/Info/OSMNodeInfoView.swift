@@ -30,13 +30,13 @@ struct OSMNodeInfoView: View {
             .navigationTitle(nodeTypeLabel)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            .navigationDestination(isPresented: $isEditing) {
-                POIEditorView(
-                    poi: node.toPOI(),
-                    mode: .edit(node: node, viewModel: viewModel),
-                    onSave: onSave
-                )
-            }
+        }
+        .sheet(isPresented: $isEditing) {
+            POIEditorView(
+                poi: node.toPOI(),
+                mode: .edit(node: node, viewModel: viewModel),
+                onSave: onSave
+            )
         }
         .presentationDetents([.medium, .large], selection: $selectedDetent)
     }

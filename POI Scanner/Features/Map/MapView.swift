@@ -132,33 +132,29 @@ struct MapView: View {
 
         // Sheet: редактирование черновика POI (тап на оранжевый маркер)
         .sheet(item: $viewModel.selectedDraftPOI) { draft in
-            NavigationStack {
-                POIEditorView(
-                    poi: draft,
-                    mode: .new(sourceImage: nil),
-                    onSave: { updatedPOI in
-                        viewModel.updateDraftPOI(updatedPOI)
-                    }
-                )
-            }
+            POIEditorView(
+                poi: draft,
+                mode: .new(sourceImage: nil),
+                onSave: { updatedPOI in
+                    viewModel.updateDraftPOI(updatedPOI)
+                }
+            )
             .presentationDetents([.large])
         }
 
         // Sheet: ручное добавление нового POI (Пропустить из CaptureView)
         .sheet(item: $manualPOIForNew) { emptyPOI in
-            NavigationStack {
-                POIEditorView(
-                    poi: emptyPOI,
-                    mode: .new(sourceImage: nil),
-                    onSave: { savedPOI in
-                        viewModel.saveDraftPOI(savedPOI)
-                        viewModel.centerOn(coordinate: CLLocationCoordinate2D(
-                            latitude: savedPOI.coordinate.latitude,
-                            longitude: savedPOI.coordinate.longitude
-                        ))
-                    }
-                )
-            }
+            POIEditorView(
+                poi: emptyPOI,
+                mode: .new(sourceImage: nil),
+                onSave: { savedPOI in
+                    viewModel.saveDraftPOI(savedPOI)
+                    viewModel.centerOn(coordinate: CLLocationCoordinate2D(
+                        latitude: savedPOI.coordinate.latitude,
+                        longitude: savedPOI.coordinate.longitude
+                    ))
+                }
+            )
             .presentationDetents([.large])
         }
     }
