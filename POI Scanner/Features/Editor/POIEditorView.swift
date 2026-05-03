@@ -117,6 +117,7 @@ struct POIEditorView: View {
 
     @State private var showImagePreview = false
     @State private var showRawText = false
+    @State private var showAddPhoto = false
 
     // MARK: - Computed helpers
 
@@ -185,6 +186,35 @@ struct POIEditorView: View {
             }
             .sheet(isPresented: $showRawText) {
                 RawTextView(ocrText: rawOCRText, qrPayloads: qrPayloads, webResults: webResults)
+            }
+            .sheet(isPresented: $showAddPhoto) {
+                if let vm = editVM {
+                    AddPhotoFlow(
+                        existingPOI: poi,
+                        editVM: vm,
+                        onTagsExtracted: { tags, confidence in
+                            // Обновляем poi.tags для совместимости со старым undo-стеком
+                            for (key, value) in tags where poi.tags[key] == nil {
+                                poi.tags[key] = value
+                            }
+                            scheduleSnapshot()
+                        }
+                    )
+                } else {
+                    // editVM ещё не создан — создаём сейчас
+                    let vm = POIEditViewModel(poi: poi)
+                    AddPhotoFlow(
+                        existingPOI: poi,
+                        editVM: vm,
+                        onTagsExtracted: { tags, confidence in
+                            editVM = vm
+                            for (key, value) in tags where poi.tags[key] == nil {
+                                poi.tags[key] = value
+                            }
+                            scheduleSnapshot()
+                        }
+                    )
+                }
             }
             .sheet(isPresented: $showCoordinatePicker) { coordinatePickerSheet }
             .sheet(isPresented: $showTypePicker) {
@@ -1333,6 +1363,15 @@ struct POIEditorView: View {
                         showRawText = true
                     } label: {
                         Image(systemName: "doc.text.magnifyingglass")
+                    }
+                }
+                // Кнопка добавления фото — в edit-режиме и new-режиме (если нет исходного фото)
+                if !isNewMode || sourceImage == nil {
+                    Button {
+                        if editVM == nil { editVM = POIEditViewModel(poi: poi) }
+                        showAddPhoto = true
+                    } label: {
+                        Image(systemName: "camera.badge.plus")
                     }
                 }
             }
