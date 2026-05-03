@@ -22,13 +22,13 @@ final class POIEditViewModel {
     // MARK: - Tag groups
     // Ключ → группа значений. Это основное хранилище всех данных.
 
-    private(set) var tagGroups: [String: TagValueGroup] = [:]
+    var tagGroups: [String: TagValueGroup] = [:]
 
     // MARK: - Review state
 
     /// Есть ли хотя бы одно поле, требующее решения пользователя.
     var needsReview: Bool {
-        tagGroups.values.contains(\.needsReview)
+        tagGroups.values.contains(where: \.needsReview)
     }
 
     // MARK: - Init

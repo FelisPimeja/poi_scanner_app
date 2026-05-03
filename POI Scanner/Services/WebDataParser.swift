@@ -27,7 +27,7 @@ enum WebDataParser {
     // MARK: - Public API
 
     /// Парсит сырой HTML и возвращает извлечённые теги.
-    static func parse(html: String, sourceURL: URL) -> (tags: [String: String],
+    nonisolated static func parse(html: String, sourceURL: URL) -> (tags: [String: String],
                                                          confidence: [String: Double],
                                                          snippets: [String]) {
         var tags: [String: String] = [:]
@@ -89,7 +89,7 @@ enum WebDataParser {
 
     /// Проверяет, содержит ли VK-страница признак заблокированного/удалённого аккаунта.
     /// Вызывать только для vk.com URL.
-    static func isVKDeactivated(html: String) -> Bool {
+    nonisolated static func isVKDeactivated(html: String) -> Bool {
         // VK встраивает статус аккаунта в apiPrefetchCache JSON
         return html.contains("\"deactivated\":\"banned\"")
             || html.contains("\"deactivated\":\"deleted\"")
@@ -98,7 +98,7 @@ enum WebDataParser {
 
     // MARK: - Schema.org JSON-LD
 
-    private static func parseSchemaOrg(html: String) -> (tags: [String: String],
+    private nonisolated static func parseSchemaOrg(html: String) -> (tags: [String: String],
                                                           confidence: [String: Double],
                                                           snippets: [String]) {
         var tags: [String: String] = [:]
@@ -207,7 +207,7 @@ enum WebDataParser {
 
     // MARK: - Open Graph
 
-    private static func parseOpenGraph(html: String) -> (tags: [String: String],
+    private nonisolated static func parseOpenGraph(html: String) -> (tags: [String: String],
                                                           confidence: [String: Double],
                                                           snippets: [String]) {
         var tags: [String: String] = [:]
@@ -272,7 +272,7 @@ enum WebDataParser {
 
     // MARK: - Visible text extraction
 
-    private static func extractVisibleText(html: String) -> String {
+    private nonisolated static func extractVisibleText(html: String) -> String {
         var text = html
         // Убираем <script> и <style>
         for tag in ["script", "style", "noscript", "svg"] {
@@ -292,7 +292,7 @@ enum WebDataParser {
 
     /// Парсит Schema.org Microdata — атрибуты itemprop="name", itemprop="telephone" и т.д.
     /// Поддерживает плоскую разметку (не вложенную).
-    private static func parseMicrodata(html: String) -> (tags: [String: String],
+    private nonisolated static func parseMicrodata(html: String) -> (tags: [String: String],
                                                           confidence: [String: Double],
                                                           snippets: [String]) {
         var tags: [String: String] = [:]
@@ -390,7 +390,7 @@ enum WebDataParser {
     // MARK: - <title> tag
 
     /// Извлекает имя из HTML <title>. Чистит шаблонные суффиксы вида "Название | Сайт".
-    private static func parseTitle(html: String) -> (tags: [String: String],
+    private nonisolated static func parseTitle(html: String) -> (tags: [String: String],
                                                        confidence: [String: Double],
                                                        snippets: [String]) {
         let pattern = #"<title[^>]*>([^<]+)</title>"#
@@ -425,7 +425,7 @@ enum WebDataParser {
     /// Парсит данные VK-группы из массива `apiPrefetchCache`, который VK сервер
     /// встраивает прямо в HTML страницы как результат server-side prefetch API вызовов.
     /// Ищем запись с method="groups.getById" → response.groups[0] — это чистый JSON объект группы.
-    private static func parseVKPrefetch(html: String) -> (tags: [String: String],
+    private nonisolated static func parseVKPrefetch(html: String) -> (tags: [String: String],
                                                            confidence: [String: Double],
                                                            snippets: [String]) {
         var tags: [String: String] = [:]
@@ -568,7 +568,7 @@ enum WebDataParser {
         return (tags, conf, snippets)
     }
 
-    private static func merge(from src: [String: String], conf srcConf: [String: Double],
+    private nonisolated static func merge(from src: [String: String], conf srcConf: [String: Double],
                                into dst: inout [String: String], intoConf dstConf: inout [String: Double]) {
         for (key, val) in src {
             let c = srcConf[key] ?? 0.5
@@ -580,18 +580,18 @@ enum WebDataParser {
     }
 
     /// Обёртка для лаконичного использования в парсерах
-    private static func normalizePhone(_ s: String) -> String { POIValueNormalizer.phone(s) }
-    private static func normalizeURL(_ s: String) -> String { POIValueNormalizer.url(s) }
-    private static func cleanName(_ raw: String) -> (name: String?, operatorValue: String?) { POIValueNormalizer.name(raw) }
-    private static func isGenericPlatformName(_ s: String) -> Bool { POIValueNormalizer.isGenericPlatformName(s) }
+    private nonisolated static func normalizePhone(_ s: String) -> String { POIValueNormalizer.phone(s) }
+    private nonisolated static func normalizeURL(_ s: String) -> String { POIValueNormalizer.url(s) }
+    private nonisolated static func cleanName(_ raw: String) -> (name: String?, operatorValue: String?) { POIValueNormalizer.name(raw) }
+    private nonisolated static func isGenericPlatformName(_ s: String) -> Bool { POIValueNormalizer.isGenericPlatformName(s) }
 
-    private static func parseSchemaOpeningHours(_ s: String) -> String? {
+    private nonisolated static func parseSchemaOpeningHours(_ s: String) -> String? {
         POIValueNormalizer.openingHours(s)
     }
 
     /// Убирает суффиксы платформ/агрегаторов из строки title/og:title.
     /// Например: "Palchiki_com at Taplink" → "Palchiki_com"
-    private static func stripPlatformSuffix(_ s: String) -> String {
+    private nonisolated static func stripPlatformSuffix(_ s: String) -> String {
         let patterns = [
             #"\s+at\s+\w+"#,           // "Name at Taplink", "Name at Facebook"
             #"\s+в\s+ВКонтакте"#,
@@ -610,7 +610,7 @@ enum WebDataParser {
     }
 
     /// Минимальный HTML entities decoder
-    private static func htmlDecode(_ s: String) -> String {
+    private nonisolated static func htmlDecode(_ s: String) -> String {
         s
             .replacingOccurrences(of: "&amp;",   with: "&")
             .replacingOccurrences(of: "&lt;",    with: "<")

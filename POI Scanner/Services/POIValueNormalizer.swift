@@ -108,7 +108,7 @@ enum POIValueNormalizer {
 
     /// Возвращает домен для проверки сайта компании, если email на кастомном домене.
     /// Например "info@exomenu.ru" → "exomenu.ru", "user@gmail.com" → nil
-    static func companyDomainFromEmail(_ emailStr: String) -> String? {
+    nonisolated static func companyDomainFromEmail(_ emailStr: String) -> String? {
         guard let atIdx = emailStr.lastIndex(of: "@") else { return nil }
         let domain = String(emailStr[emailStr.index(after: atIdx)...]).lowercased()
         guard !domain.isEmpty,

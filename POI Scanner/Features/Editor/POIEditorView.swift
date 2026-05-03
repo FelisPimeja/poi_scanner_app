@@ -1260,16 +1260,15 @@ struct POIEditorView: View {
             if hasContent {
                 Section(header: Text(group.rawValue)) {
                     ForEach(keysInGroup, id: \.self) { key in
-                        if let binding = Binding(
+                        let binding = Binding(
                             get: { vm.tagGroups[key] ?? TagValueGroup(key: key, values: []) },
                             set: { newGroup in vm.tagGroups[key] = newGroup }
-                        ) {
-                            TagKeySection(
-                                tagKey: key,
-                                group: binding,
-                                hideIcon: group == .address && keysInGroup.first != key
-                            )
-                        }
+                        )
+                        TagKeySection(
+                            tagKey: key,
+                            group: binding,
+                            hideIcon: group == .address && keysInGroup.first != key
+                        )
                     }
                 }
             }
@@ -1282,12 +1281,11 @@ struct POIEditorView: View {
         if !ungrouped.isEmpty {
             Section(header: Text("Прочее")) {
                 ForEach(ungrouped, id: \.self) { key in
-                    if let binding = Binding(
+                    let binding = Binding(
                         get: { vm.tagGroups[key] ?? TagValueGroup(key: key, values: []) },
                         set: { newGroup in vm.tagGroups[key] = newGroup }
-                    ) {
-                        TagKeySection(tagKey: key, group: binding)
-                    }
+                    )
+                    TagKeySection(tagKey: key, group: binding)
                 }
             }
         }
