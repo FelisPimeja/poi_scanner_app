@@ -98,6 +98,13 @@ struct POIEditorView: View {
     @State private var originalExtractedTags: [String: String] = [:]
     @State private var originalCoordinate: POI.Coordinate? = nil
 
+    // MARK: - New edit ViewModel (Фаза 3)
+    // Параллельно со старым merge-режимом. Активируется когда есть кандидаты из внешних источников.
+    @State private var editVM: POIEditViewModel? = nil
+
+    /// True когда editVM активен и имеет хотя бы одного кандидата.
+    private var useEditVM: Bool { editVM?.tagGroups.values.contains { $0.needsReview } ?? false }
+
     // MARK: - Type picker
 
     @State private var showTypePicker = false
@@ -383,6 +390,19 @@ struct POIEditorView: View {
         }
         undoStack = [poi.tags]
         coordUndoStack = [poi.coordinate]
+
+        // Инициализируем editVM если есть внешние данные (OCR / QR / веб)
+        let hasExternalData = !webResults.isEmpty
+            || (rawOCRText != nil && !poi.tags.isEmpty)
+            || !qrPayloads.isEmpty
+        if hasExternalData {
+            let vm = POIEditViewModel(poi: poi)
+            vm.applyWebResults(webResults)
+            // OCR-теги уже применены в poi.tags через TextParser до открытия редактора —
+            // они будут загружены как .osm baseline; отдельно добавлять не нужно.
+            editVM = vm
+        }
+
         guard isNewMode, poi.osmNodeId == nil else { return }
         // Показываем фоллбэки сразу если точность плохая
         if hasCoordinateFallbacks {
@@ -450,7 +470,11 @@ struct POIEditorView: View {
             mergeDiffSection
         } else {
             typeSection
-            tagGroupSections
+            if useEditVM, let vm = editVM {
+                tagGroupSectionsVM(vm: vm)
+            } else {
+                tagGroupSections
+            }
             addTagSection
         }
 
@@ -1188,6 +1212,57 @@ struct POIEditorView: View {
         }
     }
 
+    // MARK: - New VM-based tag group sections (Фаза 3)
+    // Рендерит теги через TagKeySection — показывает все значения плоским списком,
+    // включая кандидатов с цветом confidence и иконкой источника.
+
+    @ViewBuilder
+    private func tagGroupSectionsVM(vm: POIEditViewModel) -> some View {
+        let groups = vm.tagGroups
+
+        // Сортируем секции в том же порядке что и старый рендер
+        ForEach(OSMTagDefinition.TagGroup.allCases, id: \.self) { group in
+            let keysInGroup = groups.keys.filter {
+                OSMTags.definition(for: $0)?.group == group
+            }.sorted()
+            let hasContent = keysInGroup.contains { !(groups[$0]?.values.isEmpty ?? true) }
+
+            if hasContent {
+                Section(header: Text(group.rawValue)) {
+                    ForEach(keysInGroup, id: \.self) { key in
+                        if let binding = Binding(
+                            get: { vm.tagGroups[key] ?? TagValueGroup(key: key, values: []) },
+                            set: { newGroup in vm.tagGroups[key] = newGroup }
+                        ) {
+                            TagKeySection(
+                                tagKey: key,
+                                group: binding,
+                                hideIcon: group == .address && keysInGroup.first != key
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Ключи без группы в OSMTags (contact:vk и т.п.)
+        let ungrouped = groups.keys.filter {
+            OSMTags.definition(for: $0)?.group == nil
+        }.sorted()
+        if !ungrouped.isEmpty {
+            Section(header: Text("Прочее")) {
+                ForEach(ungrouped, id: \.self) { key in
+                    if let binding = Binding(
+                        get: { vm.tagGroups[key] ?? TagValueGroup(key: key, values: []) },
+                        set: { newGroup in vm.tagGroups[key] = newGroup }
+                    ) {
+                        TagKeySection(tagKey: key, group: binding)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Tag row builder
 
     @ViewBuilder
@@ -1296,6 +1371,13 @@ struct POIEditorView: View {
     private func saveLocally() {
         if editTab == .tags { syncTagsFromPairs() }
         syncMergedTags()
+        // Если активна новая VM — применяем её принятые значения поверх poi.tags
+        if let vm = editVM {
+            let exported = vm.exportTags()
+            for (key, value) in exported {
+                poi.tags[key] = value
+            }
+        }
         stripEmptyTags()
         applyCheckDate()
         persistCity()
@@ -1310,6 +1392,13 @@ struct POIEditorView: View {
     private func uploadToOSM() async {
         if editTab == .tags { syncTagsFromPairs() }
         syncMergedTags()
+        // Если активна новая VM — применяем её принятые значения поверх poi.tags
+        if let vm = editVM {
+            let exported = vm.exportTags()
+            for (key, value) in exported {
+                poi.tags[key] = value
+            }
+        }
         stripEmptyTags()
         applyCheckDate()
         persistCity()
@@ -1561,6 +1650,18 @@ struct POIEditorView: View {
         // Инициализируем merge undo-стек начальным состоянием
         mergeUndoStack = [MergeSnapshot(diffEntries: diffEntries, placeholders: mergePlaceholderTags)]
         mergeRedoStack = []
+
+        // Новая VM: накладываем OSM baseline из ноды, кандидаты из внешних источников сохраняются
+        if let vm = editVM {
+            vm.applyOSMNode(candidate.node)
+        } else {
+            // Если VM не была создана (нет webResults), создаём её сейчас из OSM + extractedTags
+            let vm = POIEditViewModel(poi: poi)
+            vm.applyWebResults(webResults)
+            editVM = vm
+            vm.applyOSMNode(candidate.node)
+        }
+
         withAnimation { isMergeMode = true }
     }
 
@@ -1581,6 +1682,14 @@ struct POIEditorView: View {
         }
         mergeUndoStack = []
         mergeRedoStack = []
+        // Пересоздаём VM из восстановленного состояния POI
+        if !webResults.isEmpty {
+            let vm = POIEditViewModel(poi: poi)
+            vm.applyWebResults(webResults)
+            editVM = vm
+        } else {
+            editVM = nil
+        }
     }
 
     private func cancelMergeIfActive() {
