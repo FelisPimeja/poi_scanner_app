@@ -4,11 +4,14 @@ import Foundation
 // Намеренно вынесено в отдельный файл — изолировано от @MainActor-типов,
 // чтобы Swift 6 не выводил @MainActor-изоляцию на синтезированные Codable-конформансы.
 
-struct OverpassResponse: Codable, Sendable {
+struct OverpassResponse: Sendable {
     let elements: [OverpassElement]
 }
 
-struct OverpassElement: Codable, Sendable {
+// nonisolated Decodable — предотвращает Swift 6 @MainActor-инференс
+nonisolated extension OverpassResponse: Decodable {}
+
+struct OverpassElement: Sendable {
     let type: String
     let id: Int64
     let lat: Double?
@@ -18,11 +21,16 @@ struct OverpassElement: Codable, Sendable {
     let version: Int?
     let timestamp: String?
 
-    struct Center: Codable, Sendable {
+    struct Center: Sendable {
         let lat: Double
         let lon: Double
     }
+}
 
+nonisolated extension OverpassElement: Decodable {}
+nonisolated extension OverpassElement.Center: Decodable {}
+
+extension OverpassElement {
     nonisolated func toOSMNode() -> OSMNode? {
         let resolvedLat: Double
         let resolvedLon: Double

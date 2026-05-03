@@ -20,7 +20,7 @@ final class OverpassService {
         let data = try await fetch(query: query)
         let raw = String(data: data, encoding: .utf8) ?? ""
         print("[Overpass] ответ (\(data.count) байт): \(raw.prefix(300))")
-        let response = try JSONDecoder().decode(OverpassResponse.self, from: data)
+        let response = try decodeOverpassResponse(from: data)
         print("[Overpass] элементов в ответе: \(response.elements.count)")
         let nodes = response.elements.compactMap { $0.toOSMNode() }
         print("[Overpass] загружено нод: \(nodes.count)")
@@ -51,7 +51,7 @@ final class OverpassService {
             """
         }
         let data = try await fetch(query: query)
-        let response = try JSONDecoder().decode(OverpassResponse.self, from: data)
+        let response = try decodeOverpassResponse(from: data)
         guard let node = response.elements.first?.toOSMNode() else {
             throw OverpassError.nodeNotFound(id)
         }
@@ -153,6 +153,12 @@ final class OverpassService {
 
         return data
     }
+}
+
+// MARK: - Nonisolated decode helper (Swift 6 isolation fix)
+
+private nonisolated func decodeOverpassResponse(from data: Data) throws -> OverpassResponse {
+    try JSONDecoder().decode(OverpassResponse.self, from: data)
 }
 
 // MARK: - OverpassError

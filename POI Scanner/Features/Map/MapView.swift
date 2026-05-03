@@ -420,6 +420,8 @@ struct CollapsibleBrandSection<Row: View>: View {
 /// • По умолчанию свёрнута — показывает только главный name-тег + шеврон.
 /// • Разворачивается → все name-теги без дополнительного отступа.
 /// • Главный тег: первый из OSMTags.nameKeys, присутствующий в entries.
+/// • Языковые варианты (key:lang) показываются сразу под своим базовым ключом
+///   с отступом и названием языка вместо полного ключа.
 struct CollapsibleNameSection<Row: View>: View {
     let entries: [(key: String, value: String)]
     let isEditable: Bool
@@ -442,14 +444,94 @@ struct CollapsibleNameSection<Row: View>: View {
         return entries.filter { $0.key != primary.key }
     }
 
+    // MARK: Language grouping
+
+    /// Группирует entries: возвращает список (baseKey, baseEntry?, [langEntry])
+    /// baseKey — ключ до «:», langEntries — ключи с «:lang» постфиксом того же базового ключа.
+    private struct KeyGroup {
+        let baseKey: String
+        let baseEntry: (key: String, value: String)?
+        let langEntries: [(key: String, value: String)]
+    }
+
+    private var keyGroups: [KeyGroup] {
+        // Порядок базовых ключей сохраняем по первому появлению
+        var order: [String] = []
+        var bases: [String: (key: String, value: String)] = [:]
+        var langs: [String: [(key: String, value: String)]] = [:]
+
+        // Базовые ключи, которые сами содержат «:» — разбиваем по последнему двоеточию
+        let compoundBases: [String] = ["was:name", "official_name", "old_name", "alt_name", "short_name"]
+
+        for entry in entries {
+            // Ищем совпадение с составным базовым ключом (например was:name:ru)
+            var matched = false
+            for compound in compoundBases {
+                let prefix = compound + ":"
+                if entry.key.hasPrefix(prefix) {
+                    let langCode = String(entry.key.dropFirst(prefix.count))
+                    let isLang = langCode.count >= 2 && langCode.count <= 5
+                        && langCode.allSatisfy({ $0.isLetter || $0 == "-" })
+                    if isLang {
+                        if !order.contains(compound) { order.append(compound) }
+                        langs[compound, default: []].append(entry)
+                        matched = true
+                        break
+                    }
+                }
+                if entry.key == compound {
+                    if !order.contains(compound) { order.append(compound) }
+                    bases[compound] = entry
+                    matched = true
+                    break
+                }
+            }
+            if matched { continue }
+
+            let parts = entry.key.split(separator: ":", maxSplits: 1)
+            if parts.count == 2 {
+                let base = String(parts[0])
+                let langCode = String(parts[1])
+                // Считаем postfix языковым, если это 2–5 букв (ISO 639)
+                let isLang = langCode.count >= 2 && langCode.count <= 5
+                    && langCode.allSatisfy({ $0.isLetter || $0 == "-" })
+                if isLang {
+                    if !order.contains(base) { order.append(base) }
+                    langs[base, default: []].append(entry)
+                    continue
+                }
+            }
+            // Базовый ключ без языкового постфикса
+            let base = entry.key
+            if !order.contains(base) { order.append(base) }
+            bases[base] = entry
+        }
+
+        return order.map { base in
+            KeyGroup(baseKey: base, baseEntry: bases[base], langEntries: langs[base] ?? [])
+        }
+    }
+
+    /// Возвращает человекочитаемое название языка по коду.
+    private func languageName(for code: String) -> String {
+        let locale = Locale(identifier: "ru")
+        return locale.localizedString(forLanguageCode: code)
+            ?? code.uppercased()
+    }
+
     var body: some View {
         Section {
-            if secondaryEntries.isEmpty {
+            let groups = keyGroups
+            let hasSecondary = groups.count > 1
+                || (groups.first?.langEntries.isEmpty == false)
+
+            if !hasSecondary {
+                // Только один ключ без языковых вариантов
                 if let primary = primaryEntry {
                     tagRow(primary.key, primary.value, true)
                 }
             } else {
-                // Строка-заголовок с шевроном
+                // Строка-заголовок с шевроном (главный тег)
                 if let primary = primaryEntry {
                     HStack(spacing: 0) {
                         tagRow(primary.key, primary.value, true)
@@ -463,9 +545,28 @@ struct CollapsibleNameSection<Row: View>: View {
                     .contentShape(Rectangle())
                     .onTapGesture { withAnimation { isExpanded.toggle() } }
                 }
+
                 if isExpanded {
-                    ForEach(secondaryEntries, id: \.key) { item in
-                        tagRow(item.key, item.value, false)
+                    // Рендерим все группы: базовый ключ + его языковые варианты
+                    ForEach(groups, id: \.baseKey) { group in
+                        // Базовый ключ (если не главный — уже показан выше)
+                        if let baseEntry = group.baseEntry, baseEntry.key != primaryEntry?.key {
+                            tagRow(baseEntry.key, baseEntry.value, false)
+                        }
+                        // Языковые варианты с отступом (включая языки главного ключа)
+                        ForEach(group.langEntries, id: \.key) { lang in
+                            let parts = lang.key.split(separator: ":", maxSplits: 1)
+                            let langCode = parts.count == 2 ? String(parts[1]) : lang.key
+                            let isLast = group.langEntries.last?.key == lang.key
+                                && groups.last?.baseKey == group.baseKey
+                            LangTagRow(
+                                langName: languageName(for: langCode),
+                                osmKey: lang.key,
+                                value: lang.value,
+                                isLast: isLast
+                            )
+                            .listRowSeparator(.hidden)
+                        }
                     }
                 }
             }
@@ -475,14 +576,43 @@ struct CollapsibleNameSection<Row: View>: View {
     }
 }
 
+// MARK: - LangTagRow
+
+/// Строка языкового варианта: небольшой отступ слева, название языка (caption) + значение.
+private struct LangTagRow: View {
+    let langName: String
+    let osmKey: String
+    let value: String
+    var isLast: Bool = false
+
+    var body: some View {
+        HStack(spacing: 10) {
+            // Спейсер шире, чем leadingIndicator якорных строк (24pt) — создаёт визуальную вложенность
+            Color.clear.frame(width: 44)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("– \(langName)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.body)
+                    .textSelection(.enabled)
+            }
+            Spacer()
+        }
+        .padding(.vertical, 0)
+        .listRowInsets(EdgeInsets(top: 3, leading: 16, bottom: isLast ? 11 : 3, trailing: 16))
+    }
+}
+
 // MARK: - TechInfoSection
 
 /// Секция «Техническая информация» — сворачиваемая, всегда read-only.
 /// Первичная строка: иконка info.circle + тип+id в формате «n123456789».
-/// Вторичные строки: версия, широта, долгота.
+/// Вторичные строки: версия (→ История), координаты центра.
 struct TechInfoSection: View {
     let node: OSMNode
     @State private var isExpanded = false
+    @State private var showHistory = false
 
     /// Буква-префикс типа: node→n, way→w, relation→r
     private var typePrefix: String {
@@ -507,10 +637,14 @@ struct TechInfoSection: View {
         return URL(string: "https://www.openstreetmap.org/\(typeName)/\(node.id)")
     }
 
+    /// Координаты в формате "55.7558, 37.6173"
+    private var coordString: String {
+        String(format: "%.4f, %.4f", node.latitude, node.longitude)
+    }
+
     var body: some View {
         Section(header: Text("Техническая информация")) {
-            // Внешний HStack — тап по пустому месту сворачивает/разворачивает.
-            // Link внутри имеет приоритет над родительским .onTapGesture и открывает URL.
+            // ── OSM ID (сворачивающаяся строка) ──────────────────────
             HStack(spacing: 0) {
                 HStack(spacing: 10) {
                     Image(systemName: "info.circle")
@@ -547,9 +681,49 @@ struct TechInfoSection: View {
             })
 
             if isExpanded {
-                OSMTagRow(tagKey: "version", readOnlyValue: String(node.version))
-                OSMTagRow(tagKey: "lat", readOnlyValue: String(format: "%.6f", node.latitude))
-                OSMTagRow(tagKey: "lon", readOnlyValue: String(format: "%.6f", node.longitude))
+                // ── Версия → История ──────────────────────────────────
+                Button {
+                    showHistory = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "clock.arrow.2.circlepath")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24, alignment: .center)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Версия")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(String(node.version))
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .buttonStyle(.plain)
+                .fullScreenCover(isPresented: $showHistory) {
+                    OSMNodeHistoryScreen(nodeID: node.id, nodeType: node.type)
+                }
+
+                // ── Координаты центра ─────────────────────────────────
+                HStack(spacing: 10) {
+                    Image(systemName: "location")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24, alignment: .center)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Координаты центра")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(coordString)
+                            .font(.body)
+                            .textSelection(.enabled)
+                    }
+                }
             }
         }
     }

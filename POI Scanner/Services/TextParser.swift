@@ -33,16 +33,25 @@ struct TextParser {
         extractPaymentMethods(from: text, into: &result)   // из оригинала (до маскировки)
         extractLegalRequisites(from: cleanText, into: &result)
         extractAddress(from: cleanText, into: &result)
+        extractStaircase(from: cleanText, into: &result)
 
         // 4. NLP — имя организации (более низкая надёжность, если brand не нашёл)
         extractOrganizationName(from: cleanText, into: &result)
+
+        // 5. Фолбэк: если извлечён operator, но нет основного типа POI → office=company
+        let poiTypeKeysFallback: Set<String> = ["amenity", "shop", "tourism", "leisure",
+                                                "office", "craft", "healthcare", "entrance"]
+        let hasPoiType = poiTypeKeysFallback.contains { result.tags[$0] != nil }
+        if !hasPoiType, result.tags["operator"] != nil {
+            result.set(tag: "office", value: "company", confidence: 0.55, status: .suggested)
+        }
 
         return result
     }
 
     // MARK: - DataDetector
 
-    private static let detector = try? NSDataDetector(types:
+    nonisolated(unsafe) private static let detector = try? NSDataDetector(types:
         NSTextCheckingResult.CheckingType.phoneNumber.rawValue |
         NSTextCheckingResult.CheckingType.link.rawValue
     )
@@ -120,38 +129,23 @@ struct TextParser {
     }
 
     private static func classifyAndSetURL(_ urlString: String, into result: inout ParseResult) {
-        let lower = urlString.lowercased()
+        guard !urlString.lowercased().hasPrefix("mailto:") else { return }
+        guard let classified = POIValueNormalizer.classifyURL(urlString) else { return }
 
-        // Пропускаем mailto: — это email, не сайт
-        guard !lower.hasPrefix("mailto:") else { return }
+        let (tag, value) = classified
 
-        // Normalize: http → https, lowercase, убираем trailing slash
-        var normalized = lower
-        if normalized.hasPrefix("http://") {
-            normalized = "https://" + normalized.dropFirst("http://".count)
-        } else if !normalized.hasPrefix("https://") {
-            normalized = "https://" + normalized
-        }
-        // Убираем trailing slash (кроме корневого https://host/)
-        if normalized.hasSuffix("/") && normalized.filter({ $0 == "/" }).count > 2 {
-            normalized = String(normalized.dropLast())
+        // Для t.me: отбрасываем если path выглядит как домен (содержит точку)
+        // Например "https://t.me/mail.ru" — это не Telegram, а ошибка OCR
+        if tag == "contact:telegram" {
+            if let url = URL(string: value),
+               let path = url.pathComponents.dropFirst().first,
+               path.contains(".") { return }
         }
 
-        if lower.contains("vk.com") || lower.contains("vkontakte.ru") {
-            result.set(tag: "contact:vk", value: normalized, confidence: 0.88, status: .extracted)
-        } else if lower.contains("t.me") || lower.contains("telegram.me") {
-            result.set(tag: "contact:telegram", value: normalized, confidence: 0.88, status: .extracted)
-        } else if lower.contains("instagram.com") {
-            result.set(tag: "contact:instagram", value: normalized, confidence: 0.88, status: .extracted)
-        } else if lower.contains("tiktok.com") {
-            result.set(tag: "contact:tiktok", value: normalized, confidence: 0.88, status: .extracted)
-        } else if lower.contains("ok.ru") {
-            result.set(tag: "contact:ok", value: normalized, confidence: 0.88, status: .extracted)
-        } else if lower.contains("youtube.com") || lower.contains("youtu.be") {
-            result.set(tag: "contact:youtube", value: normalized, confidence: 0.85, status: .extracted)
-        } else if result.tags["contact:website"] == nil {
-            result.set(tag: "contact:website", value: normalized, confidence: 0.82, status: .extracted)
-        }
+        // Не перезаписываем contact:website если уже есть
+        if tag == "contact:website", result.tags["contact:website"] != nil { return }
+        let conf: Double = tag == "contact:website" ? 0.82 : 0.88
+        result.set(tag: tag, value: value, confidence: conf, status: .extracted)
     }
 
     // MARK: - Brand & Category Classifier
@@ -238,7 +232,7 @@ struct TextParser {
             (["банкомат", "atm"], "amenity", "atm", nil),
             (["банк ", " банк ", "кредит", "ипотека", "вклад"], "amenity", "bank", nil),
             (["почтовое отделение", "почта", "почтовый"], "amenity", "post_office", nil),
-            (["пункт выдачи", "пвз", "pick-up point", "выдача заказов", "примерки и выдачи"], "amenity", "parcel_pickup", nil),
+            (["пункт выдачи", "пвз", "pick-up point", "выдача заказов", "примерки и выдачи"], "shop", "outpost", nil),
             (["постамат", "parcel locker", "locker"], "amenity", "parcel_locker", nil),
             (["кинотеатр", "cinema", "кино"], "amenity", "cinema", nil),
             (["детский сад", "childcare", "детский центр"], "amenity", "childcare", nil),
@@ -352,7 +346,7 @@ struct TextParser {
 
     // MARK: - Brand Database
 
-    private static let brandDatabase: [BrandEntry] = [
+    nonisolated(unsafe) private static let brandDatabase: [BrandEntry] = [
         // ── Телефония (первыми, чтобы не перебивались электроникой) ─────────────
         BrandEntry(patterns: ["мтс", "мой мтс", "мтс кешбэк", "mts", "mtc", "мобильные телесистемы"], name: "МТС", mainTagKey: "shop", mainTagValue: "mobile_phone", brand: "МТС", cuisine: nil),
         BrandEntry(patterns: ["мегафон", "megafon"], name: "МегаФон", mainTagKey: "shop", mainTagValue: "mobile_phone", brand: "МегаФон", cuisine: nil),
@@ -437,11 +431,11 @@ struct TextParser {
         // ── Почта ────────────────────────────────────────────────────────────────
         BrandEntry(patterns: ["почта россии", "russian post", "russianpost", "pochta.ru"], name: "Почта России", mainTagKey: "amenity", mainTagValue: "post_office", brand: "Почта России", cuisine: nil),
         // ── Пункты выдачи ────────────────────────────────────────────────────────
-        BrandEntry(patterns: ["wildberries", "вайлдберрис", " wb ", "wb "], name: "Wildberries", mainTagKey: "amenity", mainTagValue: "parcel_pickup", brand: "Wildberries", cuisine: nil),
-        BrandEntry(patterns: ["ozon маркет", "ozon пункт", "пункт выдачи ozon", "пвз ozon"], name: "OZON", mainTagKey: "amenity", mainTagValue: "parcel_pickup", brand: "OZON", cuisine: nil),
+        BrandEntry(patterns: ["wildberries", "вайлдберрис", " wb ", "wb "], name: "Wildberries", mainTagKey: "shop", mainTagValue: "outpost", brand: "Wildberries", cuisine: nil),
+        BrandEntry(patterns: ["ozon маркет", "ozon пункт", "пункт выдачи ozon", "пвз ozon"], name: "OZON", mainTagKey: "shop", mainTagValue: "outpost", brand: "OZON", cuisine: nil),
         BrandEntry(patterns: ["ozon locker", "ozon постамат", "постамат ozon", "+ ozon", "dzon", "ozon"], name: "OZON", mainTagKey: "amenity", mainTagValue: "parcel_locker", brand: "OZON", cuisine: nil),
-        BrandEntry(patterns: ["avito доставка", "avito пункт", "ваш заказ здесь avito", "avito"], name: "Avito", mainTagKey: "amenity", mainTagValue: "parcel_pickup", brand: nil, cuisine: nil),
-        BrandEntry(patterns: ["lamoda", "ламода"], name: "Lamoda", mainTagKey: "amenity", mainTagValue: "parcel_pickup", brand: "Lamoda", cuisine: nil),
+        BrandEntry(patterns: ["avito доставка", "avito пункт", "ваш заказ здесь avito", "avito"], name: "Avito", mainTagKey: "shop", mainTagValue: "outpost", brand: nil, cuisine: nil),
+        BrandEntry(patterns: ["lamoda", "ламода"], name: "Lamoda", mainTagKey: "shop", mainTagValue: "outpost", brand: "Lamoda", cuisine: nil),
         // ── Косметика ────────────────────────────────────────────────────────────
         BrandEntry(patterns: ["лэтуаль", "л'этуаль", "letual", "eturel", "этуаль"], name: "Лэтуаль", mainTagKey: "shop", mainTagValue: "cosmetics", brand: "Лэтуаль", cuisine: nil),
         BrandEntry(patterns: ["yves rocher", "ив роше"], name: "Yves Rocher", mainTagKey: "shop", mainTagValue: "cosmetics", brand: "Yves Rocher", cuisine: nil),
@@ -723,38 +717,55 @@ struct TextParser {
             }
         }
 
+        // Маскируем email-адреса перед поиском @handle и bare-доменов соцсетей,
+        // чтобы "user@mail.ru" не давало ложное срабатывание на "@mail" или "mail.ru".
+        var maskedText = text
+        if let emailRe = try? NSRegularExpression(
+            pattern: #"[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}"#, options: .caseInsensitive) {
+            let ns = maskedText as NSString
+            let matches = emailRe.matches(in: maskedText, range: NSRange(maskedText.startIndex..., in: maskedText))
+            for m in matches.reversed() {
+                maskedText = (ns.replacingCharacters(in: m.range, with: String(repeating: " ", count: m.range.length)) as NSString) as String
+            }
+        }
+
         // Bare handles: "vk.com/handle", "t.me/handle", "instagram.com/handle" — без https://
         // DataDetector уже ловит полные URL в classifyAndSetURL, здесь — только bare (без схемы)
         let bareHandlePatterns: [(pattern: String, tag: String, prefix: String)] = [
-            (#"(?<![/\w])vk\.com/([a-zA-Z0-9_\.]{2,40})(?=[^\w/]|$)"#, "contact:vk", "https://vk.com/"),
-            (#"(?<![/\w])t\.me/([a-zA-Z0-9_]{4,40})(?=[^\w/]|$)"#, "contact:telegram", "https://t.me/"),
-            (#"(?<![/\w])instagram\.com/([a-zA-Z0-9_\.]{2,40})/?(?=[^\w/]|$)"#, "contact:instagram", "https://www.instagram.com/"),
-            (#"(?<![/\w])tiktok\.com/@([a-zA-Z0-9_\.]{2,40})(?=[^\w/]|$)"#, "contact:tiktok", "https://www.tiktok.com/@"),
-            (#"(?<![/\w])ok\.ru/([a-zA-Z0-9_\.]{2,40})(?=[^\w/]|$)"#, "contact:ok", "https://ok.ru/"),
+            // vk.com: только буквы/цифры/подчёркивание/точка (точка нужна для "public.name")
+            (#"(?<![/\w])vk\.com/([a-zA-Z0-9_.]{2,40})(?=[^\w/]|$)"#, "contact:vk", "https://vk.com/"),
+            // t.me: только буквы/цифры/подчёркивание — точка НЕ разрешена (иначе ловим домены)
+            (#"(?<![/\w])t\.me/([a-zA-Z0-9_]{4,40})(?=[^\w/.]|$)"#, "contact:telegram", "https://t.me/"),
+            (#"(?<![/\w])instagram\.com/([a-zA-Z0-9_.]{2,40})/?(?=[^\w/]|$)"#, "contact:instagram", "https://www.instagram.com/"),
+            (#"(?<![/\w])tiktok\.com/@([a-zA-Z0-9_.]{2,40})(?=[^\w/]|$)"#, "contact:tiktok", "https://www.tiktok.com/@"),
+            (#"(?<![/\w])ok\.ru/([a-zA-Z0-9_.]{2,40})(?=[^\w/]|$)"#, "contact:ok", "https://ok.ru/"),
         ]
 
         for (pattern, tag, prefix) in bareHandlePatterns {
             guard result.tags[tag] == nil else { continue }
             guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
-                  let m = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-                  let r = Range(m.range(at: 1), in: text) else { continue }
-            let handle = String(text[r]).lowercased()
+                  let m = regex.firstMatch(in: maskedText, range: NSRange(maskedText.startIndex..., in: maskedText)),
+                  let r = Range(m.range(at: 1), in: maskedText) else { continue }
+            let handle = String(maskedText[r]).lowercased()
             result.set(tag: tag, value: prefix + handle, confidence: 0.82, status: .extracted)
         }
 
-        // Bare @handle (без домена, не email) → Telegram
-        // Только если нет уже извлечённого Telegram и handle без точки (не домен, не email)
+        // Bare @handle (без домена) → Telegram
+        // Ищем в тексте с замаскированными email, чтобы не поймать "@mail" из "user@mail.ru"
         if result.tags["contact:telegram"] == nil {
             let atHandleRegex = try? NSRegularExpression(
-                pattern: #"(?<![a-zA-Z0-9/])@([a-zA-Z][a-zA-Z0-9_]{3,39})(?!\.[a-zA-Z])"#
+                // Lookbehind: не буква/цифра/слэш/точка/@  (= не продолжение email или домена)
+                // Lookahead:  не точка + буква (= не домен mail.ru), не цифра
+                pattern: #"(?<![a-zA-Z0-9/@.])@([a-zA-Z][a-zA-Z0-9_]{3,39})(?![.\w])"#
             )
-            if let m = atHandleRegex?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
-               let r = Range(m.range(at: 1), in: text) {
-                let handle = String(text[r])
+            if let m = atHandleRegex?.firstMatch(in: maskedText, range: NSRange(maskedText.startIndex..., in: maskedText)),
+               let r = Range(m.range(at: 1), in: maskedText) {
+                let handle = String(maskedText[r])
                 result.set(tag: "contact:telegram", value: "https://t.me/\(handle)", confidence: 0.65, status: .extracted)
             }
         }
     }
+
 
     // MARK: - Payment Methods
 
@@ -1003,6 +1014,91 @@ struct TextParser {
         }
     }
 
+    // MARK: - Staircase (entrance=staircase)
+
+    /// Извлекает данные о подъезде жилого дома из вывески/таблички.
+    /// Устанавливает entrance=staircase + ref + addr:flats + access=private,
+    /// только если в тексте нет других типовых тегов (amenity/shop и т.п.).
+    private static func extractStaircase(from text: String, into result: inout ParseResult) {
+        // ── Паттерн номера подъезда → ref ─────────────────────────────────────
+        // Примеры: "Подъезд Nº4", "ПОДЪЕЗД Nº1", "Подъезд 1", "Подьезд Nº 1"
+        // Nº / № / N° / No. / N перед цифрой — опционально
+        let refPattern = #"(?i)под[ъьЪЬ]езд\s*(?:[nNNnＮ][º°]?|[№Nº]|[Nn][Oo]\.?)?\s*(\d+)"#
+        let refRegex = try? NSRegularExpression(pattern: refPattern)
+        let staircaseRef: String?
+        if let m = refRegex?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let r = Range(m.range(at: 1), in: text) {
+            staircaseRef = String(text[r])
+        } else {
+            staircaseRef = nil
+        }
+
+        // ── Паттерн квартир → addr:flats ──────────────────────────────────────
+        // Спецслучай: "кв. с N по M" → "N-M"
+        let flatsRangePattern = #"(?i)кв(?:артир[ы]?)?\s*\.?\s*с\s+(\d+)\s+по\s+(\d+)"#
+        let flatsRangeRegex = try? NSRegularExpression(pattern: flatsRangePattern)
+        var flatsRaw: String? = nil
+        if let m = flatsRangeRegex?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+           let r1 = Range(m.range(at: 1), in: text),
+           let r2 = Range(m.range(at: 2), in: text) {
+            flatsRaw = "\(text[r1])-\(text[r2])"
+        } else {
+            // Общий паттерн: "кв. 49-66", "кв.67-84", "КВ. 31 - 42", "кв 2-12A",
+            //                "кв. 1-8, 51,52", "квартиры 149-183"
+            // Захватываем всё после «кв» до конца токена/строки (цифры, буквы, дефис, пробел, запятая)
+            let flatsPattern = #"(?i)кв(?:артир[ы]?)?\s*\.?\s*([\dА-ЯЁа-яёA-Za-z][0-9А-ЯЁа-яёA-Za-z ,\-–]+)"#
+            let flatsRegex = try? NSRegularExpression(pattern: flatsPattern)
+            if let m = flatsRegex?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+               let r = Range(m.range(at: 1), in: text) {
+                flatsRaw = String(text[r])
+            }
+        }
+
+        // Нормализуем addr:flats:
+        //   "31 - 42" → "31-42"
+        //   "1-8, 51,52" → "1-8;51;52"
+        //   "17-24, 55, 56" → "17-24;55;56"
+        let staircaseFlats: String?
+        if let raw = flatsRaw {
+            // Убираем пробелы вокруг дефиса/тире внутри диапазона
+            var s = raw.trimmingCharacters(in: .whitespaces)
+            // Нормализуем em-dash/en-dash → обычный дефис
+            s = s.replacingOccurrences(of: "–", with: "-")
+                 .replacingOccurrences(of: "—", with: "-")
+            // Убираем пробелы вокруг дефиса (только между цифрами/буквами)
+            s = s.replacingOccurrences(of: #"\s*-\s*"#, with: "-", options: .regularExpression)
+            // Запятые (с пробелами) → точка с запятой
+            s = s.replacingOccurrences(of: #"\s*,\s*"#, with: ";", options: .regularExpression)
+            // Убираем лишние пробелы
+            s = s.replacingOccurrences(of: #"\s+"#, with: "", options: .regularExpression)
+            staircaseFlats = s.isEmpty ? nil : s
+        } else {
+            staircaseFlats = nil
+        }
+
+        // ── Проверяем: есть ли вообще что-то подъездное ──────────────────────
+        // Требуем слово «подъезд» как обязательный триггер — без него «кв.» может быть
+        // юридическим адресом ИП, офисным номером и т.п.
+        let hasStaircaseWord = text.range(of: #"(?i)под[ъьЪЬ]езд"#, options: .regularExpression) != nil
+        guard hasStaircaseWord else { return }
+
+        // ── Защита от ложных срабатываний: наличие POI-тегов из других экстракторов ──
+        let poiTypeKeys = ["amenity", "shop", "tourism", "leisure", "office",
+                           "craft", "highway", "barrier", "historic", "natural"]
+        let hasOtherPOIType = poiTypeKeys.contains { result.tags[$0] != nil }
+        guard !hasOtherPOIType else { return }
+
+        // ── Устанавливаем теги подъезда ───────────────────────────────────────
+        result.set(tag: "entrance", value: "staircase", confidence: 0.85, status: .extracted)
+        result.set(tag: "access",   value: "private",   confidence: 0.80, status: .extracted)
+        if let ref = staircaseRef {
+            result.set(tag: "ref", value: ref, confidence: 0.90, status: .extracted)
+        }
+        if let flats = staircaseFlats {
+            result.set(tag: "addr:flats", value: flats, confidence: 0.85, status: .extracted)
+        }
+    }
+
     // MARK: - Address
 
     /// Типы адресных фрагментов — определяют приоритет при выборе.
@@ -1013,6 +1109,18 @@ struct TextParser {
     }
 
     private static func extractAddress(from text: String, into result: inout ParseResult) {
+        // ── Офис / помещение → addr:door (всегда, независимо от наличия адреса) ──
+        // "оф. 558", "офис 3", "пом. II", "пом. 12а", "ком. 5", "комн. 3"
+        if result.tags["addr:door"] == nil {
+            let doorPattern = #"(?:оф(?:ис)?|пом(?:ещение)?|комн?(?:ата)?)\.?\s*([IVXivx]{1,6}|\d+[а-яёА-ЯЁ]?)"#
+            let doorRegex = try? NSRegularExpression(pattern: doorPattern, options: .caseInsensitive)
+            if let m = doorRegex?.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)),
+               let r = Range(m.range(at: 1), in: text) {
+                let door = String(text[r])
+                result.set(tag: "addr:door", value: door, confidence: 0.65, status: .extracted)
+            }
+        }
+
         // ── Шаг 1: находим адресные фрагменты ────────────────────────────────
         let fragments = findAddressFragments(in: text)
 
@@ -1283,7 +1391,40 @@ struct TextParser {
                 let lower = s.lowercased()
                 return lower.prefix(1).uppercased() + lower.dropFirst()
             }
-            let nmNorm = nmClean.components(separatedBy: " ").map(toSentenceCase).joined(separator: " ")
+            var nmNorm = nmClean.components(separatedBy: " ").map(toSentenceCase).joined(separator: " ")
+
+            // Порядковое числительное в конце → переставляем в начало.
+            // Пример: "Останкинская 2-я" → "2-я Останкинская"
+            //         "Тверская-Ямская 1-я" → "1-я Тверская-Ямская"
+            // Паттерн: имя оканчивается на " N-[яйеё]{1,2}"
+            if let ordinalMatch = nmNorm.range(
+                of: #"^(.+?)\s+(\d{1,2}-[яйеёЯЙЕЁ]{1,2})$"#,
+                options: .regularExpression
+            ) {
+                // Разбиваем вручную через NSRegularExpression чтобы получить группы
+                let ordinalRe = try? NSRegularExpression(pattern: #"^(.+?)\s+(\d{1,2}-[яйеёЯЙЕЁ]{1,2})$"#)
+                if let m = ordinalRe?.firstMatch(in: nmNorm, range: NSRange(nmNorm.startIndex..., in: nmNorm)),
+                   let r1 = Range(m.range(at: 1), in: nmNorm),
+                   let r2 = Range(m.range(at: 2), in: nmNorm) {
+                    let baseName  = String(nmNorm[r1])  // "Останкинская"
+                    let ordinal   = String(nmNorm[r2])  // "2-я"
+                    nmNorm = "\(ordinal) \(baseName)"   // "2-я Останкинская"
+                }
+                _ = ordinalMatch // suppress unused warning
+            }
+
+            // Порядок слова "улица" зависит от формы имени:
+            // Адъективная форма (последнее слово — прилагательное ж.р.: -ая/-яя):
+            //   "Садовая улица", "Долгоруковская улица", "1-я Останкинская улица"
+            // Генитивная/именная форма (последнее слово НЕ прилагательное):
+            //   "улица Ленина", "улица Академика Королёва", "улица Большая Полянка"
+            func isAdjectiveForm() -> Bool {
+                let last = nmNorm.components(separatedBy: " ").last?.lowercased() ?? ""
+                return last.hasSuffix("ая") || last.hasSuffix("яя")
+            }
+            func streetWithUlitsa() -> String {
+                isAdjectiveForm() ? "\(nmNorm) улица" : "улица \(nmNorm)"
+            }
 
             // Полный суффикс для reverse-порядка
             func suffix() -> String {
@@ -1294,16 +1435,19 @@ struct TextParser {
                 if t == "б-р" || t.hasPrefix("буль") { return "бульвар" }
                 if t.hasPrefix("шосс") { return "шоссе" }
                 if t.hasPrefix("пр") { return "проспект" } // пр-т, пр-кт, проспект
-                return "" // улица/ул → без суффикса
+                if t == "аллея" { return "аллея" }
+                if t == "тракт" { return "тракт" }
+                return "" // улица — обрабатывается отдельно через streetWithUlitsa()
             }
 
             if isReverse {
+                if t.hasPrefix("ул") { return streetWithUlitsa() }
                 let s = suffix()
-                return s.isEmpty ? nmNorm : "\(nmNorm) \(s)"
+                return s.isEmpty ? streetWithUlitsa() : "\(nmNorm) \(s)"
             }
 
             // Стандартный порядок:
-            if t.hasPrefix("ул") { return nmNorm }           // ул./улица → только имя (адъективная форма)
+            if t.hasPrefix("ул") { return streetWithUlitsa() }
             // Все варианты проспекта → "Проспект Имя" (генитив: "Мира", "Стачки" и т.д.)
             if t.hasPrefix("пр") && !t.hasPrefix("пр-д") && !t.hasPrefix("прое") {
                 let cap = nmNorm.prefix(1).uppercased() + nmNorm.dropFirst()
@@ -1315,7 +1459,9 @@ struct TextParser {
             if t.hasPrefix("пр-д") || t.hasPrefix("прое") { return "\(nmNorm) проезд" }
             if t == "б-р" || t.hasPrefix("буль") { return "бульвар \(nmNorm)" }
             if t.hasPrefix("шосс") { return "\(nmNorm) шоссе" }
-            return nmNorm
+            if t == "аллея" { return "\(nmNorm) аллея" }
+            if t == "тракт" { return "\(nmNorm) тракт" }
+            return streetWithUlitsa()   // fallback: неизвестный тип
         }
 
         if result.tags["addr:street"] == nil,
@@ -1348,25 +1494,44 @@ struct TextParser {
             }
         }
 
-        // Дом — "д. 5", "д.12а", "дом 3/2", "д5"
-        // стр./корп. добавляем к housenumber если идут сразу после (OSM-практика: "1 стр. 4")
+        // Дом — "д. 5", "дом 12а", "д.2/10", "д5", "вл.5"
+        // Дробные номера: "д. 19/1", "д.2/10" — [\/\-]\d+ без пробела перед разделителем
+        // Формат OSM RU (wiki): 48А к2 с1 соор3 фл1 литБ
         let houseRegex = try? NSRegularExpression(
-            pattern: #"д(?:ом)?\.?\s*(\d+\s*[а-яёА-ЯЁ]?(?:[\/\-]\d+[а-яёА-ЯЁ]?)?)"#,
+            pattern: #"(?:д(?:ом)?|вл)\.?\s*(\d+[а-яёА-ЯЁ]?(?:[\/\-]\d+[а-яёА-ЯЁ]?)?)"#,
             options: .caseInsensitive
         )
         if let m = houseRegex?.firstMatch(in: normalized, range: NSRange(normalized.startIndex..., in: normalized)),
            let r = Range(m.range(at: 1), in: normalized) {
             var house = String(normalized[r]).trimmingCharacters(in: .whitespaces)
-            let afterHouse = String(normalized[r.upperBound...].prefix(30))
-            if let strMatch = try? NSRegularExpression(pattern: #"^\s*,?\s*стр(?:оение)?\.?\s*(\d+)"#, options: .caseInsensitive),
-               let sm = strMatch.firstMatch(in: afterHouse, range: NSRange(afterHouse.startIndex..., in: afterHouse)),
-               let sr = Range(sm.range(at: 1), in: afterHouse) {
-                house += " стр. " + String(afterHouse[sr])
-            } else if let korpMatch = try? NSRegularExpression(pattern: #"^\s*,?\s*к(?:орп(?:ус)?)?\.?\s*(\d+[а-яёА-ЯЁ]?)"#, options: .caseInsensitive),
-                      let km = korpMatch.firstMatch(in: afterHouse, range: NSRange(afterHouse.startIndex..., in: afterHouse)),
-                      let kr = Range(km.range(at: 1), in: afterHouse) {
-                house += " к. " + String(afterHouse[kr])
+
+            // Сканируем все суффиксы в следующих 80 символах после номера дома.
+            // Порядок итоговой строки определяется позицией в тексте (не порядком массива).
+            // "соор" до "с" — чтобы "соор" не поглощался паттерном "с" при матчинге.
+            // Аббревиатуры по OSM RU wiki: к{N}, с{N}, соор{N}, фл{N}, лит{Б}
+            let afterHouse = String(normalized[r.upperBound...].prefix(80))
+            let houseSuffixes: [(pattern: String, abbrev: String)] = [
+                (#"\bк(?:орп(?:ус)?)?\.?\s*(\d+[а-яёА-ЯЁ]?)"#,    "к"),
+                (#"\bсоор(?:ужение)?\.?\s*(\d+)"#,                   "соор"),
+                (#"\bс(?:тр(?:оение)?)?\.?\s*(\d+)"#,                "с"),
+                (#"\bфл(?:игель)?\.?\s*(\d+)"#,                      "фл"),
+                (#"\bлит(?:ера)?\.?\s*([А-ЯЁA-Z][а-яёА-ЯЁa-z]?)"#, "лит"),
+            ]
+            // Собираем все матчи с их позицией, затем сортируем по позиции
+            var suffixMatches: [(location: Int, token: String)] = []
+            for (pat, abbrev) in houseSuffixes {
+                if let rx = try? NSRegularExpression(pattern: pat, options: .caseInsensitive),
+                   let sm = rx.firstMatch(in: afterHouse, range: NSRange(afterHouse.startIndex..., in: afterHouse)),
+                   let sr = Range(sm.range(at: 1), in: afterHouse) {
+                    let val = String(afterHouse[sr]).trimmingCharacters(in: .whitespaces)
+                    if !val.isEmpty {
+                        suffixMatches.append((location: sm.range.location, token: "\(abbrev)\(val)"))
+                    }
+                }
             }
+            suffixMatches.sort { $0.location < $1.location }
+            for m in suffixMatches { house += " \(m.token)" }
+
             if !house.isEmpty {
                 result.set(tag: "addr:housenumber", value: house, confidence: houseConf, status: .extracted)
             }
@@ -1407,21 +1572,8 @@ struct TextParser {
 
     // MARK: - Helpers
 
-    private static func normalizePhone(_ phone: String) -> String {
-        var digits = phone.filter { $0.isNumber }
-        // 8XXXXXXXXXX → +7XXXXXXXXXX
-        if digits.hasPrefix("8") && digits.count == 11 {
-            digits = "7" + digits.dropFirst()
-        }
-        // 10-значный без кода страны: (495) XXX-XX-XX, 9XX XXX-XX-XX
-        // Добавляем 7, только если начинается с 3,4,5,6,8,9 — НЕ с 7
-        // (10-digit ИНН начинаются с 7, и мы не хотим их путать с телефонами)
-        if digits.count == 10, let first = digits.first, "345689".contains(first) {
-            digits = "7" + digits
-        }
-        guard digits.count == 11, digits.hasPrefix("7") else { return phone }
-        let d = Array(digits).map { String($0) }
-        return "+\(d[0]) \(d[1...3].joined()) \(d[4...6].joined())-\(d[7...8].joined())-\(d[9...10].joined())"
+    static func normalizePhone(_ phone: String) -> String {
+        POIValueNormalizer.phone(phone)
     }
 }
 

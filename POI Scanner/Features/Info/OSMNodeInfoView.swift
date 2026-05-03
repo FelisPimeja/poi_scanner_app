@@ -64,12 +64,18 @@ struct OSMNodeInfoView: View {
             ForEach(OSMTagDefinition.TagGroup.allCases, id: \.self) { group in
                 let entries = grouped[group] ?? []
                 if !entries.isEmpty {
-                    if group == .name {
+                    if group == .type {
+                        Section(header: Text("Основные")) {
+                            ForEach(entries, id: \.key) { item in
+                                OSMTagRow(tagKey: item.key, readOnlyValue: item.value)
+                            }
+                        }
+                    } else if group == .name {
                         CollapsibleNameSection(
                             entries: entries,
                             isEditable: false,
                             tagRow: { key, value, isPrimary in
-                                OSMTagRow(tagKey: key, readOnlyValue: value, isPrimary: isPrimary)
+                                OSMTagRow(tagKey: key, readOnlyValue: value, hideIcon: true, isPrimary: isPrimary)
                             }
                         )
                     } else if group == .brand {
@@ -181,14 +187,43 @@ struct OSMNodeInfoView: View {
         return ai == bi ? a < b : ai < bi
     }
 
+    private let baseTypeKeys: Set<String> = ["amenity", "shop", "craft", "public_transport", "healthcare", "tourism"]
+
+    /// Ключи из пресетов активного типа, которые должны показываться в «Основных»
+    /// (не входят в именованные группы — fuel/diet/payment/…).
+    private var presetPrimaryKeys: Set<String> {
+        let namedGroupPrefixes = POIFieldRegistry.shared.groupAliasKeys  // "fuel:", "diet:", …
+        var keys = Set<String>()
+        for baseKey in baseTypeKeys {
+            guard let value = node.tags[baseKey], !value.isEmpty else { continue }
+            guard let typeDef = POITypeRegistry.shared.find(key: baseKey, value: value) else { continue }
+            for presetKey in typeDef.presets {
+                // Пропускаем ключи именованных групп (prefix-match)
+                let isNamed = namedGroupPrefixes.contains { presetKey.hasPrefix($0) }
+                if !isNamed && !baseTypeKeys.contains(presetKey) {
+                    keys.insert(presetKey)
+                }
+            }
+        }
+        return keys
+    }
+
     private func resolvedGroup(for key: String) -> OSMTagDefinition.TagGroup {
-        if OSMTags.isNameKey(key)     { return .name }
-        if OSMTags.isBrandKey(key)    { return .brand }
-        if OSMTags.isLegalKey(key)    { return .legal }
-        if OSMTags.isPaymentKey(key)  { return .payment }
-        if OSMTags.isContactKey(key)  { return .contact }
-        if OSMTags.isAddressKey(key)  { return .address }
-        if OSMTags.isBuildingKey(key) { return .building }
+        if baseTypeKeys.contains(key)        { return .type }
+        if OSMTags.isNameKey(key)            { return .name }
+        if OSMTags.isBrandKey(key)           { return .brand }
+        if OSMTags.isLegalKey(key)           { return .legal }
+        if OSMTags.isPaymentKey(key)         { return .payment }
+        if OSMTags.isFuelKey(key)            { return .fuel }
+        if OSMTags.isDietKey(key)            { return .diet }
+        if OSMTags.isRecyclingKey(key)       { return .recycling }
+        if OSMTags.isCurrencyKey(key)        { return .currency }
+        if OSMTags.isServiceBicycleKey(key)  { return .serviceBicycle }
+        if OSMTags.isServiceVehicleKey(key)  { return .serviceVehicle }
+        if OSMTags.isContactKey(key)         { return .contact }
+        if OSMTags.isAddressKey(key)         { return .address }
+        if OSMTags.isBuildingKey(key)        { return .building }
+        if presetPrimaryKeys.contains(key)   { return .type }
         return OSMTags.definition(for: key)?.group ?? .other
     }
 }

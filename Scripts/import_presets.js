@@ -39,6 +39,8 @@ const ALLOWED_BASE_KEYS = new Set([
   'craft',
   'public_transport',
   'healthcare',
+  'tourism',
+  'entrance',
 ]);
 
 /**
@@ -170,6 +172,34 @@ const NAME_OVERRIDES = {
   'public_transport/stop_position': 'Остановка (узел)',
   'public_transport/platform':      'Платформа / Остановка',
   'public_transport/station':       'Станция',
+  // tourism
+  'tourism/hotel':              'Отель',
+  'tourism/hostel':             'Хостел',
+  'tourism/motel':              'Мотель',
+  'tourism/guest_house':        'Гостевой дом',
+  'tourism/apartment':          'Апартаменты',
+  'tourism/camp_site':          'Кемпинг',
+  'tourism/caravan_site':       'Кемпинг для автодомов',
+  'tourism/chalet':             'Шале',
+  'tourism/alpine_hut':         'Горный приют',
+  'tourism/wilderness_hut':     'Хижина',
+  'tourism/attraction':         'Достопримечательность',
+  'tourism/museum':             'Музей',
+  'tourism/gallery':            'Галерея',
+  'tourism/artwork':            'Арт-объект',
+  'tourism/viewpoint':          'Видовая точка',
+  'tourism/zoo':                'Зоопарк',
+  'tourism/theme_park':         'Тематический парк',
+  'tourism/aquarium':           'Аквариум',
+  'tourism/information':        'Информационный пункт',
+  'tourism/picnic_site':        'Место для пикника',
+  // entrance
+  'entrance':                   'Вход',
+  'entrance/staircase':         'Подъезд',
+  'entrance/main':              'Главный вход',
+  'entrance/shop':              'Вход в магазин',
+  'entrance/emergency':         'Аварийный выход',
+  'entrance/emergency_ward_entrance': 'Скорая / Приёмный покой',
 };
 
 /**
@@ -210,13 +240,26 @@ function baseValue(preset) {
 /**
  * Resolves `fields` / `moreFields` arrays from a preset.
  * Each element is either a plain field ID string or "{presetID}" reference.
- * We keep only plain strings (field IDs) and ignore preset references.
+ * For "{presetID}" references we recursively expand that preset's fields.
  */
-function resolveFields(arr) {
-  if (!Array.isArray(arr)) return [];
-  return arr
-    .filter(f => typeof f === 'string' && !f.startsWith('{'))
-    .map(f => f.replace(/^#/, '')); // strip leading # if any
+function resolveFields(arr, presetsRaw, depth = 0) {
+  if (!Array.isArray(arr) || depth > 3) return [];
+  const result = [];
+  for (const f of arr) {
+    if (typeof f !== 'string') continue;
+    if (f.startsWith('{') && f.endsWith('}')) {
+      // Preset reference — expand its fields (strip { } and leading @)
+      const refId = f.slice(1, -1).replace(/^@/, '');
+      const refPreset = presetsRaw[refId];
+      if (refPreset) {
+        result.push(...resolveFields(refPreset.fields, presetsRaw, depth + 1));
+        result.push(...resolveFields(refPreset.moreFields, presetsRaw, depth + 1));
+      }
+    } else {
+      result.push(f.replace(/^#/, '')); // strip leading # if any
+    }
+  }
+  return result;
 }
 
 /**
@@ -287,16 +330,19 @@ async function main() {
 
     // Fields: main + moreFields, resolved to tag keys, deduplicated
     const rawFields = [
-      ...resolveFields(p.fields),
-      ...resolveFields(p.moreFields),
+      ...resolveFields(p.fields, presetsRaw),
+      ...resolveFields(p.moreFields, presetsRaw),
     ];
     const fieldKeys = rawFields
       .map(fid => fieldToKey(fid, fieldsRaw))
       .filter(k => k && k !== key && k !== 'name'); // drop the type key itself and name
     
     // Append universal extra fields if not already present
-    for (const extra of UNIVERSAL_EXTRA_FIELDS) {
-      if (!fieldKeys.includes(extra)) fieldKeys.push(extra);
+    // (skip for entrance= — входы не нуждаются в часах/телефоне/сайте)
+    if (key !== 'entrance') {
+      for (const extra of UNIVERSAL_EXTRA_FIELDS) {
+        if (!fieldKeys.includes(extra)) fieldKeys.push(extra);
+      }
     }
 
     // Deduplicate while preserving order
@@ -339,17 +385,31 @@ async function main() {
     email: 'email',
   };
 
+  // Build a reverse index: tagKey (as used in presets) → { fieldID, rawDef, ruDef }
+  // This correctly handles cases where fieldID ≠ tagKey,
+  // e.g. "fuel/fuel_multi" whose def.key is "fuel:".
+  const tagKeyToField = new Map();
+  for (const [id, raw] of Object.entries(fieldsRaw)) {
+    const tagKey = raw.key ?? (raw.keys ? raw.keys[0] : null) ?? id;
+    if (!tagKeyToField.has(tagKey)) {
+      tagKeyToField.set(tagKey, { fieldID: id, raw, ru: ruFields[id] ?? {} });
+    }
+  }
+
   const allPresetKeys = new Set(types.flatMap(t => t.presets));
   const fields = [];
 
-  for (const fieldID of [...allPresetKeys].sort()) {
-    const raw = fieldsRaw[fieldID];
-    if (!raw) continue; // no schema entry — skip (will fall back to free text)
+  for (const tagKey of [...allPresetKeys].sort()) {
+    // Skip virtual group-alias keys
+    if (tagKey === 'addr') continue;
 
-    const ru = ruFields[fieldID] ?? {};
+    const entry = tagKeyToField.get(tagKey);
+    if (!entry) continue; // no schema entry — skip (will fall back to free text)
 
-    // Determine OSM tag key(s) this field controls
-    const osmKey = raw.key ?? (raw.keys ? raw.keys[0] : null) ?? fieldID;
+    const { fieldID, raw, ru } = entry;
+
+    // Use tagKey as osmKey so Swift can look up by the exact key from the presets list
+    const osmKey = tagKey;
 
     // inputType
     let inputType = TYPE_MAP[raw.type] ?? 'text';
@@ -357,19 +417,40 @@ async function main() {
     if (fieldID === 'opening_hours' || osmKey === 'opening_hours') inputType = 'openingHours';
 
     // Label (Russian preferred, fall back to English field label or fieldID)
-    const label = ru.label ?? raw.label ?? fieldID;
+    // ru.label может быть объектом { title: "...", description: "..." } — берём title
+    // Если ru.label — это строка вида "{fieldID}" (нерасширенный template-reference
+    // из схемы), считаем перевод отсутствующим и берём английский лейбл.
+    const rawLabelRu = ru.label ?? null;
+    const rawLabelEn = raw.label ?? fieldID;
+    function resolveLabel(raw) {
+      if (raw === null || raw === undefined) return null;
+      if (typeof raw === 'string') return raw.startsWith('{') ? null : raw;
+      if (typeof raw === 'object') return raw.title ?? raw.description ?? null;
+      return String(raw);
+    }
+    const label = resolveLabel(rawLabelRu)
+      ?? resolveLabel(rawLabelEn)
+      ?? fieldID;
 
     // Options: array of { value, label } — only for select / semiCombo / multiCombo
     let options = [];
     if (['select', 'semiCombo', 'multiCombo'].includes(inputType)) {
       // raw.options is an array of value strings
       const rawOpts = raw.options ?? [];
-      // ru.options is { value: "RU label" }
+      // ru.options is { value: "RU label" } or { value: { title: "RU label" } }
       const ruOpts = ru.options ?? {};
-      options = rawOpts.map(v => ({
-        value: v,
-        label: ruOpts[v] ?? v,
-      }));
+      options = rawOpts.map(v => {
+        const ruVal = ruOpts[v];
+        let lbl;
+        if (typeof ruVal === 'string') {
+          lbl = ruVal;
+        } else if (typeof ruVal === 'object' && ruVal !== null) {
+          lbl = ruVal.title ?? ruVal.description ?? v;
+        } else {
+          lbl = v;
+        }
+        return { value: v, label: lbl };
+      });
     }
 
     // For multiCombo, record the key prefix (e.g. "fuel:" for fuel:diesel)
@@ -377,7 +458,7 @@ async function main() {
       ? (raw.key ?? fieldID)
       : null;
 
-    const entry = {
+    const fieldEntry = {
       id: fieldID,
       osmKey,
       inputType,
@@ -385,10 +466,19 @@ async function main() {
       ...(options.length > 0 && { options }),
       ...(keyPrefix && { keyPrefix }),
     };
-    fields.push(entry);
+    fields.push(fieldEntry);
   }
 
-  console.log(`   Built ${fields.length} field definitions\n`);
+  // Collect all group-alias pseudo-keys: multiCombo fields whose osmKey ends in ":"
+  // These appear in presets[] as e.g. "payment:" and must be treated as group references
+  // in the app (not as real OSM tag keys with a value).
+  const groupAliasKeys = [...new Set(
+    fields
+      .filter(f => f.inputType === 'multiCombo' && f.osmKey.endsWith(':'))
+      .map(f => f.osmKey)
+  )].sort();
+
+  console.log(`   Group alias keys (${groupAliasKeys.length}): ${groupAliasKeys.join(', ')}\n`);
 
   // 5. Write outputs
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -410,6 +500,11 @@ async function main() {
   const fieldsOutput = {
     _generated: new Date().toISOString(),
     _source: 'https://github.com/openstreetmap/id-tagging-schema',
+    // groupAliasKeys: multiCombo-поля, чей osmKey оканчивается на ":" —
+    // это псевдонимы групп, а не реальные OSM-ключи с одиночным значением.
+    // Приложение использует этот список в namedGroupPresetKeys(), чтобы
+    // не рендерить их как обычные tag-строки.
+    groupAliasKeys,
     fields,
   };
   fs.writeFileSync(fieldsOut, JSON.stringify(fieldsOutput, null, 2), 'utf8');

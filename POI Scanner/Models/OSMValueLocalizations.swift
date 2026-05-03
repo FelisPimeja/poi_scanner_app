@@ -14,7 +14,20 @@ enum OSMValueLocalizations {
     static func label(for value: String, key: String) -> String {
         guard AppSettings.shared.language == .ru else { return value }
         let dict = dictionary(for: key)
-        return dict[value] ?? value
+        if let found = dict[value] { return found }
+        // Fallback: для multiCombo-полей ищем суффикс в options POIFieldRegistry.
+        // Например: key = "fuel:diesel" → parentField = fuel:, suffix = "diesel"
+        if let (parentField, suffix) = POIFieldRegistry.shared.field(forSubKey: key),
+           suffix == value,
+           let opt = parentField.options.first(where: { $0.value == value }) {
+            return opt.label
+        }
+        // Или: key уже является prefix (например "fuel:"), value — суффикс
+        if let field = POIFieldRegistry.shared.field(forOSMKey: key.hasSuffix(":") ? key : key + ":"),
+           let opt = field.options.first(where: { $0.value == value }) {
+            return opt.label
+        }
+        return value
     }
 
     /// Возвращает словарь переводов для данного ключа (или пустой если ключ неизвестен).
@@ -32,7 +45,20 @@ enum OSMValueLocalizations {
         case "building:architecture":          return buildingArchitecture
         case "roof:shape":                     return roofShape
         case "roof:material":                  return roofMaterial
-        default:                            return [:]
+        default:
+            // Для multiCombo-подключей (fuel:diesel, payment:visa…) — строим словарь из options
+            // родительского поля через keyPrefix-индекс реестра.
+            if let (parentField, _) = POIFieldRegistry.shared.field(forSubKey: key),
+               !parentField.options.isEmpty {
+                return Dictionary(uniqueKeysWithValues: parentField.options.map { ($0.value, $0.label) })
+            }
+            // Для ключей с trailing-colon (fuel:, payment:) — ищем напрямую.
+            let prefix = key.hasSuffix(":") ? key : key + ":"
+            if let field = POIFieldRegistry.shared.field(forOSMKey: prefix),
+               !field.options.isEmpty {
+                return Dictionary(uniqueKeysWithValues: field.options.map { ($0.value, $0.label) })
+            }
+            return [:]
         }
     }
 

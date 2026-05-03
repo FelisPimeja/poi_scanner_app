@@ -7,16 +7,26 @@ import CoreLocation
 /// Полноэкранный редактор координат точечного POI.
 /// Карта панируется — крестик остаётся в центре экрана.
 /// При подтверждении возвращает координату центра карты.
+/// Опционально: тап по POI на карте возвращает его через `onSelectNode`.
 struct CoordinatePickerView: View {
     let initialCoordinate: CLLocationCoordinate2D
     let initialFloor: Int
     let onConfirm: (CLLocationCoordinate2D) -> Void
     let onCancel: () -> Void
+    /// Если не nil — при тапе по POI показываем confirmation и возвращаем ноду.
+    var onSelectNode: ((OSMNode) -> Void)? = nil
 
     @State private var centerCoordinate: CLLocationCoordinate2D
     @State private var selectedFloor: Int
     @State private var availableFloors: [IndoorFloor] = []
     @State private var showIndoorControls = false
+
+    /// POI, на который тапнул пользователь — ожидает подтверждения
+    @State private var tappedNode: OSMNode? = nil
+    /// Показываем alert для подтверждения merge
+    @State private var showMergeAlert = false
+    /// Показываем индикатор загрузки пока fetchNodeDetails не завершится
+    @State private var isFetchingNode = false
 
     @EnvironmentObject private var settings: AppSettings
 
@@ -24,12 +34,14 @@ struct CoordinatePickerView: View {
         initialCoordinate: CLLocationCoordinate2D,
         initialFloor: Int = 0,
         onConfirm: @escaping (CLLocationCoordinate2D) -> Void,
-        onCancel: @escaping () -> Void
+        onCancel: @escaping () -> Void,
+        onSelectNode: ((OSMNode) -> Void)? = nil
     ) {
         self.initialCoordinate = initialCoordinate
         self.initialFloor = initialFloor
         self.onConfirm = onConfirm
         self.onCancel = onCancel
+        self.onSelectNode = onSelectNode
         _centerCoordinate = State(initialValue: initialCoordinate)
         _selectedFloor = State(initialValue: initialFloor)
     }
@@ -44,7 +56,8 @@ struct CoordinatePickerView: View {
                     availableFloors: $availableFloors,
                     showIndoorControls: $showIndoorControls,
                     initialCoordinate: initialCoordinate,
-                    initialFloor: initialFloor
+                    initialFloor: initialFloor,
+                    onTapPOI: onSelectNode != nil ? { [self] node in handlePOITap(node) } : nil
                 )
                 .ignoresSafeArea()
 
@@ -81,6 +94,14 @@ struct CoordinatePickerView: View {
                     .padding(.bottom, 24)
                 }
 
+                // Индикатор загрузки при fetch ноды
+                if isFetchingNode {
+                    Color.black.opacity(0.25).ignoresSafeArea()
+                    ProgressView()
+                        .scaleEffect(1.4)
+                        .tint(.white)
+                }
+
                 // Переключатель этажей
                 if showIndoorControls {
                     FloorPickerView(
@@ -106,7 +127,60 @@ struct CoordinatePickerView: View {
                     .fontWeight(.semibold)
                 }
             }
+            .alert(
+                alertTitle,
+                isPresented: $showMergeAlert
+            ) {
+                Button("Объединить") {
+                    guard let node = tappedNode else { return }
+                    tappedNode = nil
+                    showMergeAlert = false
+                    onSelectNode?(node)
+                }
+                Button("Отмена", role: .cancel) {
+                    tappedNode = nil
+                    showMergeAlert = false
+                }
+            } message: {
+                if let node = tappedNode {
+                    Text(nodeAlertMessage(node))
+                }
+            }
         }
+    }
+
+    // MARK: - POI tap handling
+
+    private func handlePOITap(_ shell: OSMNode) {
+        guard !isFetchingNode else { return }
+        isFetchingNode = true
+        Task {
+            let node: OSMNode
+            do {
+                node = try await OverpassService().fetchNodeDetails(id: shell.id, type: shell.type)
+            } catch {
+                node = shell   // fallback на shell с базовыми тегами
+            }
+            await MainActor.run {
+                isFetchingNode = false
+                tappedNode = node
+                showMergeAlert = true
+            }
+        }
+    }
+
+    private var alertTitle: String {
+        let name = tappedNode?.tags["name"] ?? "этот объект"
+        return "Объединить с «\(name)»?"
+    }
+
+    private func nodeAlertMessage(_ node: OSMNode) -> String {
+        var parts: [String] = []
+        if let v = node.tags["addr:street"] { parts.append(v) }
+        if let v = node.tags["addr:housenumber"] { parts.append("д. \(v)") }
+        let addr = parts.joined(separator: ", ")
+        if addr.isEmpty { return "Данные из OSM будут объединены с OCR-результатами." }
+        return "\(addr)\nДанные из OSM будут объединены с OCR-результатами."
     }
 }
 
@@ -119,6 +193,8 @@ private struct CoordinatePickerMapView: UIViewRepresentable {
     @Binding var showIndoorControls: Bool
     let initialCoordinate: CLLocationCoordinate2D
     let initialFloor: Int
+    /// Если не nil — при тапе по POI-фиче вызываем с «shell»-нодой (без полных тегов).
+    var onTapPOI: ((OSMNode) -> Void)? = nil
 
     func makeUIView(context: Context) -> MLNMapView {
         let mapView = MLNMapView()
@@ -131,11 +207,24 @@ private struct CoordinatePickerMapView: UIViewRepresentable {
         mapView.logoView.isHidden = true
 
         mapView.setCenter(initialCoordinate, zoomLevel: 18, animated: false)
+
+        if onTapPOI != nil {
+            let poiTap = UITapGestureRecognizer(
+                target: context.coordinator,
+                action: #selector(Coordinator.handlePOITap(_:))
+            )
+            poiTap.delegate = context.coordinator
+            mapView.addGestureRecognizer(poiTap)
+        }
+
         return mapView
     }
 
     func updateUIView(_ mapView: MLNMapView, context: Context) {
         let coordinator = context.coordinator
+
+        // Синхронизируем callback (SwiftUI может пересоздать CoordinatePickerMapView)
+        coordinator.onTapPOI = onTapPOI
 
         // При смене этажа обновляем фильтр indoor-слоёв
         if coordinator.lastRenderedFloor != selectedFloor {
@@ -150,7 +239,8 @@ private struct CoordinatePickerMapView: UIViewRepresentable {
             selectedFloor: $selectedFloor,
             availableFloors: $availableFloors,
             showIndoorControls: $showIndoorControls,
-            initialFloor: initialFloor
+            initialFloor: initialFloor,
+            onTapPOI: onTapPOI
         )
     }
 }
@@ -167,6 +257,7 @@ extension CoordinatePickerMapView {
         let initialFloor: Int
         var lastRenderedFloor: Int
         var mapTilerPOILayerIDs: Set<String> = []
+        var onTapPOI: ((OSMNode) -> Void)?
 
         private var floorDetectWorkItem: DispatchWorkItem?
 
@@ -202,7 +293,8 @@ extension CoordinatePickerMapView {
             selectedFloor: Binding<Int>,
             availableFloors: Binding<[IndoorFloor]>,
             showIndoorControls: Binding<Bool>,
-            initialFloor: Int
+            initialFloor: Int,
+            onTapPOI: ((OSMNode) -> Void)? = nil
         ) {
             _centerCoordinate = centerCoordinate
             _selectedFloor = selectedFloor
@@ -210,6 +302,7 @@ extension CoordinatePickerMapView {
             _showIndoorControls = showIndoorControls
             self.initialFloor = initialFloor
             self.lastRenderedFloor = initialFloor
+            self.onTapPOI = onTapPOI
         }
 
         // MARK: - MLNMapViewDelegate
@@ -661,7 +754,72 @@ extension CoordinatePickerMapView {
                 }
             }
         }
+
+        // MARK: - POI tap gesture
+
+        @objc func handlePOITap(_ sender: UITapGestureRecognizer) {
+            guard sender.state == .ended,
+                  let mapView = sender.view as? MLNMapView,
+                  !mapTilerPOILayerIDs.isEmpty,
+                  let callback = onTapPOI else { return }
+
+            let pt = sender.location(in: mapView)
+            let hitSize: CGFloat = 44
+            let hitRect = CGRect(x: pt.x - hitSize / 2, y: pt.y - hitSize / 2,
+                                 width: hitSize, height: hitSize)
+            let features = mapView.visibleFeatures(in: hitRect,
+                                                   styleLayerIdentifiers: mapTilerPOILayerIDs)
+            guard let feature = features.first else { return }
+
+            // Координата — берём coordinate фичи (для Point) или центр hitRect
+            let coord: CLLocationCoordinate2D
+            if let point = feature as? MLNPointFeature {
+                coord = point.coordinate
+            } else {
+                coord = mapView.convert(pt, toCoordinateFrom: mapView)
+            }
+
+            let attrs = feature.attributes
+            let name = attrs["name"] as? String
+            let cls  = (attrs["class"] as? String) ?? ""
+            let sub  = (attrs["subclass"] as? String) ?? ""
+
+            // Декодируем OSM id + type из encodedID (MapTiler convention: id*32 + typeIndex)
+            let osmID: Int64
+            let osmType: OSMElementType
+            if let num = feature.identifier as? NSNumber {
+                let encoded = num.int64Value
+                osmID = encoded / 32
+                switch encoded % 32 {
+                case 2:  osmType = .way
+                case 3:  osmType = .relation
+                default: osmType = .node
+                }
+            } else {
+                osmID = 0
+                osmType = .node
+            }
+
+            var tags: [String: String] = [:]
+            if let name { tags["name"] = name }
+            if !cls.isEmpty  { tags["_class"] = cls }
+            if !sub.isEmpty  { tags["_subclass"] = sub }
+
+            let shell = OSMNode(id: osmID, type: osmType,
+                                latitude: coord.latitude, longitude: coord.longitude,
+                                tags: tags, version: 1)
+            DispatchQueue.main.async { callback(shell) }
+        }
     }
+}
+
+// MARK: - UIGestureRecognizerDelegate (Coordinator)
+
+extension CoordinatePickerMapView.Coordinator: UIGestureRecognizerDelegate {
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer
+    ) -> Bool { true }
 }
 
 // MARK: - UIColor hex (local, mirrors MapLibreView extension)

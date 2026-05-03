@@ -105,6 +105,8 @@ struct POITypePickerView: View {
         case "craft":            return "wrench.and.screwdriver"
         case "public_transport": return "bus"
         case "healthcare":       return "cross.case"
+        case "entrance":         return "door.left.hand.open"
+        case "office":           return "briefcase"
         default:                 return "tag"
         }
     }

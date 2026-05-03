@@ -25,15 +25,36 @@ struct OSMTagRow: View {
 
     private var definition: OSMTagDefinition? { OSMTags.definition(for: tagKey) }
 
-    /// Определение поля из POIFieldRegistry — используется как фолбэк
-    /// когда OSMTags не содержит определения для данного ключа.
+    /// Определение поля из POIFieldRegistry — первичный источник переводов.
     private var poiField: POIField? { POIFieldRegistry.shared.field(forOSMKey: tagKey) }
 
-    /// Человекочитаемая метка (из каталога OSMTags → POIField → авто-генерация)
+    /// Человекочитаемая метка:
+    ///   1. POIFields.json (id-tagging-schema RU) — первичный источник
+    ///   2. OSMTags.swift — статический справочник (иконки, группы)
+    ///   3. Для подключей вида "fuel:diesel" — берём метку родителя + суффикс
+    ///   4. Авто-генерация по шаблону (name:XX → "Название (Английский)")
     private var label: String {
-        if let def = definition { return def.label }
         if let field = poiField { return field.label }
-        return Self.localizedNameLabel(for: tagKey)
+        if let def   = definition { return def.label }
+        // Подключи вида fuel:diesel, payment:visa, socket:type2…
+        if let (parentField, suffix) = POIFieldRegistry.shared.field(forSubKey: tagKey) {
+            // Сначала ищем в options родительского поля (переведены из id-tagging-schema)
+            let localSuffix: String
+            if let opt = parentField.options.first(where: { $0.value == suffix }) {
+                localSuffix = opt.label
+            } else {
+                localSuffix = OSMValueLocalizations.label(for: suffix, key: tagKey)
+            }
+            return "\(parentField.label) (\(localSuffix))"
+        }
+        // ДИАГНОСТИКА: ключ без перевода — выводим в консоль
+        let fallback = Self.localizedNameLabel(for: tagKey)
+        #if DEBUG
+        if fallback == tagKey {
+            print("🔍 OSMTagRow: no label for key='\(tagKey)' | registry size=\(POIFieldRegistry.shared.fields.count)")
+        }
+        #endif
+        return fallback
     }
 
     /// Генерирует метку для ключей вида "name:XX", "old_name:XX", "alt_name:XX" и т.п.
@@ -96,12 +117,15 @@ struct OSMTagRow: View {
     @ViewBuilder
     private var leadingIndicator: some View {
         let effectiveIcon: String? = hideIcon ? nil : (forceIcon ?? icon)
-        if let iconName = effectiveIcon {
+        if hideIcon {
+            // Иконка скрыта — резервируем место той же ширины для выравнивания контента
+            Color.clear.frame(width: 24)
+        } else if let iconName = effectiveIcon {
             Image(systemName: iconName)
                 .font(.body)
                 .foregroundStyle(status.map(\.color) ?? Color.secondary)
                 .frame(width: 24, alignment: .center)
-        } else if let status, !hideIcon {
+        } else if let status {
             // нет иконки, но есть статус → точка
             Image(systemName: "circle.fill")
                 .font(.caption)
@@ -340,6 +364,12 @@ struct OSMTagRow: View {
             return formattedSocial(key: k, urlString: value)
         }
 
+        // Булевы значения yes/no для multiCombo-подключей (fuel:diesel, payment:visa…)
+        if AppSettings.shared.language == .ru {
+            if value == "yes" { return "Да" }
+            if value == "no"  { return "Нет" }
+        }
+
         return value
     }
 
@@ -406,6 +436,18 @@ struct OSMTagRow: View {
     /// Форматирует российский номер: 79261234567 / 89261234567 → +7 (926) 123-45-67.
     /// Нераспознанные форматы возвращает без изменений.
     private static func formattedPhone(_ raw: String) -> String {
+        // Обработка паттерна "main/extension": "+7 499 7502300/1016" → "+7 (499) 750-23-00 / 1016"
+        let slashParts = raw.components(separatedBy: "/")
+        if slashParts.count > 1 {
+            let mainPart = slashParts[0].trimmingCharacters(in: .whitespaces)
+            let extParts = slashParts.dropFirst().map { $0.trimmingCharacters(in: .whitespaces) }
+            let formattedMain = formattedPhoneSingle(mainPart)
+            return ([formattedMain] + extParts).joined(separator: " / ")
+        }
+        return formattedPhoneSingle(raw)
+    }
+
+    private static func formattedPhoneSingle(_ raw: String) -> String {
         // Обработка добавочного номера: "ext. 1234" или "ext 1234" → " доб. (1234)"
         var main = raw
         var ext = ""
@@ -490,7 +532,8 @@ private struct BooleanTagToggle: View {
 }
 
 // MARK: - SelectTagField
-// Кнопка-меню для полей с одиночным выбором (.select)
+// Кнопка-меню для полей с одиночным выбором (.select).
+// При < 10 вариантов — нативный Menu; при ≥ 10 — sheet с поиском.
 
 private struct SelectTagField: View {
     let key: String
@@ -515,6 +558,10 @@ private struct SelectTagField: View {
 
     @State private var showCustomAlert = false
     @State private var customDraft = ""
+    @State private var showSheet = false
+
+    /// При ≥ 10 опций используем sheet с поиском
+    private var usesSheet: Bool { options.count >= 10 }
 
     private func label(for opt: String) -> String {
         if let po = poiOptions.first(where: { $0.value == opt }) { return po.label }
@@ -522,40 +569,150 @@ private struct SelectTagField: View {
     }
 
     var body: some View {
-        Menu {
-            ForEach(options, id: \.self) { opt in
-                Button {
-                    value = opt
-                } label: {
-                    if value == opt {
-                        Label(label(for: opt), systemImage: "checkmark")
-                    } else {
-                        Text(label(for: opt))
+        if usesSheet {
+            // Sheet-пикер с поиском
+            Button {
+                showSheet = true
+            } label: {
+                HStack {
+                    Text(value.isEmpty ? "Выбрать…" : label(for: value))
+                        .font(.body)
+                        .foregroundStyle(value.isEmpty ? .secondary : .primary)
+                    Spacer()
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showSheet) {
+                SelectPickerSheet(
+                    key: key,
+                    options: options,
+                    poiOptions: poiOptions,
+                    selectedValue: $value,
+                    isPresented: $showSheet
+                )
+            }
+        } else {
+            // Нативный Menu для коротких списков
+            Menu {
+                ForEach(options, id: \.self) { opt in
+                    Button {
+                        value = opt
+                    } label: {
+                        if value == opt {
+                            Label(label(for: opt), systemImage: "checkmark")
+                        } else {
+                            Text(label(for: opt))
+                        }
+                    }
+                }
+                Divider()
+                Button("Другое…") {
+                    customDraft = value
+                    showCustomAlert = true
+                }
+            } label: {
+                HStack {
+                    Text(value.isEmpty ? "Выбрать…" : label(for: value))
+                        .font(.body)
+                        .foregroundStyle(value.isEmpty ? .secondary : .primary)
+                    Spacer()
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .alert("Своё значение", isPresented: $showCustomAlert) {
+                TextField(key, text: $customDraft)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                Button("OK") { value = customDraft.trimmingCharacters(in: .whitespaces) }
+                Button("Отмена", role: .cancel) {}
+            }
+        }
+    }
+}
+
+// MARK: - SelectPickerSheet
+
+private struct SelectPickerSheet: View {
+    let key: String
+    let options: [String]
+    let poiOptions: [POIFieldOption]
+    @Binding var selectedValue: String
+    @Binding var isPresented: Bool
+
+    @State private var query = ""
+    @State private var showCustomAlert = false
+    @State private var customDraft = ""
+
+    private func label(for opt: String) -> String {
+        if let po = poiOptions.first(where: { $0.value == opt }) { return po.label }
+        return OSMValueLocalizations.label(for: opt, key: key)
+    }
+
+    private var filtered: [String] {
+        guard !query.isEmpty else { return options }
+        let q = query.lowercased()
+        return options.filter {
+            $0.lowercased().contains(q) || label(for: $0).lowercased().contains(q)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(filtered, id: \.self) { opt in
+                    Button {
+                        selectedValue = opt
+                        isPresented = false
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(label(for: opt))
+                                    .foregroundStyle(.primary)
+                                if label(for: opt) != opt {
+                                    Text(opt)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            Spacer()
+                            if selectedValue == opt {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(.blue)
+                            }
+                        }
                     }
                 }
             }
-            Divider()
-            Button("Другое…") {
-                customDraft = value
-                showCustomAlert = true
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always),
+                        prompt: "Поиск")
+            .navigationTitle("Выбрать значение")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Отмена") { isPresented = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Другое…") {
+                        customDraft = selectedValue
+                        showCustomAlert = true
+                    }
+                }
             }
-        } label: {
-            HStack {
-                Text(value.isEmpty ? "Выбрать…" : label(for: value))
-                    .font(.body)
-                    .foregroundStyle(value.isEmpty ? .secondary : .primary)
-                Spacer()
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+            .alert("Своё значение", isPresented: $showCustomAlert) {
+                TextField(key, text: $customDraft)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                Button("OK") {
+                    selectedValue = customDraft.trimmingCharacters(in: .whitespaces)
+                    isPresented = false
+                }
+                Button("Отмена", role: .cancel) {}
             }
-        }
-        .alert("Своё значение", isPresented: $showCustomAlert) {
-            TextField(key, text: $customDraft)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-            Button("OK") { value = customDraft.trimmingCharacters(in: .whitespaces) }
-            Button("Отмена", role: .cancel) {}
         }
     }
 }

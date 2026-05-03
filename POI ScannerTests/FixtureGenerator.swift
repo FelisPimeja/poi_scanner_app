@@ -45,6 +45,14 @@ final class FixtureGenerator: XCTestCase {
 
         for photoURL in imageFiles {
             let id = photoURL.deletingPathExtension().lastPathComponent
+
+            // Пропускаем фото, для которых черновик уже существует
+            let existingDraft = outputURL.appendingPathComponent("\(id).json")
+            if FileManager.default.fileExists(atPath: existingDraft.path) {
+                print("⏭️  Пропускаю (драфт есть): \(photoURL.lastPathComponent)")
+                continue
+            }
+
             print("\n🔍 Обрабатываю: \(photoURL.lastPathComponent)")
 
             guard let image = UIImage(contentsOfFile: photoURL.path) else {

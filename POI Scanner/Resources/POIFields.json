@@ -1,12 +1,53 @@
 {
-  "_generated": "2026-04-27T15:34:56.260Z",
+  "_generated": "2026-04-30T21:42:39.877Z",
   "_source": "https://github.com/openstreetmap/id-tagging-schema",
+  "groupAliasKeys": [
+    "blood:",
+    "currency:",
+    "diet:",
+    "fuel:",
+    "kneipp_water_cure:",
+    "payment:",
+    "scuba_diving:",
+    "service:bicycle:",
+    "service:vehicle:"
+  ],
   "fields": [
     {
-      "id": "access",
+      "id": "access_simple",
       "osmKey": "access",
-      "inputType": "text",
-      "label": "Ограничения доступа"
+      "inputType": "select",
+      "label": "Доступность",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Общедоступный (по умолчанию)"
+        },
+        {
+          "value": "private",
+          "label": "Частный"
+        },
+        {
+          "value": "permissive",
+          "label": "Допускается"
+        },
+        {
+          "value": "customers",
+          "label": "Только для клиентов"
+        },
+        {
+          "value": "permit",
+          "label": "Только по разрешению"
+        },
+        {
+          "value": "unknown",
+          "label": "Неизвестно"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        }
+      ]
     },
     {
       "id": "agrarian",
@@ -45,6 +86,64 @@
       "label": "Подлокотники"
     },
     {
+      "id": "artist",
+      "osmKey": "artist_name",
+      "inputType": "text",
+      "label": "Автор"
+    },
+    {
+      "id": "artwork_type",
+      "osmKey": "artwork_type",
+      "inputType": "select",
+      "label": "Тип произведения искусства",
+      "options": [
+        {
+          "value": "sculpture",
+          "label": "Скульптура"
+        },
+        {
+          "value": "statue",
+          "label": "Статуя"
+        },
+        {
+          "value": "mural",
+          "label": "Настенная роспись, фреска"
+        },
+        {
+          "value": "installation",
+          "label": "Инсталляция"
+        },
+        {
+          "value": "graffiti",
+          "label": "Граффити"
+        },
+        {
+          "value": "bust",
+          "label": "Бюст"
+        },
+        {
+          "value": "painting",
+          "label": "Картина"
+        },
+        {
+          "value": "mosaic",
+          "label": "Мозаика"
+        },
+        {
+          "value": "relief",
+          "label": "Рельеф"
+        },
+        {
+          "value": "stone",
+          "label": "Декоративно обработанный камень"
+        },
+        {
+          "value": "tilework",
+          "label": "Пано из плитки"
+        }
+      ]
+    },
+    {
       "id": "atm",
       "osmKey": "atm",
       "inputType": "check",
@@ -77,6 +176,12 @@
       ]
     },
     {
+      "id": "backcountry",
+      "osmKey": "backcountry",
+      "inputType": "check",
+      "label": "Отсутствие цивилизованных удобств (душ, электричество, вайфай и т.п.)"
+    },
+    {
       "id": "backrest",
       "osmKey": "backrest",
       "inputType": "check",
@@ -87,6 +192,46 @@
       "osmKey": "bar",
       "inputType": "check",
       "label": "Бар"
+    },
+    {
+      "id": "bath/open_air",
+      "osmKey": "bath:open_air",
+      "inputType": "check",
+      "label": "На открытом воздухе"
+    },
+    {
+      "id": "bath/sand_bath-JP",
+      "osmKey": "bath:sand_bath",
+      "inputType": "check",
+      "label": "bath/sand_bath-JP"
+    },
+    {
+      "id": "bath/type",
+      "osmKey": "bath:type",
+      "inputType": "select",
+      "label": "Специализация",
+      "options": [
+        {
+          "value": "hammam",
+          "label": "Хаммам"
+        },
+        {
+          "value": "hot_spring",
+          "label": "Геотермальный источник"
+        },
+        {
+          "value": "lake",
+          "label": "Озеро"
+        },
+        {
+          "value": "onsen",
+          "label": "Онсэн"
+        },
+        {
+          "value": "thermal",
+          "label": "Термальная ванна"
+        }
+      ]
     },
     {
       "id": "beauty",
@@ -195,6 +340,31 @@
       ]
     },
     {
+      "id": "blood_components",
+      "osmKey": "blood:",
+      "inputType": "multiCombo",
+      "label": "Компоненты крови",
+      "options": [
+        {
+          "value": "whole",
+          "label": "цельная кровь"
+        },
+        {
+          "value": "plasma",
+          "label": "плазма"
+        },
+        {
+          "value": "platelets",
+          "label": "тромбоциты"
+        },
+        {
+          "value": "stemcells",
+          "label": "образцы стволовых клеток"
+        }
+      ],
+      "keyPrefix": "blood:"
+    },
+    {
       "id": "books",
       "osmKey": "books",
       "inputType": "semiCombo",
@@ -213,6 +383,12 @@
       "label": "Наполнение бутылки питьевой водой"
     },
     {
+      "id": "branch_brand",
+      "osmKey": "branch",
+      "inputType": "text",
+      "label": "Филиал"
+    },
+    {
       "id": "brand",
       "osmKey": "brand",
       "inputType": "text",
@@ -225,266 +401,123 @@
       "label": "Продаваемые марки пива"
     },
     {
-      "id": "building",
+      "id": "building_area_yes",
       "osmKey": "building",
       "inputType": "select",
-      "label": "Тип здания / конструкция",
+      "label": "building_area_yes"
+    },
+    {
+      "id": "building/levels_building",
+      "osmKey": "building:levels",
+      "inputType": "number",
+      "label": "building/levels_building"
+    },
+    {
+      "id": "vehicles",
+      "osmKey": "bus",
+      "inputType": "multiCombo",
+      "label": "Транспортные средства",
       "options": [
         {
-          "value": "yes",
-          "label": "yes"
+          "value": "bus",
+          "label": "Автобус"
         },
         {
-          "value": "allotment_house",
-          "label": "Дачный домик"
+          "value": "trolleybus",
+          "label": "Троллейбус"
         },
         {
-          "value": "apartments",
-          "label": "Многоквартирный дом"
+          "value": "tram",
+          "label": "Трамвай"
         },
         {
-          "value": "barn",
-          "label": "Амбар"
+          "value": "train",
+          "label": "Поезд"
         },
         {
-          "value": "boathouse",
-          "label": "Эллинг"
+          "value": "subway",
+          "label": "Метро"
         },
         {
-          "value": "bungalow",
-          "label": "Бунгало"
+          "value": "light_rail",
+          "label": "Легкорельсовый транспорт"
         },
         {
-          "value": "bunker",
-          "label": "Бункер"
+          "value": "monorail",
+          "label": "Монорельс"
         },
         {
-          "value": "cabin",
-          "label": "Хижина"
+          "value": "ferry",
+          "label": "Паром"
+        }
+      ],
+      "keyPrefix": "vehicles"
+    },
+    {
+      "id": "cabins",
+      "osmKey": "cabins",
+      "inputType": "check",
+      "label": "cabins"
+    },
+    {
+      "id": "camp_site",
+      "osmKey": "camp_site",
+      "inputType": "select",
+      "label": "Тип",
+      "options": [
+        {
+          "value": "basic",
+          "label": "Базовый (только места для палаток/транспорта)"
         },
         {
-          "value": "carport",
-          "label": "Навес для автомобилей"
+          "value": "standard",
+          "label": "Стандартный (с туалетом и водой)"
         },
         {
-          "value": "cathedral",
-          "label": "Собор"
+          "value": "serviced",
+          "label": "С обслуживанием (есть душ и электричество)"
         },
         {
-          "value": "chapel",
-          "label": "Капелла"
-        },
-        {
-          "value": "church",
-          "label": "Церковь"
-        },
-        {
-          "value": "civic",
-          "label": "Общественное здание"
-        },
-        {
-          "value": "college",
-          "label": "Здание колледжа"
-        },
-        {
-          "value": "commercial",
-          "label": "Коммерческое здание"
-        },
-        {
-          "value": "construction",
-          "label": "Строящееся здание"
-        },
-        {
-          "value": "cowshed",
-          "label": "Коровник"
-        },
-        {
-          "value": "detached",
-          "label": "Отдельно стоящий частный жилой дом"
-        },
-        {
-          "value": "dormitory",
-          "label": "Общежитие"
-        },
-        {
-          "value": "farm",
-          "label": "Фермерский дом"
-        },
-        {
-          "value": "farm_auxiliary",
-          "label": "Нежилое здание на ферме"
-        },
-        {
-          "value": "fire_station",
-          "label": "Здание пожарной станции"
-        },
-        {
-          "value": "garage",
-          "label": "Гараж"
-        },
-        {
-          "value": "garages",
-          "label": "Гаражи"
-        },
-        {
-          "value": "ger",
-          "label": "Юрта"
-        },
-        {
-          "value": "grandstand",
-          "label": "Трибуна"
-        },
-        {
-          "value": "greenhouse",
-          "label": "Теплица"
-        },
-        {
-          "value": "hangar",
-          "label": "Ангар"
-        },
-        {
-          "value": "hospital",
-          "label": "Здание больницы"
-        },
-        {
-          "value": "hotel",
-          "label": "Гостиница"
-        },
-        {
-          "value": "house",
-          "label": "Дом"
-        },
-        {
-          "value": "houseboat",
-          "label": "Плавучий дом"
-        },
-        {
-          "value": "hut",
-          "label": "Хижина"
-        },
-        {
-          "value": "industrial",
-          "label": "Промышленное здание"
-        },
-        {
-          "value": "kindergarten",
-          "label": "Здание подготовительной школы / детского сада"
-        },
-        {
-          "value": "manufacture",
-          "label": "Здание промышленного производства"
-        },
-        {
-          "value": "mosque",
-          "label": "Мечеть"
-        },
-        {
-          "value": "office",
-          "label": "Офисное здание"
-        },
-        {
-          "value": "outbuilding",
-          "label": "Пристройка"
-        },
-        {
-          "value": "pavilion",
-          "label": "Спортивный павильон"
-        },
-        {
-          "value": "public",
-          "label": "Общественное здание"
-        },
-        {
-          "value": "residential",
-          "label": "Жилое здание"
-        },
-        {
-          "value": "retail",
-          "label": "Торговое здание"
-        },
-        {
-          "value": "riding_hall",
-          "label": "Арена для верховой езды"
-        },
-        {
-          "value": "roof",
-          "label": "Крыша"
-        },
-        {
-          "value": "ruins",
-          "label": "Разрушенное здание"
-        },
-        {
-          "value": "school",
-          "label": "Здание школы"
-        },
-        {
-          "value": "semidetached_house",
-          "label": "Сблокированный дом (дуплекс)"
-        },
-        {
-          "value": "service",
-          "label": "Служебное здание"
-        },
-        {
-          "value": "shed",
-          "label": "Сарай"
-        },
-        {
-          "value": "stable",
-          "label": "Конюшня, стойло"
-        },
-        {
-          "value": "stadium",
-          "label": "Здание стадиона"
-        },
-        {
-          "value": "static_caravan",
-          "label": "Передвижной дом"
-        },
-        {
-          "value": "sty",
-          "label": "Свинарник"
-        },
-        {
-          "value": "synagogue",
-          "label": "Здание синагоги"
-        },
-        {
-          "value": "temple",
-          "label": "Здание храма"
-        },
-        {
-          "value": "terrace",
-          "label": "Ряд из примыкающих домов"
-        },
-        {
-          "value": "train_station",
-          "label": "Здание железнодорожного вокзала/станции"
-        },
-        {
-          "value": "transportation",
-          "label": "Здание транспортного терминала/вокзал"
-        },
-        {
-          "value": "university",
-          "label": "Здание университета, института "
-        },
-        {
-          "value": "warehouse",
-          "label": "Склад"
-        },
-        {
-          "value": "container",
-          "label": "container"
+          "value": "deluxe",
+          "label": "Элитный (предлагает прачечную или бассейн и т.д.)"
         }
       ]
     },
     {
-      "id": "capacity",
+      "id": "capacity_volume",
       "osmKey": "capacity",
       "inputType": "number",
-      "label": "Вместимость"
+      "label": "Вместимость (кубометры)"
+    },
+    {
+      "id": "capacity/caravans",
+      "osmKey": "capacity:caravans",
+      "inputType": "number",
+      "label": "capacity/caravans"
+    },
+    {
+      "id": "capacity/disabled_parking",
+      "osmKey": "capacity:disabled",
+      "inputType": "number",
+      "label": "Места для инвалидов"
+    },
+    {
+      "id": "capacity/persons",
+      "osmKey": "capacity:persons",
+      "inputType": "number",
+      "label": "Вместимость (человек)"
+    },
+    {
+      "id": "capacity/tents",
+      "osmKey": "capacity:tents",
+      "inputType": "number",
+      "label": "Вместимость (палаток)"
+    },
+    {
+      "id": "caravans",
+      "osmKey": "caravans",
+      "inputType": "check",
+      "label": "caravans"
     },
     {
       "id": "cash_in",
@@ -497,6 +530,12 @@
       "osmKey": "changing_table",
       "inputType": "check",
       "label": "Пеленальный стол"
+    },
+    {
+      "id": "charge_toll",
+      "osmKey": "charge",
+      "inputType": "text",
+      "label": "Размер оплаты"
     },
     {
       "id": "clothes",
@@ -647,10 +686,10 @@
       ]
     },
     {
-      "id": "covered",
+      "id": "covered_no",
       "osmKey": "covered",
       "inputType": "check",
-      "label": "Крытое(-ая)"
+      "label": "covered_no"
     },
     {
       "id": "cuisine",
@@ -1029,6 +1068,13 @@
       ]
     },
     {
+      "id": "currency_multi",
+      "osmKey": "currency:",
+      "inputType": "multiCombo",
+      "label": "Типы валюты",
+      "keyPrefix": "currency:"
+    },
+    {
       "id": "date",
       "osmKey": "date",
       "inputType": "check",
@@ -1071,10 +1117,57 @@
       ]
     },
     {
-      "id": "direction",
+      "id": "diet_multi",
+      "osmKey": "diet:",
+      "inputType": "multiCombo",
+      "label": "diet_multi",
+      "options": [
+        {
+          "value": "vegetarian",
+          "label": "Вегетарианская диета"
+        },
+        {
+          "value": "vegan",
+          "label": "Веганская диета"
+        },
+        {
+          "value": "halal",
+          "label": "Халяльная пища"
+        },
+        {
+          "value": "gluten_free",
+          "label": "Безглютеновая диета"
+        },
+        {
+          "value": "kosher",
+          "label": "Кошерная пища"
+        },
+        {
+          "value": "lactose_free",
+          "label": "Безлактозная диета"
+        },
+        {
+          "value": "pescetarian",
+          "label": "Пескетарианская диета"
+        }
+      ],
+      "keyPrefix": "diet:"
+    },
+    {
+      "id": "direction_vertex_dual",
       "osmKey": "direction",
-      "inputType": "number",
-      "label": "Направление (градусы по часовой)"
+      "inputType": "select",
+      "label": "direction_vertex_dual",
+      "options": [
+        {
+          "value": "forward",
+          "label": "forward"
+        },
+        {
+          "value": "backward",
+          "label": "backward"
+        }
+      ]
     },
     {
       "id": "dispensing",
@@ -1107,40 +1200,56 @@
       ]
     },
     {
-      "id": "dog",
+      "id": "dock/height",
+      "osmKey": "dock:height",
+      "inputType": "number",
+      "label": "Высота дока (метры)"
+    },
+    {
+      "id": "dock/width",
+      "osmKey": "dock:width",
+      "inputType": "number",
+      "label": "Ширина дока (метры)"
+    },
+    {
+      "id": "dog_yes",
       "osmKey": "dog",
       "inputType": "select",
-      "label": "Собаки",
+      "label": "dog_yes",
       "options": [
         {
-          "value": "yes",
-          "label": "Разрешено"
-        },
-        {
           "value": "leashed",
-          "label": "Только на поводке"
+          "label": "leashed"
         },
         {
           "value": "unleashed",
-          "label": "Поводки не требуются"
-        },
-        {
-          "value": "no",
-          "label": "Не разрешено"
+          "label": "unleashed"
         }
       ]
     },
     {
-      "id": "door",
+      "id": "door_type",
       "osmKey": "door",
-      "inputType": "select",
-      "label": "Дверь"
+      "inputType": "text",
+      "label": "Тип"
     },
     {
-      "id": "drinking_water",
+      "id": "door/height",
+      "osmKey": "door:height",
+      "inputType": "number",
+      "label": "Высота двери (метры)"
+    },
+    {
+      "id": "door/width",
+      "osmKey": "door:width",
+      "inputType": "number",
+      "label": "Ширина двери (метры)"
+    },
+    {
+      "id": "drinking_water_available",
       "osmKey": "drinking_water",
       "inputType": "check",
-      "label": "Пригодно для питья"
+      "label": "Наличие питьевой воды"
     },
     {
       "id": "drive_through",
@@ -1149,10 +1258,10 @@
       "label": "Доступен без выхода из машины"
     },
     {
-      "id": "ele",
+      "id": "ele_node",
       "osmKey": "ele",
       "inputType": "number",
-      "label": "Возвышение (в метрах)"
+      "label": "ele_node"
     },
     {
       "id": "email",
@@ -1161,10 +1270,26 @@
       "label": "Email"
     },
     {
-      "id": "emergency",
+      "id": "emergency_combo",
       "osmKey": "emergency",
-      "inputType": "check",
-      "label": "Экстренные службы"
+      "inputType": "select",
+      "label": "Тип"
+    },
+    {
+      "id": "entrance",
+      "osmKey": "entrance",
+      "inputType": "select",
+      "label": "Тип входа",
+      "options": [
+        { "value": "main",       "label": "Главный вход" },
+        { "value": "staircase",  "label": "Подъезд" },
+        { "value": "yes",        "label": "Вход" },
+        { "value": "service",    "label": "Служебный вход" },
+        { "value": "shop",       "label": "Вход в магазин" },
+        { "value": "emergency",  "label": "Аварийный выход" },
+        { "value": "exit",       "label": "Выход" },
+        { "value": "garage",     "label": "Гараж" }
+      ]
     },
     {
       "id": "faces",
@@ -1179,6 +1304,35 @@
       "label": "Платная (-ый)"
     },
     {
+      "id": "gender_simple",
+      "osmKey": "female",
+      "inputType": "multiCombo",
+      "label": "gender_simple",
+      "options": [
+        {
+          "value": "female",
+          "label": "female"
+        },
+        {
+          "value": "male",
+          "label": "male"
+        }
+      ],
+      "keyPrefix": "gender_simple"
+    },
+    {
+      "id": "fhrs/id-GB",
+      "osmKey": "fhrs:id",
+      "inputType": "text",
+      "label": "FHRS ID"
+    },
+    {
+      "id": "fireplace",
+      "osmKey": "fireplace",
+      "inputType": "check",
+      "label": "Камин"
+    },
+    {
       "id": "fountain",
       "osmKey": "fountain",
       "inputType": "select",
@@ -1191,16 +1345,503 @@
       "label": "Топливо"
     },
     {
+      "id": "fuel/fuel_multi",
+      "osmKey": "fuel:",
+      "inputType": "multiCombo",
+      "label": "Типы горючего",
+      "options": [
+        {
+          "value": "diesel",
+          "label": "Дизель"
+        },
+        {
+          "value": "GTL_diesel",
+          "label": "GTL-дизель"
+        },
+        {
+          "value": "HGV_diesel",
+          "label": "Грузовой дизель"
+        },
+        {
+          "value": "biodiesel",
+          "label": "Биодизель"
+        },
+        {
+          "value": "octane_80",
+          "label": "Бензин (октановое число 80)"
+        },
+        {
+          "value": "octane_85",
+          "label": "Бензин (октановое число 85)"
+        },
+        {
+          "value": "octane_87",
+          "label": "Бензин (октановое число 87)"
+        },
+        {
+          "value": "octane_88",
+          "label": "Бензин (октановое число 88)"
+        },
+        {
+          "value": "octane_89",
+          "label": "Бензин (октановое число 89)"
+        },
+        {
+          "value": "octane_90",
+          "label": "Бензин (октановое число 90)"
+        },
+        {
+          "value": "octane_91",
+          "label": "Бензин (октановое число 91)"
+        },
+        {
+          "value": "octane_92",
+          "label": "Бензин (октановое число 92)"
+        },
+        {
+          "value": "octane_93",
+          "label": "Бензин (октановое число 93)"
+        },
+        {
+          "value": "octane_95",
+          "label": "Бензин (октановое число 95)"
+        },
+        {
+          "value": "octane_97",
+          "label": "Бензин (октановое число 97)"
+        },
+        {
+          "value": "octane_98",
+          "label": "Бензин (октановое число 98)"
+        },
+        {
+          "value": "octane_100",
+          "label": "Бензин (октановое число 100)"
+        },
+        {
+          "value": "e5",
+          "label": "Бензин E5"
+        },
+        {
+          "value": "e10",
+          "label": "Бензин E10"
+        },
+        {
+          "value": "e85",
+          "label": "Бензин E85"
+        },
+        {
+          "value": "lpg",
+          "label": "Сжиженный нефтяной газ (LPG)"
+        },
+        {
+          "value": "lng",
+          "label": "Сжиженный природный газ (СПГ)"
+        },
+        {
+          "value": "cng",
+          "label": "Компримированный природный газ (КПГ)"
+        },
+        {
+          "value": "propane",
+          "label": "Пропан"
+        },
+        {
+          "value": "LH2",
+          "label": "Жидкий водород"
+        },
+        {
+          "value": "h70",
+          "label": "Газообразный водород (700 бар)"
+        },
+        {
+          "value": "adblue",
+          "label": "AdBlue / AUS 32 в розлив"
+        },
+        {
+          "value": "adblue:canister",
+          "label": "AdBlue / AUS 32 в канистрах"
+        }
+      ],
+      "keyPrefix": "fuel:"
+    },
+    {
       "id": "gambling",
       "osmKey": "gambling",
       "inputType": "semiCombo",
       "label": "Игры"
     },
     {
-      "id": "height",
+      "id": "gnis/feature_id-US",
+      "osmKey": "gnis:feature_id",
+      "inputType": "text",
+      "label": "gnis/feature_id-US"
+    },
+    {
+      "id": "group_only",
+      "osmKey": "group_only",
+      "inputType": "check",
+      "label": "Только группы"
+    },
+    {
+      "id": "guest_house",
+      "osmKey": "guest_house",
+      "inputType": "select",
+      "label": "Тип"
+    },
+    {
+      "id": "healthcare/speciality",
+      "osmKey": "healthcare:speciality",
+      "inputType": "semiCombo",
+      "label": "Специальности",
+      "options": [
+        {
+          "value": "abortion",
+          "label": "Аборты"
+        },
+        {
+          "value": "acupuncture",
+          "label": "Иглоукалывание"
+        },
+        {
+          "value": "allergology",
+          "label": "Аллергия и астма"
+        },
+        {
+          "value": "anaesthetics",
+          "label": "Анестезиология"
+        },
+        {
+          "value": "angiology",
+          "label": "Ангиология"
+        },
+        {
+          "value": "anthroposophical",
+          "label": "Антропософская медицина"
+        },
+        {
+          "value": "applied_kinesiology",
+          "label": "Прикладная кинезиология"
+        },
+        {
+          "value": "aromatherapy",
+          "label": "Ароматерапия"
+        },
+        {
+          "value": "ayurveda",
+          "label": "Аюрведа"
+        },
+        {
+          "value": "behavior",
+          "label": "Поведенческая терапия"
+        },
+        {
+          "value": "biochemistry",
+          "label": "Биохимия"
+        },
+        {
+          "value": "biology",
+          "label": "Биология"
+        },
+        {
+          "value": "blood_check",
+          "label": "Анализ крови"
+        },
+        {
+          "value": "body",
+          "label": "body"
+        },
+        {
+          "value": "cardiology",
+          "label": "Кардиология"
+        },
+        {
+          "value": "cardiothoracic_surgery",
+          "label": "Кардиоторакальная хирургия"
+        },
+        {
+          "value": "child_psychiatry",
+          "label": "Детская и подростковая психиатрия"
+        },
+        {
+          "value": "chiropractic",
+          "label": "Хиропрактика"
+        },
+        {
+          "value": "clinical_pathology",
+          "label": "Клиническая патология"
+        },
+        {
+          "value": "community",
+          "label": "Общественное и государственное здравоохранение"
+        },
+        {
+          "value": "depth",
+          "label": "Глубинная психология"
+        },
+        {
+          "value": "dermatology",
+          "label": "Дерматология"
+        },
+        {
+          "value": "dermatovenereology",
+          "label": "Дерматовенерология"
+        },
+        {
+          "value": "diabetology",
+          "label": "Диабетология"
+        },
+        {
+          "value": "diagnostic_radiology",
+          "label": "Диагностическая радиология"
+        },
+        {
+          "value": "emergency",
+          "label": "Неотложная медицинская помощь"
+        },
+        {
+          "value": "endocrinology",
+          "label": "Эндокринология"
+        },
+        {
+          "value": "fertility",
+          "label": "Фертильность"
+        },
+        {
+          "value": "gastroenterology",
+          "label": "Гастроэнтерология"
+        },
+        {
+          "value": "general",
+          "label": "Общая практика"
+        },
+        {
+          "value": "geriatrics",
+          "label": "Гериатрическая медицина"
+        },
+        {
+          "value": "gynaecology",
+          "label": "Акушерство и гинекология"
+        },
+        {
+          "value": "haematology",
+          "label": "Гематология"
+        },
+        {
+          "value": "hepatology",
+          "label": "Гепатология"
+        },
+        {
+          "value": "herbalism",
+          "label": "Траволечение"
+        },
+        {
+          "value": "homeopathy",
+          "label": "Гомеопатия"
+        },
+        {
+          "value": "humanistic",
+          "label": "Гуманистическая психология"
+        },
+        {
+          "value": "hydrotherapy",
+          "label": "Гидротерапия"
+        },
+        {
+          "value": "hypnosis",
+          "label": "Гипноз"
+        },
+        {
+          "value": "infectious_diseases",
+          "label": "Инфекционная медицина"
+        },
+        {
+          "value": "intensive",
+          "label": "Интенсивная терапия"
+        },
+        {
+          "value": "internal",
+          "label": "Внутренняя медицина"
+        },
+        {
+          "value": "dental_oral_maxillo_facial_surgery",
+          "label": "Стоматология и челюстно-лицевая хирургия"
+        },
+        {
+          "value": "naturopathy",
+          "label": "Натуропатия"
+        },
+        {
+          "value": "neonatology",
+          "label": "Неонатология"
+        },
+        {
+          "value": "nephrology",
+          "label": "Нефрология"
+        },
+        {
+          "value": "neurology",
+          "label": "Неврология"
+        },
+        {
+          "value": "neuropsychiatry",
+          "label": "Нейропсихиатрия"
+        },
+        {
+          "value": "neurosurgery",
+          "label": "Нейрохирургия"
+        },
+        {
+          "value": "nuclear",
+          "label": "Ядерная медицина"
+        },
+        {
+          "value": "occupational",
+          "label": "Медицина труда"
+        },
+        {
+          "value": "oncology",
+          "label": "Онкология"
+        },
+        {
+          "value": "ophthalmology",
+          "label": "Офтальмология"
+        },
+        {
+          "value": "orthodontics",
+          "label": "Ортодонтия"
+        },
+        {
+          "value": "orthopaedics",
+          "label": "Ортопедическая хирургия"
+        },
+        {
+          "value": "osteopathy",
+          "label": "Остеопатия"
+        },
+        {
+          "value": "otolaryngology",
+          "label": "Отоларинголог (лор)"
+        },
+        {
+          "value": "paediatric_surgery",
+          "label": "Детская хирургия"
+        },
+        {
+          "value": "paediatrics",
+          "label": "Педиатрия"
+        },
+        {
+          "value": "palliative",
+          "label": "Паллиативный уход"
+        },
+        {
+          "value": "pathology",
+          "label": "Патология"
+        },
+        {
+          "value": "physiatry",
+          "label": "Физическая медицина и реабилитация"
+        },
+        {
+          "value": "plastic_surgery",
+          "label": "Пластическая хирургия"
+        },
+        {
+          "value": "podiatry",
+          "label": "Подиатрия"
+        },
+        {
+          "value": "proctology",
+          "label": "Колоректальная хирургия"
+        },
+        {
+          "value": "psychiatry",
+          "label": "Психиатрия"
+        },
+        {
+          "value": "pulmonology",
+          "label": "Пульмонолог"
+        },
+        {
+          "value": "radiology",
+          "label": "Радиология"
+        },
+        {
+          "value": "radiotherapy",
+          "label": "Радиотерапия"
+        },
+        {
+          "value": "reflexology",
+          "label": "Рефлексология"
+        },
+        {
+          "value": "reiki",
+          "label": "Рэйки"
+        },
+        {
+          "value": "rheumatology",
+          "label": "Ревматология"
+        },
+        {
+          "value": "shiatsu",
+          "label": "Шиацу"
+        },
+        {
+          "value": "stomatology",
+          "label": "Стоматология"
+        },
+        {
+          "value": "surgery",
+          "label": "Общая хирургия"
+        },
+        {
+          "value": "systemic",
+          "label": "Системная терапия"
+        },
+        {
+          "value": "traditional_chinese_medicine",
+          "label": "Традиционная китайская медицина"
+        },
+        {
+          "value": "transplant",
+          "label": "Трансплантационная хирургия"
+        },
+        {
+          "value": "trauma",
+          "label": "Травматологическая хирургия"
+        },
+        {
+          "value": "tropical",
+          "label": "Тропическая медицина"
+        },
+        {
+          "value": "tuina",
+          "label": "Туина (вид альтернативной китайской медицины)"
+        },
+        {
+          "value": "unani",
+          "label": "Медицина Юнани"
+        },
+        {
+          "value": "urology",
+          "label": "Урология"
+        },
+        {
+          "value": "vaccination",
+          "label": "Вакцинация"
+        },
+        {
+          "value": "vascular_surgery",
+          "label": "Сосудистая хирургия"
+        }
+      ]
+    },
+    {
+      "id": "height_building",
       "osmKey": "height",
       "inputType": "number",
-      "label": "Высота (метры)"
+      "label": "Высота здания (в метрах)"
     },
     {
       "id": "highchair",
@@ -1215,16 +1856,22 @@
       "label": "Горячая вода"
     },
     {
-      "id": "indoor",
+      "id": "indoor_type",
       "osmKey": "indoor",
-      "inputType": "check",
-      "label": "В помещении"
+      "inputType": "text",
+      "label": "Тип"
     },
     {
       "id": "informal",
       "osmKey": "informal",
       "inputType": "check",
       "label": "Неформальный"
+    },
+    {
+      "id": "information",
+      "osmKey": "information",
+      "inputType": "text",
+      "label": "Тип"
     },
     {
       "id": "inscription",
@@ -1261,16 +1908,75 @@
       ]
     },
     {
-      "id": "layer",
-      "osmKey": "layer",
-      "inputType": "number",
-      "label": "Уровень"
+      "id": "internet_access/fee",
+      "osmKey": "internet_access:fee",
+      "inputType": "select",
+      "label": "Плата за доступ в Интернет",
+      "options": [
+        {
+          "value": "no",
+          "label": "Бесплатно"
+        },
+        {
+          "value": "yes",
+          "label": "Платно"
+        },
+        {
+          "value": "customers",
+          "label": "Только для клиентов"
+        }
+      ]
     },
     {
-      "id": "level",
+      "id": "internet_access/ssid",
+      "osmKey": "internet_access:ssid",
+      "inputType": "text",
+      "label": "Название WiFi-сети"
+    },
+    {
+      "id": "kitchen",
+      "osmKey": "kitchen",
+      "inputType": "check",
+      "label": "Кухня"
+    },
+    {
+      "id": "kneipp_water_cure_multi",
+      "osmKey": "kneipp_water_cure:",
+      "inputType": "multiCombo",
+      "label": "Лечебная купальня (метод Кнейпа)",
+      "options": [
+        {
+          "value": "foot",
+          "label": "Умывальник для стоп или ног"
+        },
+        {
+          "value": "arm",
+          "label": "Умывальник для рук"
+        },
+        {
+          "value": "face",
+          "label": "Умывальник для лица"
+        }
+      ],
+      "keyPrefix": "kneipp_water_cure:"
+    },
+    {
+      "id": "layer_1",
+      "osmKey": "layer",
+      "inputType": "number",
+      "label": "layer_1"
+    },
+    {
+      "id": "leisure",
+      "osmKey": "leisure",
+      "inputType": "text",
+      "label": "Тип"
+    },
+    {
+      "id": "level_semi",
       "osmKey": "level",
-      "inputType": "select",
-      "label": "Этаж (первый = 0)"
+      "inputType": "semiCombo",
+      "label": "Число этажей"
     },
     {
       "id": "license_classes",
@@ -1285,16 +1991,51 @@
       "label": "Освещение"
     },
     {
-      "id": "location",
+      "id": "location_pool",
       "osmKey": "location",
       "inputType": "select",
-      "label": "Местоположение"
+      "label": "location_pool",
+      "options": [
+        {
+          "value": "outdoor",
+          "label": "Вне помещения"
+        },
+        {
+          "value": "indoor",
+          "label": "В помещении"
+        },
+        {
+          "value": "roof",
+          "label": "На крыше"
+        }
+      ]
     },
     {
       "id": "lockable",
       "osmKey": "lockable",
       "inputType": "check",
       "label": "Запираемо"
+    },
+    {
+      "id": "gender",
+      "osmKey": "male",
+      "inputType": "multiCombo",
+      "label": "Пол",
+      "options": [
+        {
+          "value": "male",
+          "label": "Мужчина"
+        },
+        {
+          "value": "female",
+          "label": "Женщина"
+        },
+        {
+          "value": "unisex",
+          "label": "Унисекс"
+        }
+      ],
+      "keyPrefix": "gender"
     },
     {
       "id": "manufacturer",
@@ -1399,6 +2140,12 @@
       ]
     },
     {
+      "id": "mattress",
+      "osmKey": "mattress",
+      "inputType": "check",
+      "label": "Доступны матрасы"
+    },
+    {
       "id": "max_age",
       "osmKey": "max_age",
       "inputType": "number",
@@ -1469,10 +2216,10 @@
       ]
     },
     {
-      "id": "maxweight",
+      "id": "maxweight_bridge",
       "osmKey": "maxweight",
       "inputType": "select",
-      "label": "Ограничение по весу"
+      "label": "maxweight_bridge"
     },
     {
       "id": "maxwidth",
@@ -1499,10 +2246,60 @@
       "label": "Модель"
     },
     {
-      "id": "network",
+      "id": "museum",
+      "osmKey": "museum",
+      "inputType": "select",
+      "label": "Тип"
+    },
+    {
+      "id": "network_road",
       "osmKey": "network",
       "inputType": "text",
       "label": "Сеть"
+    },
+    {
+      "id": "not/name",
+      "osmKey": "not:name",
+      "inputType": "semiCombo",
+      "label": "Некорректные имена"
+    },
+    {
+      "id": "nudism",
+      "osmKey": "nudism",
+      "inputType": "select",
+      "label": "Нудизм",
+      "options": [
+        {
+          "value": "customary",
+          "label": "Обычный"
+        },
+        {
+          "value": "designated",
+          "label": "Предназначенный"
+        },
+        {
+          "value": "no",
+          "label": "Запрещен"
+        },
+        {
+          "value": "obligatory",
+          "label": "Обязателен"
+        },
+        {
+          "value": "permissive",
+          "label": "Допускается"
+        },
+        {
+          "value": "yes",
+          "label": "Разрешен"
+        }
+      ]
+    },
+    {
+      "id": "openfire",
+      "osmKey": "openfire",
+      "inputType": "check",
+      "label": "Открытый огонь разрешён"
     },
     {
       "id": "opening_hours",
@@ -1511,10 +2308,22 @@
       "label": "Время работы"
     },
     {
+      "id": "opening_hours/drive_through",
+      "osmKey": "opening_hours:drive_through",
+      "inputType": "select",
+      "label": "Время работы обслуживания, не выходя из машины"
+    },
+    {
       "id": "operator",
       "osmKey": "operator",
       "inputType": "text",
       "label": "Обслуживающая компания"
+    },
+    {
+      "id": "operator/type",
+      "osmKey": "operator:type",
+      "inputType": "select",
+      "label": "Тип оператора"
     },
     {
       "id": "organic",
@@ -1543,6 +2352,12 @@
       "label": "Места на открытом воздухе"
     },
     {
+      "id": "parcel_dropoff",
+      "osmKey": "parcel_mail_in",
+      "inputType": "check",
+      "label": "Отправка посылок"
+    },
+    {
       "id": "parcel_pickup",
       "osmKey": "parcel_pickup",
       "inputType": "check",
@@ -1555,90 +2370,22 @@
       "label": "Перехватывающая парковка"
     },
     {
-      "id": "parking",
+      "id": "parking_entrance",
       "osmKey": "parking",
       "inputType": "select",
       "label": "Тип",
       "options": [
         {
-          "value": "surface",
-          "label": {
-            "title": "Наземная"
-          }
-        },
-        {
-          "value": "street_side",
-          "label": {
-            "title": "В кармане"
-          }
-        },
-        {
-          "value": "lane",
-          "label": {
-            "title": "На полосе"
-          }
-        },
-        {
           "value": "underground",
-          "label": {
-            "description": "Подземная парковка.",
-            "title": "Подземный"
-          }
+          "label": "underground"
         },
         {
           "value": "multi-storey",
-          "label": {
-            "title": "Многоуровневая"
-          }
+          "label": "multi-storey"
         },
         {
-          "value": "rooftop",
-          "label": {
-            "title": "На крыше"
-          }
-        },
-        {
-          "value": "carports",
-          "label": {
-            "title": "Навес"
-          }
-        },
-        {
-          "value": "garage_boxes",
-          "label": {
-            "title": "Одноярусные гаражи"
-          }
-        },
-        {
-          "value": "sheds",
-          "label": {
-            "title": "Козырёк"
-          }
-        },
-        {
-          "value": "layby",
-          "label": {
-            "description": "Парковка в зоне отдыха, рядом с дорогой."
-          }
-        },
-        {
-          "value": "on_kerb",
-          "label": {
-            "title": "На тротуаре"
-          }
-        },
-        {
-          "value": "half_on_kerb",
-          "label": {
-            "description": "Парковка частично на тротуаре",
-            "title": "Частично на тротуаре"
-          }
-        },
-        {
-          "value": "shoulder",
-          "label": {
-            "title": "На обочине"
-          }
+          "value": "surface",
+          "label": "surface"
         }
       ]
     },
@@ -1649,10 +2396,23 @@
       "label": "Тип"
     },
     {
+      "id": "payment_multi_fee",
+      "osmKey": "payment:",
+      "inputType": "multiCombo",
+      "label": "payment_multi_fee",
+      "keyPrefix": "payment:"
+    },
+    {
       "id": "phone",
       "osmKey": "phone",
       "inputType": "tel",
       "label": "Телефон"
+    },
+    {
+      "id": "picnic_table",
+      "osmKey": "picnic_table",
+      "inputType": "check",
+      "label": "Стол для пикника"
     },
     {
       "id": "piercing",
@@ -1673,6 +2433,12 @@
       "label": "Население"
     },
     {
+      "id": "population/date",
+      "osmKey": "population:date",
+      "inputType": "text",
+      "label": "Дата переписи населения"
+    },
+    {
       "id": "portable",
       "osmKey": "portable",
       "inputType": "check",
@@ -1685,110 +2451,160 @@
       "label": "Адрес доставки"
     },
     {
+      "id": "post_box/type",
+      "osmKey": "post_box:type",
+      "inputType": "text",
+      "label": "Тип"
+    },
+    {
+      "id": "power_supply",
+      "osmKey": "power_supply",
+      "inputType": "check",
+      "label": "Разъем питания"
+    },
+    {
       "id": "product",
       "osmKey": "product",
       "inputType": "semiCombo",
       "label": "Продукция"
     },
     {
+      "id": "public_bookcase/type",
+      "osmKey": "public_bookcase:type",
+      "inputType": "select",
+      "label": "Тип"
+    },
+    {
+      "id": "real_fire-GB-IE",
+      "osmKey": "real_fire",
+      "inputType": "check",
+      "label": "Настоящий огонь"
+    },
+    {
       "id": "ref",
       "osmKey": "ref",
       "inputType": "text",
-      "label": "Номер / идентификатор"
+      "label": "Номер №"
     },
     {
-      "id": "religion",
+      "id": "ref_taxiway",
+      "osmKey": "ref",
+      "inputType": "text",
+      "label": "Наименование рулёжной дорожки"
+    },
+    {
+      "id": "ref/EU/EVSE-EU",
+      "osmKey": "ref:EU:EVSE",
+      "inputType": "text",
+      "label": "ref/EU/EVSE-EU"
+    },
+    {
+      "id": "ref/FR/siret-FR",
+      "osmKey": "ref:FR:SIRET",
+      "inputType": "text",
+      "label": "ref/FR/siret-FR"
+    },
+    {
+      "id": "ref/isil",
+      "osmKey": "ref:isil",
+      "inputType": "text",
+      "label": "ISIL код"
+    },
+    {
+      "id": "ref/vatin",
+      "osmKey": "ref:vatin",
+      "inputType": "text",
+      "label": "ИНН"
+    },
+    {
+      "id": "religion_place_of_worship",
       "osmKey": "religion",
       "inputType": "select",
-      "label": "Религия",
+      "label": "religion_place_of_worship",
       "options": [
         {
-          "value": "bahai",
-          "label": "Бахаи"
-        },
-        {
-          "value": "benzhu",
-          "label": "Бенджу"
-        },
-        {
-          "value": "buddhist",
-          "label": "Буддизм"
-        },
-        {
-          "value": "caodaism",
-          "label": "Каодай"
-        },
-        {
-          "value": "chinese_folk",
-          "label": "Традиционные китайские верования"
-        },
-        {
           "value": "christian",
-          "label": "Христианство"
-        },
-        {
-          "value": "confucian",
-          "label": "Конфуцианство"
-        },
-        {
-          "value": "hindu",
-          "label": "Индуизм"
-        },
-        {
-          "value": "jain",
-          "label": "Джайнизм"
-        },
-        {
-          "value": "jewish",
-          "label": "Иудаизм"
-        },
-        {
-          "value": "multifaith",
-          "label": "Многоверие"
+          "label": "christian"
         },
         {
           "value": "muslim",
-          "label": "Ислам"
+          "label": "muslim"
         },
         {
-          "value": "none",
-          "label": "Светский"
+          "value": "buddhist",
+          "label": "buddhist"
         },
         {
-          "value": "pagan",
-          "label": "Языческий"
+          "value": "hindu",
+          "label": "hindu"
         },
         {
           "value": "shinto",
-          "label": "Синтоизм"
+          "label": "shinto"
         },
         {
-          "value": "sikh",
-          "label": "Сикхизм"
-        },
-        {
-          "value": "spiritualist",
-          "label": "Спиритуализм"
+          "value": "jewish",
+          "label": "jewish"
         },
         {
           "value": "taoist",
-          "label": "Таоизм"
+          "label": "taoist"
         },
         {
-          "value": "tenrikyo",
-          "label": "Тэнрикё"
+          "value": "sikh",
+          "label": "sikh"
         },
         {
-          "value": "unitarian_universalist",
-          "label": "Унитарианский универсализм"
+          "value": "chinese_folk",
+          "label": "chinese_folk"
+        },
+        {
+          "value": "multifaith",
+          "label": "multifaith"
+        },
+        {
+          "value": "confucian",
+          "label": "confucian"
         },
         {
           "value": "vietnamese_folk",
-          "label": "Традиционные вьетнамские верования"
+          "label": "vietnamese_folk"
+        },
+        {
+          "value": "spiritualist",
+          "label": "spiritualist"
+        },
+        {
+          "value": "jain",
+          "label": "jain"
+        },
+        {
+          "value": "unitarian_universalist",
+          "label": "unitarian_universalist"
+        },
+        {
+          "value": "tenrikyo",
+          "label": "tenrikyo"
         },
         {
           "value": "voodoo",
-          "label": "Вудуизм"
+          "label": "voodoo"
+        },
+        {
+          "value": "pagan",
+          "label": "pagan"
+        },
+        {
+          "value": "bahai",
+          "label": "bahai"
+        },
+        {
+          "value": "caodaism",
+          "label": "caodaism"
+        },
+        {
+          "value": "benzhu",
+          "label": "benzhu"
         }
       ]
     },
@@ -1823,16 +2639,73 @@
       "label": "Номера"
     },
     {
+      "id": "royal_cypher-GB",
+      "osmKey": "royal_cypher",
+      "inputType": "text",
+      "label": "Королевский шифр"
+    },
+    {
       "id": "sample_collection",
       "osmKey": "sample_collection",
       "inputType": "semiCombo",
       "label": "Примеры"
     },
     {
+      "id": "sanitary_dump_station",
+      "osmKey": "sanitary_dump_station",
+      "inputType": "check",
+      "label": "Ассенизационная сливная станция"
+    },
+    {
       "id": "screen",
       "osmKey": "screen",
       "inputType": "number",
       "label": "Экраны"
+    },
+    {
+      "id": "scuba_diving",
+      "osmKey": "scuba_diving:",
+      "inputType": "multiCombo",
+      "label": "Услуги",
+      "options": [
+        {
+          "value": "air_filling",
+          "label": "air_filling"
+        },
+        {
+          "value": "courses",
+          "label": "courses"
+        },
+        {
+          "value": "filling",
+          "label": "filling"
+        },
+        {
+          "value": "hobby",
+          "label": "hobby"
+        },
+        {
+          "value": "nitrox_filling",
+          "label": "nitrox_filling"
+        },
+        {
+          "value": "oxygen_filling",
+          "label": "oxygen_filling"
+        },
+        {
+          "value": "rental",
+          "label": "rental"
+        },
+        {
+          "value": "repair",
+          "label": "repair"
+        },
+        {
+          "value": "trimix_filling",
+          "label": "trimix_filling"
+        }
+      ],
+      "keyPrefix": "scuba_diving:"
     },
     {
       "id": "seasonal",
@@ -1893,6 +2766,20 @@
       "label": "Самообслуживание"
     },
     {
+      "id": "service/bicycle",
+      "osmKey": "service:bicycle:",
+      "inputType": "multiCombo",
+      "label": "Услуги по прокату велосипедов",
+      "keyPrefix": "service:bicycle:"
+    },
+    {
+      "id": "service/vehicle",
+      "osmKey": "service:vehicle:",
+      "inputType": "multiCombo",
+      "label": "Услуги",
+      "keyPrefix": "service:vehicle:"
+    },
+    {
       "id": "service_times",
       "osmKey": "service_times",
       "inputType": "text",
@@ -1915,6 +2802,12 @@
       "osmKey": "shoes",
       "inputType": "semiCombo",
       "label": "Обувь"
+    },
+    {
+      "id": "shower",
+      "osmKey": "shower",
+      "inputType": "check",
+      "label": "Душ"
     },
     {
       "id": "smoking",
@@ -1997,6 +2890,100 @@
           "label": "Мастерская"
         }
       ]
+    },
+    {
+      "id": "social_facility_for",
+      "osmKey": "social_facility:for",
+      "inputType": "select",
+      "label": "Обслуживаемые лица",
+      "options": [
+        {
+          "value": "abused",
+          "label": "Жертвы жестокого обращения"
+        },
+        {
+          "value": "child",
+          "label": "Дети"
+        },
+        {
+          "value": "dementia",
+          "label": "Люди, страдающие слабоумием"
+        },
+        {
+          "value": "disabled",
+          "label": "Люди с ограниченными возможностями"
+        },
+        {
+          "value": "diseased",
+          "label": "Люди, страдающие от какой-либо болезни"
+        },
+        {
+          "value": "displaced",
+          "label": "Люди, перемещенные в результате стихийных бедствий или конфликтов"
+        },
+        {
+          "value": "drug_addicted",
+          "label": "Наркозависимые"
+        },
+        {
+          "value": "homeless",
+          "label": "Бездомные"
+        },
+        {
+          "value": "juvenile",
+          "label": "Несовершеннолетние"
+        },
+        {
+          "value": "mental_health",
+          "label": "Люди с проблемами психического здоровья"
+        },
+        {
+          "value": "migrant",
+          "label": "Мигранты"
+        },
+        {
+          "value": "orphan",
+          "label": "Сироты"
+        },
+        {
+          "value": "refugee",
+          "label": "Беженцы"
+        },
+        {
+          "value": "senior",
+          "label": "Пожилые"
+        },
+        {
+          "value": "terminally_ill",
+          "label": "Неизлечимо больные"
+        },
+        {
+          "value": "underprivileged",
+          "label": "Обездоленные люди"
+        },
+        {
+          "value": "unemployed",
+          "label": "Люди без работы"
+        },
+        {
+          "value": "veteran",
+          "label": "Ветераны"
+        },
+        {
+          "value": "victim",
+          "label": "Жертвы преступлений"
+        },
+        {
+          "value": "woman",
+          "label": "Женщины"
+        }
+      ]
+    },
+    {
+      "id": "source/population",
+      "osmKey": "source:population",
+      "inputType": "select",
+      "label": "Источник населения"
     },
     {
       "id": "sport",
@@ -2255,6 +3242,12 @@
       "label": "Дата открытия"
     },
     {
+      "id": "static_caravans",
+      "osmKey": "static_caravans",
+      "inputType": "check",
+      "label": "Переносные дома"
+    },
+    {
       "id": "stroller",
       "osmKey": "stroller",
       "inputType": "select",
@@ -2281,6 +3274,12 @@
       "label": "Тип"
     },
     {
+      "id": "subject/wikidata",
+      "osmKey": "subject:wikidata",
+      "inputType": "text",
+      "label": "Объект в Викиданных"
+    },
+    {
       "id": "supervised",
       "osmKey": "supervised",
       "inputType": "check",
@@ -2293,114 +3292,98 @@
       "label": "Находится на"
     },
     {
-      "id": "surface",
+      "id": "surface_sport_pitch",
       "osmKey": "surface",
       "inputType": "select",
-      "label": "Дорожное покрытие",
+      "label": "surface_sport_pitch",
       "options": [
         {
-          "value": "artificial_turf",
-          "label": "Искуственная трава"
-        },
-        {
-          "value": "asphalt",
-          "label": "Асфальт"
-        },
-        {
-          "value": "clay",
-          "label": "Глина"
-        },
-        {
-          "value": "compacted",
-          "label": "Утрамбованный грунт"
-        },
-        {
-          "value": "concrete",
-          "label": "Бетон"
-        },
-        {
-          "value": "concrete:lanes",
-          "label": "Бетонные полосы"
-        },
-        {
-          "value": "concrete:plates",
-          "label": "Бетонные плиты"
-        },
-        {
-          "value": "dirt",
-          "label": "Влажная грязь"
-        },
-        {
-          "value": "fine_gravel",
-          "label": "Мелкий Гравий"
-        },
-        {
           "value": "grass",
-          "label": "Трава"
+          "label": "grass"
         },
         {
-          "value": "grass_paver",
-          "label": "Газонная решётка"
-        },
-        {
-          "value": "gravel",
-          "label": "Гравий"
-        },
-        {
-          "value": "ground",
-          "label": "Голая почва"
-        },
-        {
-          "value": "metal",
-          "label": "Металл"
-        },
-        {
-          "value": "mud",
-          "label": "Грязь"
-        },
-        {
-          "value": "paved",
-          "label": "Твердое покрытие (любое)"
-        },
-        {
-          "value": "paving_stones",
-          "label": "Тротуарная плитка"
-        },
-        {
-          "value": "pebblestone",
-          "label": "Галька"
-        },
-        {
-          "value": "salt",
-          "label": "Соль"
+          "value": "artificial_turf",
+          "label": "artificial_turf"
         },
         {
           "value": "sand",
-          "label": "Песок"
+          "label": "sand"
         },
         {
-          "value": "sett",
-          "label": "Брусчатка"
+          "value": "asphalt",
+          "label": "asphalt"
+        },
+        {
+          "value": "concrete",
+          "label": "concrete"
+        },
+        {
+          "value": "clay",
+          "label": "clay"
+        },
+        {
+          "value": "paved",
+          "label": "paved"
         },
         {
           "value": "tartan",
-          "label": "Тартан"
+          "label": "tartan"
+        },
+        {
+          "value": "ground",
+          "label": "ground"
+        },
+        {
+          "value": "dirt",
+          "label": "dirt"
+        },
+        {
+          "value": "compacted",
+          "label": "compacted"
+        },
+        {
+          "value": "fine_gravel",
+          "label": "fine_gravel"
+        },
+        {
+          "value": "paving_stones",
+          "label": "paving_stones"
+        },
+        {
+          "value": "sett",
+          "label": "sett"
         },
         {
           "value": "unhewn_cobblestone",
-          "label": "Булыжник (необработанные, округлые камни)"
+          "label": "unhewn_cobblestone"
         },
         {
-          "value": "unpaved",
-          "label": "Рыхлое покрытие (любое)"
+          "value": "grass_paver",
+          "label": "grass_paver"
         },
         {
           "value": "wood",
-          "label": "Дерево"
+          "label": "wood"
+        },
+        {
+          "value": "metal",
+          "label": "metal"
+        },
+        {
+          "value": "gravel",
+          "label": "gravel"
+        },
+        {
+          "value": "pebblestone",
+          "label": "pebblestone"
+        },
+        {
+          "value": "unpaved",
+          "label": "unpaved"
         },
         {
           "value": "woodchips",
-          "label": "Древесная щепа"
+          "label": "woodchips"
         }
       ]
     },
@@ -2444,31 +3427,27 @@
       "options": [
         {
           "value": "motorcar",
-          "label": {
-            "title": "Автомобиль"
-          }
+          "label": "Автомобиль"
         },
         {
           "value": "motorcycle",
-          "label": {
-            "title": "Мотоцикл"
-          }
+          "label": "Мотоцикл"
         },
         {
           "value": "auto_rickshaw",
-          "label": {
-            "description": "Моторикши (например, баджадж, трехколесный велосипед, тук-тук и т.д.)",
-            "title": "Моторикша"
-          }
+          "label": "Моторикша"
         },
         {
           "value": "cycle_rickshaw",
-          "label": {
-            "description": "Рикши с педальным приводом (например, падяк, велотакси и т.д.)",
-            "title": "Велорикша"
-          }
+          "label": "Велорикша"
         }
       ]
+    },
+    {
+      "id": "tents",
+      "osmKey": "tents",
+      "inputType": "check",
+      "label": "Палатки"
     },
     {
       "id": "toilets",
@@ -2477,10 +3456,84 @@
       "label": "Туалет"
     },
     {
+      "id": "toilets/disposal",
+      "osmKey": "toilets:disposal",
+      "inputType": "select",
+      "label": "Тип смыва",
+      "options": [
+        {
+          "value": "flush",
+          "label": "Смыв"
+        },
+        {
+          "value": "pitlatrine",
+          "label": "Выгребная яма"
+        },
+        {
+          "value": "chemical",
+          "label": "Химический"
+        },
+        {
+          "value": "bucket",
+          "label": "Ведро"
+        }
+      ]
+    },
+    {
+      "id": "toilets/handwashing",
+      "osmKey": "toilets:handwashing",
+      "inputType": "check",
+      "label": "Рукомойник"
+    },
+    {
+      "id": "toilets/menstrual_products_poi",
+      "osmKey": "toilets:menstrual_products",
+      "inputType": "select",
+      "label": "toilets/menstrual_products_poi"
+    },
+    {
+      "id": "toilets/position",
+      "osmKey": "toilets:position",
+      "inputType": "semiCombo",
+      "label": "Позиция"
+    },
+    {
+      "id": "toilets/wheelchair",
+      "osmKey": "toilets:wheelchair",
+      "inputType": "select",
+      "label": "Туалет для гостей на инвалидных колясках",
+      "options": [
+        {
+          "value": "yes",
+          "label": "Да"
+        },
+        {
+          "value": "limited",
+          "label": "Ограничено"
+        },
+        {
+          "value": "no",
+          "label": "Нет"
+        }
+      ]
+    },
+    {
+      "id": "townhall/type",
+      "osmKey": "townhall:type",
+      "inputType": "select",
+      "label": "Тип"
+    },
+    {
       "id": "trade",
       "osmKey": "trade",
       "inputType": "text",
       "label": "Тип"
+    },
+    {
+      "id": "deposit/trolley",
+      "osmKey": "trolley:deposit",
+      "inputType": "check",
+      "label": "Залог"
     },
     {
       "id": "vending",
@@ -2587,6 +3640,12 @@
       ]
     },
     {
+      "id": "video_calls",
+      "osmKey": "video",
+      "inputType": "check",
+      "label": "Видеозвонки"
+    },
+    {
       "id": "visibility",
       "osmKey": "visibility",
       "inputType": "select",
@@ -2641,6 +3700,12 @@
       "osmKey": "website",
       "inputType": "url",
       "label": "Веб-сайт"
+    },
+    {
+      "id": "website/menu",
+      "osmKey": "website:menu",
+      "inputType": "url",
+      "label": "Ссылка на меню"
     },
     {
       "id": "wheelchair",

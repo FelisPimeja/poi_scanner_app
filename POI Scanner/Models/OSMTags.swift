@@ -43,9 +43,15 @@ struct OSMTagDefinition {
         case type     = "Тип"
         case brand    = "Бренд"
         case address  = "Адрес"
-        case hours    = "Часы работы"
+        case entrance = "Подъезд"
         case contact  = "Контакты"
-        case payment  = "Способы оплаты"
+        case payment        = "Способы оплаты"
+        case fuel           = "Виды топлива"
+        case diet           = "Питание"
+        case recycling      = "Приём вторсырья"
+        case currency       = "Принимаемые валюты"
+        case serviceBicycle = "Велосервис"
+        case serviceVehicle = "Автосервис"
         case building = "Здание"
         case legal    = "Юридические данные"
         case wiki     = "Wiki"
@@ -93,19 +99,76 @@ enum OSMTags {
         .init(key: "ref:okved",        label: "ОКВЭД",           hint: "Код вида экономической деятельности",            wikiURL: nil, group: .legal, inputType: .text),
 
         // ── Адрес ─────────────────────────────────────────────────────────────
-        .init(key: "addr:country",     label: "Страна",     hint: "Код страны (RU, US…)", wikiURL: nil, group: .address, inputType: .text, icon: "globe"),
+        // Порядок: Индекс → Город → Улица → Дом (→ Этаж появляется когда заполнен Дом)
+        .init(key: "addr:postcode",    label: "Индекс",     hint: "Почтовый индекс",     wikiURL: nil, group: .address, inputType: .text, icon: "envelope"),
         .init(key: "addr:city",        label: "Город",      hint: "Населённый пункт",    wikiURL: nil, group: .address, inputType: .text, icon: "building.columns"),
-        .init(key: "addr:suburb",      label: "Район",      hint: "Район города",         wikiURL: nil, group: .address, inputType: .text, icon: "map"),
         .init(key: "addr:street",      label: "Улица",      hint: "Название улицы",      wikiURL: nil, group: .address, inputType: .text, icon: "road.lanes"),
         .init(key: "addr:housenumber", label: "Номер дома", hint: "Номер дома/строения", wikiURL: nil, group: .address, inputType: .text, icon: "house"),
-        .init(key: "addr:unit",        label: "Квартира/Офис", hint: "Номер помещения",  wikiURL: nil, group: .address, inputType: .text, icon: "door.right.hand.closed"),
         .init(key: "addr:floor",       label: "Этаж",       hint: "Этаж внутри здания",  wikiURL: nil, group: .address, inputType: .text, icon: "square.stack.3d.up"),
-        .init(key: "addr:postcode",    label: "Индекс",     hint: "Почтовый индекс",     wikiURL: nil, group: .address, inputType: .text, icon: "envelope"),
+        .init(key: "addr:unit",        label: "Квартира/Офис", hint: "Номер помещения",  wikiURL: nil, group: .address, inputType: .text, icon: "door.right.hand.closed"),
+        .init(key: "addr:country",     label: "Страна",     hint: "Код страны (RU, US…)", wikiURL: nil, group: .address, inputType: .text, icon: "globe"),
+        .init(key: "addr:suburb",      label: "Район",      hint: "Район города",         wikiURL: nil, group: .address, inputType: .text, icon: "map"),
         .init(key: "addr2:street",     label: "Улица (2)",  hint: "Второй адрес — улица", wikiURL: nil, group: .address, inputType: .text, icon: "road.lanes"),
         .init(key: "addr2:housenumber",label: "Дом (2)",    hint: "Второй адрес — дом",  wikiURL: nil, group: .address, inputType: .text, icon: "house"),
 
-        // ── Часы работы ──────────────────────────────────────────────────────
-        .init(key: "opening_hours", label: "Часы работы", hint: "Формат OSM: Mo-Fr 09:00-18:00", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:opening_hours", group: .hours, inputType: .openingHours, icon: "clock"),
+        // ── Подъезд ───────────────────────────────────────────────────────────
+        .init(key: "access",      label: "Доступ",    hint: "yes / private / customers / permissive", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:access",      group: .entrance, inputType: .select(["yes", "private", "customers", "permissive", "delivery", "no"]), icon: "lock"),
+        .init(key: "addr:flats",  label: "Квартиры",  hint: "Диапазон квартир: 1-99",                 wikiURL: "https://wiki.openstreetmap.org/wiki/Key:addr:flats",  group: .entrance, inputType: .text, icon: "number"),
+        .init(key: "entrance",    label: "Вход",      hint: "Тип входа: main / yes / staircase",      wikiURL: "https://wiki.openstreetmap.org/wiki/Key:entrance",    group: .entrance, inputType: .select(["main", "yes", "staircase", "service", "garage", "emergency", "exit"]), icon: "door.left.hand.open"),
+        .init(key: "ref",         label: "Номер",     hint: "Номер подъезда или ссылочный номер",      wikiURL: "https://wiki.openstreetmap.org/wiki/Key:ref",         group: .entrance, inputType: .text, icon: "textformat.123"),
+
+        // ── Виды топлива ─────────────────────────────────────────────────────
+        // Ключи вида fuel:diesel = yes/no. Метки берутся из POIFieldRegistry.
+        .init(key: "fuel:diesel",             label: "Дизель",             hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:octane_95",          label: "АИ-95",              hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:octane_92",          label: "АИ-92",              hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:octane_98",          label: "АИ-98",              hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:octane_100",         label: "АИ-100",             hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:octane_80",          label: "АИ-80",              hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:lpg",                label: "СУГ (LPG)",          hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:cng",                label: "КПГ (CNG)",          hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:lng",                label: "СПГ (LNG)",          hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:adblue",             label: "AdBlue (в розлив)",  hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:adblue:canister",    label: "AdBlue (в канистрах)", hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:biodiesel",          label: "Биодизель",          hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:e5",                 label: "Бензин E5",          hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:e10",                label: "Бензин E10",         hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:e85",                label: "Бензин E85",         hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:GTL_diesel",         label: "GTL-дизель",         hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:HGV_diesel",         label: "Грузовой дизель",    hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:LH2",                label: "Жидкий водород",     hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:h70",                label: "Водород 700 бар",    hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+        .init(key: "fuel:propane",            label: "Пропан",             hint: "", group: .fuel, inputType: .boolean, icon: "fuelpump"),
+
+        // ── Питание (diet:) ───────────────────────────────────────────────────
+        // Ключи вида diet:vegan = yes/no/only
+        .init(key: "diet:vegetarian",  label: "Вегетарианская",    hint: "", group: .diet, inputType: .boolean, icon: "leaf"),
+        .init(key: "diet:vegan",       label: "Веганская",         hint: "", group: .diet, inputType: .boolean, icon: "leaf"),
+        .init(key: "diet:halal",       label: "Халяль",            hint: "", group: .diet, inputType: .boolean, icon: "leaf"),
+        .init(key: "diet:kosher",      label: "Кошерное",          hint: "", group: .diet, inputType: .boolean, icon: "leaf"),
+        .init(key: "diet:gluten_free", label: "Без глютена",       hint: "", group: .diet, inputType: .boolean, icon: "leaf"),
+        .init(key: "diet:lactose_free",label: "Без лактозы",       hint: "", group: .diet, inputType: .boolean, icon: "leaf"),
+        .init(key: "diet:pescetarian", label: "Пескетарианская",   hint: "", group: .diet, inputType: .boolean, icon: "leaf"),
+
+        // ── Приём вторсырья (recycling:) ──────────────────────────────────────
+        // Ключи вида recycling:paper = yes/no
+        .init(key: "recycling:glass_bottles",     label: "Стеклянные бутылки",   hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:glass",             label: "Стекло",               hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:paper",             label: "Бумага",               hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:plastic",           label: "Пластик",              hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:clothes",           label: "Одежда",               hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:cans",              label: "Металлические банки",  hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:batteries",         label: "Батарейки",            hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:shoes",             label: "Обувь",                hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:green_waste",       label: "Растительные отходы",  hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:plastic_packaging", label: "Пластиковая упаковка", hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:plastic_bottles",   label: "Пластиковые бутылки",  hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:cardboard",         label: "Картон",               hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:scrap_metal",       label: "Металлолом",           hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:cooking_oil",       label: "Масло пищевое",        hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:engine_oil",        label: "Масло моторное",       hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "recycling:food_waste",        label: "Пищевые отходы",       hint: "", group: .recycling, inputType: .boolean, icon: "arrow.3.trianglepath"),
+        .init(key: "opening_hours", label: "Часы работы", hint: "Формат OSM: Mo-Fr 09:00-18:00", wikiURL: "https://wiki.openstreetmap.org/wiki/Key:opening_hours", group: .other, inputType: .openingHours, icon: "clock"),
 
         // ── Здание ───────────────────────────────────────────────────────────
         .init(key: "building",          label: "Тип здания",          hint: "Тип/наличие здания",           wikiURL: "https://wiki.openstreetmap.org/wiki/RU:Key:building",              group: .building, inputType: .select(OSMTags.buildingValues),              icon: "building.2"),
@@ -205,9 +268,11 @@ enum OSMTags {
     ]
 
     /// Возвращает true, если ключ относится к «имени» объекта —
-    /// либо входит в nameKeys, либо начинается с "name:" / "official_name:" / "old_name:".
+    /// либо входит в nameKeys, либо начинается с "name:" / "official_name:" / "old_name:" / "was:name:".
     static func isNameKey(_ key: String) -> Bool {
-        key.hasPrefix("name:") || key.hasPrefix("official_name:") || key.hasPrefix("old_name:") || nameKeys.contains(key)
+        key.hasPrefix("name:") || key.hasPrefix("official_name:") || key.hasPrefix("old_name:")
+            || key.hasPrefix("was:name:") || key == "was:name"
+            || nameKeys.contains(key)
     }
 
     /// Ключи, попадающие в группу «Бренд».
@@ -247,6 +312,31 @@ enum OSMTags {
     static func isBuildingKey(_ key: String) -> Bool {
         key == "building" || key.hasPrefix("building:") || key.hasPrefix("roof:") || key == "height"
     }
+
+    /// Возвращает true, если ключ относится к группе «Подъезд».
+    static func isEntranceKey(_ key: String) -> Bool {
+        key == "access" || key == "addr:flats" || key == "entrance" || key == "ref"
+    }
+
+    /// Возвращает true, если ключ относится к группе «Виды топлива».
+    static func isFuelKey(_ key: String) -> Bool {
+        key.hasPrefix("fuel:")
+    }
+
+    /// Возвращает true, если ключ относится к группе «Питание».
+    static func isDietKey(_ key: String) -> Bool { key.hasPrefix("diet:") }
+
+    /// Возвращает true, если ключ относится к группе «Приём вторсырья».
+    static func isRecyclingKey(_ key: String) -> Bool { key.hasPrefix("recycling:") }
+
+    /// Возвращает true, если ключ относится к группе «Принимаемые валюты».
+    static func isCurrencyKey(_ key: String) -> Bool { key.hasPrefix("currency:") }
+
+    /// Возвращает true, если ключ относится к группе «Велосервис».
+    static func isServiceBicycleKey(_ key: String) -> Bool { key.hasPrefix("service:bicycle:") }
+
+    /// Возвращает true, если ключ относится к группе «Автосервис».
+    static func isServiceVehicleKey(_ key: String) -> Bool { key.hasPrefix("service:vehicle:") }
 
     // MARK: Значения для select-полей
 

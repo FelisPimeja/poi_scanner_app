@@ -32,7 +32,7 @@ final class POITypeRegistry {
 
     /// Базовые ключи, которые считаются «типовыми».
     static let baseKeys: Set<String> = [
-        "amenity", "shop", "craft", "public_transport", "healthcare"
+        "amenity", "shop", "craft", "public_transport", "healthcare", "tourism", "entrance", "office"
     ]
 
     private init() {

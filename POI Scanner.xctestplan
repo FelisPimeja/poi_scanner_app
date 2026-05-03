@@ -1,14 +1,14 @@
 {
   "configurations" : [
     {
-      "id" : "AFD6F8FC-A1D4-4827-8E92-B98C057D73EB",
-      "name" : "Test Scheme Action",
       "environmentVariableEntries" : [
         {
           "key" : "POI_FIXTURES_PATH",
-          "value" : "/Users/felispimeja/github/POI Scanner/POI ScannerTests/Fixtures"
+          "value" : "\/Users\/felispimeja\/github\/POI Scanner\/POI ScannerTests\/Fixtures"
         }
       ],
+      "id" : "AFD6F8FC-A1D4-4827-8E92-B98C057D73EB",
+      "name" : "Test Scheme Action",
       "options" : {
 
       }

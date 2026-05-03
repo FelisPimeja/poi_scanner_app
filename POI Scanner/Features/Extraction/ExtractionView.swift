@@ -33,7 +33,18 @@ struct ExtractionView: View {
     var body: some View {
         Group {
             if let poi = viewModel.extractedPOI {
-                POIEditorView(poi: poi, mode: .new(sourceImage: image), onSave: onSave)
+                POIEditorView(
+                    poi: poi,
+                    mode: .new(sourceImage: image),
+                    rawOCRText: viewModel.ocrText.isEmpty ? nil : viewModel.ocrText,
+                    qrPayloads: viewModel.qrPayloads,
+                    webResults: viewModel.webResults,
+                    onSave: onSave
+                )
+                .onChange(of: viewModel.webResults) { _, _ in
+                    // Обновление webResults приходит после открытия редактора —
+                    // POIEditorView пересоздастся с новыми данными через SwiftUI diff
+                }
             } else {
                 extractionProgress
             }
@@ -145,7 +156,15 @@ final class ExtractionViewModel: ObservableObject {
     @Published var statusText = "Распознаём текст…"
     @Published var errorMessage: String?
 
+    /// Сырой OCR-текст с фото (для просмотра)
+    @Published var ocrText: String = ""
+    /// Строки из QR-кодов (для просмотра)
+    @Published var qrPayloads: [String] = []
+    /// Результаты веб-парсинга ссылок из тегов POI
+    @Published var webResults: [WebFetchResult] = []
+
     private let vision = VisionService()
+    private let enricher = WebEnricher()
 
     func extract(from image: UIImage, coordinate: CLLocationCoordinate2D,
                  existingNode: OSMNode?, coordinateFromPhoto: Bool = false,
@@ -158,6 +177,9 @@ final class ExtractionViewModel: ObservableObject {
 
             // QR — опциональный шаг, сбой не должен прерывать OCR
             let qrPayloads = (try? await vision.detectQRCodes(in: image)) ?? []
+
+            self.ocrText = ocrText
+            self.qrPayloads = qrPayloads
 
             statusText = "Анализируем данные…"
 
@@ -199,6 +221,16 @@ final class ExtractionViewModel: ObservableObject {
             }
 
             extractedPOI = poi
+
+            // Веб-обогащение — запускаем параллельно (не блокирует открытие редактора)
+            Task { [weak self] in
+                guard let self else { return }
+                let results = await enricher.enrich(
+                    poiTags: poi.tags,
+                    parsedTags: parseResult.tags
+                )
+                await MainActor.run { self.webResults = results }
+            }
 
         } catch {
             errorMessage = error.localizedDescription

@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 import AVFoundation
 import Photos
+import CoreLocation
 
 // MARK: - CaptureView
 // Выбор фото из галереи или камеры. Возвращает UIImage через onCapture.
@@ -243,32 +244,57 @@ struct CameraPickerView: UIViewControllerRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(onCapture: onCapture, onCancel: onCancel) }
 
-    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate, CLLocationManagerDelegate {
         let onCapture: (UIImage, CLLocationCoordinate2D?, Double?, Date?) -> Void
         let onCancel: () -> Void
+
+        private let locationManager = CLLocationManager()
+        private var lastLocation: CLLocation?
 
         init(onCapture: @escaping (UIImage, CLLocationCoordinate2D?, Double?, Date?) -> Void,
              onCancel: @escaping () -> Void) {
             self.onCapture = onCapture
             self.onCancel = onCancel
+            super.init()
+            locationManager.delegate = self
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest
+            locationManager.requestWhenInUseAuthorization()
+            locationManager.startUpdatingLocation()
+        }
+
+        func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+            // Берём самую свежую и точную позицию
+            lastLocation = locations.last
         }
 
         func imagePickerController(_ picker: UIImagePickerController,
                                    didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             guard let image = info[.originalImage] as? UIImage else { return }
-            let result = PhotoMetadataService.gpsResult(fromCameraInfo: info)
-            let coord = result?.coordinate
-            let accuracy = result?.horizontalAccuracy
-            let captureDate = PhotoMetadataService.captureDate(fromCameraInfo: info)
-            if let coord {
-                print("[EXIF] координаты из камеры: \(coord.latitude), \(coord.longitude), accuracy: \(accuracy.map { String($0) } ?? "nil")")
+
+            // Сначала пробуем EXIF (для галереи, если вдруг попали сюда)
+            var coord: CLLocationCoordinate2D? = PhotoMetadataService.gpsResult(fromCameraInfo: info)?.coordinate
+            var accuracy: Double? = PhotoMetadataService.gpsResult(fromCameraInfo: info)?.horizontalAccuracy
+
+            // Фоллбэк: текущая позиция из CLLocationManager (основной путь при съёмке камерой)
+            if coord == nil, let loc = lastLocation,
+               CLLocationCoordinate2DIsValid(loc.coordinate),
+               loc.horizontalAccuracy >= 0 {
+                coord = loc.coordinate
+                accuracy = loc.horizontalAccuracy
+                print("[GPS] координаты из CLLocationManager: \(loc.coordinate.latitude), \(loc.coordinate.longitude), accuracy: \(loc.horizontalAccuracy)")
+            } else if coord != nil {
+                print("[GPS] координаты из EXIF камеры: \(coord!.latitude), \(coord!.longitude)")
             } else {
-                print("[EXIF] GPS в снимке камеры не найден")
+                print("[GPS] GPS недоступен — ни EXIF, ни CLLocation")
             }
+
+            locationManager.stopUpdatingLocation()
+            let captureDate = PhotoMetadataService.captureDate(fromCameraInfo: info) ?? Date()
             DispatchQueue.main.async { self.onCapture(image, coord, accuracy, captureDate) }
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            locationManager.stopUpdatingLocation()
             DispatchQueue.main.async { self.onCancel() }
         }
     }

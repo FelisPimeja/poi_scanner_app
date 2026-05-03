@@ -2,7 +2,7 @@
 
 ## Обзор
 
-Справочник типов POI (`POITypes.json`) генерируется автоматически из публичной схемы
+Справочники `POITypes.json` и `POIFields.json` генерируются автоматически из публичной схемы
 [`@openstreetmap/id-tagging-schema`](https://github.com/openstreetmap/id-tagging-schema) —
 той же базы данных, которую использует веб-редактор [iD Editor](https://github.com/openstreetmap/iD).
 
@@ -17,18 +17,23 @@
 
 ```
 Scripts/
-  import_presets.js          ← скрипт импорта (Node.js, ESM)
+  import_presets.js                ← скрипт импорта (Node.js ≥ 18, ESM)
 POI Scanner/Resources/
-  POITypes.json              ← результат (добавлен в Xcode-проект как ресурс бандла)
+  POITypes.json                    ← 372 типа POI (amenity/shop/craft/…)
+  POIFields.json                   ← 183 определения полей с RU-переводами
+Docs/
+  PresetImport.md                  ← этот файл
 ```
 
 ---
 
-## Формат POITypes.json
+## Форматы файлов
+
+### POITypes.json
 
 ```json
 {
-  "_generated": "2026-04-27T12:54:44.278Z",
+  "_generated": "2026-04-27T17:01:51.343Z",
   "_source": "https://github.com/openstreetmap/id-tagging-schema",
   "types": [
     {
@@ -37,7 +42,7 @@ POI Scanner/Resources/
       "value":   "cafe",
       "name":    "Кафе",
       "terms":   ["coffee", "coffeehouse", ...],
-      "presets": ["cuisine", "opening_hours", "outdoor_seating", "phone", "website", ...]
+      "presets": ["cuisine", "diet:", "opening_hours", "payment:", "phone", "website", ...]
     },
     ...
   ]
@@ -47,11 +52,73 @@ POI Scanner/Resources/
 | Поле | Описание |
 |------|----------|
 | `id` | Уникальный идентификатор: `"key/value"` |
-| `key` | Базовый OSM-ключ (`amenity`, `shop`, `craft`, `public_transport`, `healthcare`) |
-| `value` | Значение базового ключа (`cafe`, `supermarket`, …) |
-| `name` | Человекочитаемое название (русское, если задан перевод, иначе английское из схемы) |
-| `terms` | Поисковые термины и синонимы из схемы (для нечёткого поиска в будущем) |
-| `presets` | Список OSM-ключей, которые рекомендуется заполнить для данного типа |
+| `key` | Базовый OSM-ключ |
+| `value` | Значение базового ключа |
+| `name` | Русское название (из `NAME_OVERRIDES` → схемы) |
+| `terms` | Поисковые синонимы и термины из схемы |
+| `presets` | Список ключей/псевдонимов групп, рекомендованных для данного типа |
+
+Текущее распределение по ключам:
+
+| Ключ | Типов |
+|------|-------|
+| `amenity` | 131 |
+| `shop` | 170 |
+| `craft` | 50 |
+| `healthcare` | 17 |
+| `public_transport` | 4 |
+| **Итого** | **372** |
+
+### POIFields.json
+
+```json
+{
+  "_generated": "2026-04-27T17:01:51.343Z",
+  "_source": "https://github.com/openstreetmap/id-tagging-schema",
+  "fields": [
+    {
+      "id":        "diet_multi",
+      "osmKey":    "diet:",
+      "inputType": "multiCombo",
+      "label":     "Диета",
+      "keyPrefix": "diet:",
+      "options": [
+        { "value": "vegan",        "label": "Веганская диета" },
+        { "value": "vegetarian",   "label": "Вегетарианская диета" },
+        ...
+      ]
+    },
+    ...
+  ]
+}
+```
+
+| Поле | Описание |
+|------|----------|
+| `id` | ID поля из схемы |
+| `osmKey` | Тег, как он записан в `presets` типа (может оканчиваться на `:` для multiCombo-групп) |
+| `inputType` | `text`, `select`, `check`, `multiCombo`, `semiCombo`, `openingHours`, `url`, `tel`, `email`, `number` |
+| `label` | Человекочитаемое название на русском |
+| `options` | Только для `select` / `semiCombo` / `multiCombo` — список возможных значений с переводами |
+| `keyPrefix` | Только для `multiCombo` — префикс субключей (напр. `"fuel:"` → теги `fuel:diesel`, `fuel:lpg`, …) |
+
+---
+
+## Группы multiCombo-полей
+
+Поля с `inputType: "multiCombo"` и `osmKey` вида `"prefix:"` отображаются в редакторе
+как **именованные секции** (аналогично «Адресу» или «Способам оплаты»), а не как отдельные строки.
+Соответствующий псевдоним прописывается в `presets` типа.
+
+| Псевдоним в `presets` | Группа в редакторе | Ключи тегов |
+|-----------------------|--------------------|-------------|
+| `payment:` | Способы оплаты | `payment:cash`, `payment:visa`, … |
+| `fuel:` | Виды топлива | `fuel:diesel`, `fuel:lpg`, … |
+| `diet:` | Питание | `diet:vegan`, `diet:halal`, … |
+| `recycling:` | Приём вторсырья | `recycling:paper`, `recycling:glass_bottles`, … |
+| `currency:` | Принимаемые валюты | `currency:RUB`, `currency:EUR`, … |
+| `service:bicycle:` | Велосервис | `service:bicycle:repair`, … |
+| `service:vehicle:` | Автосервис | `service:vehicle:tyres`, … |
 
 ---
 
@@ -59,7 +126,7 @@ POI Scanner/Resources/
 
 ### Требования
 
-- **Node.js ≥ 18** (встроенный `fetch`, поддержка ESM-модулей)
+- **Node.js ≥ 18** (встроенный `fetch`, поддержка ESM)
 - Интернет-соединение (скачивает схему с CDN)
 
 ### Команда
@@ -73,12 +140,12 @@ node Scripts/import_presets.js
 
 ### Когда перезапускать
 
-- При выходе новой мажорной или минорной версии `id-tagging-schema`
+- При выходе новой версии `id-tagging-schema`
   (следить на [GitHub Releases](https://github.com/openstreetmap/id-tagging-schema/releases))
-- При добавлении нового базового ключа в фильтр `ALLOWED_BASE_KEYS`
-- При расширении списка русских переводов в `NAME_OVERRIDES`
+- При добавлении нового базового ключа в `ALLOWED_BASE_KEYS`
+- При расширении `NAME_OVERRIDES`
 
-После обновления `POITypes.json` — закоммитить файл вместе со скриптом.
+После обновления JSON-файлов — закоммитить их вместе со скриптом.
 
 ---
 
@@ -99,17 +166,20 @@ const ALLOWED_BASE_KEYS = new Set([
 ]);
 ```
 
-### Добавить или исправить русский перевод
+После добавления — перезапустить скрипт и добавить переводы в `NAME_OVERRIDES`.
+
+### Добавить русский перевод названия типа
 
 ```js
 const NAME_OVERRIDES = {
   // ...
-  'tourism/hotel': 'Гостиница',
+  'tourism/hotel':  'Гостиница',
   'tourism/museum': 'Музей',
 };
 ```
 
-Типы без записи в `NAME_OVERRIDES` получают английское название из схемы.
+Типы без записи в `NAME_OVERRIDES` получают название из RU-перевода схемы,
+а при его отсутствии — английское название.
 
 ### Изменить набор универсальных полей
 
@@ -123,22 +193,25 @@ const UNIVERSAL_EXTRA_FIELDS = ['opening_hours', 'phone', 'website'];
 
 ## Фильтры — что отбрасывается
 
-Скрипт намеренно **исключает**:
-
 | Критерий | Причина |
 |----------|---------|
-| Базовый ключ не в `ALLOWED_BASE_KEYS` | Дороги, рельеф, коммуникации, маршруты и т.д. — не POI |
-| `searchable: false` | Скрытые/внутренние пресеты (не для пользователя) |
-| `suggestion: true` | Брендовые пресеты из name-suggestion-index (McDonald's, Starbucks…) |
-| `replacement` присутствует | Deprecated-пресеты с заменой |
+| Базовый ключ не в `ALLOWED_BASE_KEYS` | Дороги, рельеф, маршруты и т.д. — не POI |
+| `searchable: false` | Скрытые/внутренние пресеты |
+| `suggestion: true` | Брендовые пресеты из name-suggestion-index |
+| `replacement` присутствует | Deprecated-пресеты |
 | Значение тега `"*"` или `""` | Wildcard-пресеты (`healthcare/*`) |
-| Более одного тега в `tags` | Составные пресеты (напр. `amenity=fast_food + cuisine=burger`) — слишком специфичны для верхнеуровневого выбора |
+| Более одного тега в `tags` | Составные пресеты (`amenity=fast_food + cuisine=burger`) — слишком специфичны |
 
 ---
 
 ## Связь с кодом приложения
 
-`POITypes.json` загружается в Swift-модели через `POITypeRegistry` (планируется).  
-Используется в:
-- `POITypePickerView` — экран выбора/поиска типа POI в редакторе
-- `POIEditorView` — секция «Тип», подстановка пресетов после выбора
+| Файл | Роль |
+|------|------|
+| `POITypeRegistry.swift` | Загружает `POITypes.json`; предоставляет поиск по ключу/значению и список пресетов |
+| `POIFieldRegistry.swift` | Загружает `POIFields.json`; индексирует поля по `osmKey` и `keyPrefix` |
+| `POITypePickerView.swift` | Выбор типа POI — использует `name` и `terms` |
+| `POIEditorView.swift` | Секция «Тип», подстановка пресетов, отображение multiCombo-групп |
+| `OSMNodeInfoView.swift` | Read-only карточка — группировка тегов по `TagGroup` |
+| `OSMTags.swift` | Статический справочник известных тегов; предикаты `is*Key()` для определения группы |
+| `OSMValueLocalizations.swift` | Словари переводов значений тегов; fallback через `POIFieldRegistry` |

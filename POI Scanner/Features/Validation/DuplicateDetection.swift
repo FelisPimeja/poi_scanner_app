@@ -24,6 +24,28 @@ struct DuplicateCandidate: Identifiable, Equatable {
 
     /// Отображаемое имя узла в формате «Тип · Название (этаж)»
     var displayName: String {
+        // Подъезд: "Подъезд №4, кв. 49-66"
+        if let entranceValue = node.tags["entrance"] {
+            let typeLabel: String
+            switch entranceValue {
+            case "staircase": typeLabel = "Подъезд"
+            case "main":      typeLabel = "Главный вход"
+            case "shop":      typeLabel = "Вход в магазин"
+            case "emergency": typeLabel = "Аварийный выход"
+            case "exit":      typeLabel = "Выход"
+            default:          typeLabel = "Вход"
+            }
+            var parts: [String] = []
+            if let ref = node.tags["ref"], !ref.isEmpty {
+                parts.append("№\(ref)")
+            }
+            if let flats = node.tags["addr:flats"], !flats.isEmpty {
+                parts.append("кв. \(flats)")
+            }
+            let detail = parts.isEmpty ? "" : ", \(parts.joined(separator: ", "))"
+            return typeLabel + detail
+        }
+
         let typePart: String? = node.tags["amenity"].map { localizedType($0, key: "amenity") }
             ?? node.tags["shop"].map    { localizedType($0, key: "shop") }
             ?? node.tags["tourism"].map { localizedType($0, key: "tourism") }
