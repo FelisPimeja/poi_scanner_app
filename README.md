@@ -29,18 +29,18 @@ Config/               ← URL-схемы и конфиги
 # 2. Сжать до рабочего размера
 ./Scripts/compress_photos.sh
 
-# 3. Сгенерировать черновые фикстуры (тест в Xcode)
-#    POI ScannerTests → FixtureGenerator → testGenerateFixturesFromPhotos
+# 3. Сгенерировать черновые фикстуры (OCR по новым фото)
+./Scripts/run_tests.sh generate
 
-# 4. Авторазметка черновиков
-#    POI ScannerTests → DraftPromoter → testPromoteDraftsToExpected
-#    → проверить Fixtures/Drafts/promoted/ → переложить в Fixtures/Expected/
+# 4. Авторазметка черновиков → Drafts/promoted/
+./Scripts/run_tests.sh promote
+#    → проверить Drafts/promoted/ вручную → переложить в Fixtures/Expected/
 
-# 5. Пересобрать OCR-кэш для быстрых прогонов
-#    POI ScannerTests → VisionServiceTests → testBuildOCRCache
+# 5. Пересобрать OCR-кэш
+./Scripts/run_tests.sh build-cache
 
-# 6. Прогнать отчёт по качеству (использует кэш, работает секунды)
-#    POI ScannerTests → ExtractionPipelineTests → testExtractionQualityReportFast
+# 6. Отчёт по качеству (использует кэш, секунды)
+./Scripts/run_tests.sh quality
 ```
 
 Подробнее — [Docs/Testing.md](Docs/Testing.md).

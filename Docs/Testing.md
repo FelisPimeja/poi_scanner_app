@@ -30,8 +30,8 @@ Fixtures/ocr_cache.json ← кэш OCR-текстов (не в git)
 - Email, подъезды, диапазоны квартир
 
 Запуск одного теста:
-```
-xcodebuild test -scheme "POI Scanner" -only-testing "POI ScannerTests/TextParserTests"
+```bash
+./Scripts/run_tests.sh unit
 ```
 
 ---
@@ -67,9 +67,9 @@ OCR на реальных фото, проверяем базовое качес
 | `testDiagnoseTag` | Подробный разбор одного тега по всем фикстурам (для отладки парсера) |
 
 **Рекомендуемый рабочий цикл при работе над парсером:**
-1. `testExtractionQualityReportFast` — быстрая итерация (использует кэш)
-2. `testExtractionQualityReport` — финальная проверка на живом OCR
-3. `testAllFixturesExtraction` — строгий прогон перед мержем
+1. `./Scripts/run_tests.sh quality` — быстрая итерация (использует кэш)
+2. `./Scripts/run_tests.sh quality-slow` — финальная проверка на живом OCR
+3. `./Scripts/run_tests.sh all` — строгий прогон перед мержем
 
 ---
 
@@ -161,6 +161,27 @@ OCR на реальных фото, проверяем базовое качес
 ---
 
 ## Скрипты
+
+### `Scripts/run_tests.sh`
+
+Запускает тесты на симуляторе **iPhone 17**. Принимает команду:
+
+| Команда | Что делает |
+|---|---|
+| `unit` | TextParserTests + QRContentParserTests (без OCR, быстро) |
+| `quality` | Отчёт по качеству через OCR-кэш (секунды) |
+| `quality-slow` | Отчёт по качеству с живым OCR (~5 мин) |
+| `generate` | Генерация черновых фикстур из фото |
+| `promote` | Авторазметка черновиков → `Drafts/promoted/` |
+| `build-cache` | Пересборка OCR-кэша |
+| `all` | Все тесты (без generate/promote/build-cache) |
+
+```bash
+./Scripts/run_tests.sh generate    # прогнать OCR по новым фото
+./Scripts/run_tests.sh quality      # быстрый отчёт по парсеру
+```
+
+---
 
 ### `Scripts/compress_photos.sh`
 
